@@ -1,8 +1,8 @@
 /******************************************
  * Social Text
  *
- * Finds the text inside an HTML document that is suitable for social networks
- * and makes it easy to tweet that text.
+ * Finds the text inside an HTML document that is suitable for
+ * social networks, then makes it easy to tweet that text.
  *
  * @author          Paul Ford
  * @copyright       Copyright (c) 2012 Paul Ford.
@@ -13,254 +13,477 @@
  ******************************************/
 
 var dbg = (typeof console !== 'undefined') ? function (s) {
-    console.log("socialtext: " + s);
+    console.log("socialtext: ", s);
 } : function () {
 };
+dbg("Reading file.");
 
-(function($)
-{
-	$.fn.socialText = function(option, settings)
-	{
-		if(typeof option === 'object')
-		{
-			settings = option;
-		}
-		else if(typeof option === 'string')
-		{
-			var data = this.data('_socialText');
 
-			if(data)
-			{
-				if($.fn.socialText.defaultSettings[option] !== undefined)
-				{
-					if(settings !== undefined){
-						//if you need to make any specific changes to the DOM make them here
-						data.settings[option] = settings;
-						return true;
-					}
-					else return data.settings[option];
-				}
-				else return false;
-			}
-			else return false;
-		}
+(function ($) {
+    dbg("Evaluating function.");
+    var words = {
+        // Numerals
+        'one':1,
+        'first':'1st',
+        'two':2,
+        'second':'2nd',
+        'three':3,
+        'third':'3rd',
+        'four':4,
+        'fourth':'4th',
+        'five':5,
+        'fifth':'5th',
+        'six':6,
+        'sixth':'6th',
+        'seven':7,
+        'seventh':'7th',
+        'eight':8,
+        'eighth':'8th',
+        'nine':9,
+        'nineth':'9th',
+        'ten':10,
+        'tenth':'10th',
+        'eleven':11,
+        'twelve':12,
+        'thirteen':13,
+        'fourteen':14,
+        'fifteen':15,
+        'sixteen':16,
+        'seventeen':17,
+        'eighteen':18,
+        'nineteen':19,
+        'twenty':20,
+        'thirty':30,
+        'forty':40,
+        'fifty':50,
+        'sixty':60,
+        'seventy':70,
+        'eighty':80,
+        'ninety':90,
+        'hundred':100,
+        'thousand':'1k',
+        'million':'mm',
+        'billion':'bn',
+        'trillion':'trln',
 
-		settings = $.extend({}, $.fn.socialText.defaultSettings, settings || {});
+        // Days of week
+        'monday':'Mon',
+        'tuesday':'Tue',
+        'wednesday':'Wed',
+        'thursday':'Thu',
+        'friday':'Fri',
+        'saturday':'Sat',
+        'sunday':'Sun',
 
-		return this.each(function()
-		{
-			var $elem = $(this);
+        // Days of week
+        'january':'Jan',
+        'february':'Feb',
+        'march':'Mar',
+        'april':'Apr',
+        'may':'May',
+        'june':'Jun',
+        'july':'Jul',
+        'august':'Aug',
+        'september':'Sep',
+        'october':'Oct',
+        'november':'Nov',
+        'december':'Dec',
 
-			var $settings = jQuery.extend(true, {}, settings);
+        // Misc terms
+        'every':'vry',
+        'see':'C',
+        'cool':'k',
+        'overheard':'OH',
+        'whatever':'wtv',
+        'your':'Ur',
+        'you':'U',
+        'about':'abt',
+        'because':'b\/c',
+        'before':'b4',
+        'chk':'chk',
+        'to':'2',
+        'and':'&',
+        'their':'thr',
+        'from':'frm',
+        'them':'thm',
+        'be':'B',
+        'large':'lrg',
+        'absolute':'abs.',
+        'becomes':'bcms',
+        'equal':'=',
+        'which':'whch',
+        'for':'4',
+        'are':'R',
+        'great':'gr8',
+        'at':'@',
+        'that':'th@',
+        'quarter':'1\/4',
+        'half':'1\/2',
 
-			var socialtext = new SocialText($settings);
-
-            socialtext.generate();
-
-			// run some code here
-			// try to keep as much of the main code in the prototype methods as possible
-			// focus on just setting up the plugin and calling proper methods from here
-
-			$elem.data('_socialText', boiler);
-		});
+        // States
+        'Alabama':'AL',
+        'Alaska':'AK',
+        'Arizona':'AZ',
+        'Arkansas':'AR',
+        'California':'CA',
+        'Colorado':'CO',
+        'Connecticut':'CT',
+        'Delaware':'DE',
+        'District of Columbia':'DC',
+        'Florida':'FL',
+        'Georgia':'GA',
+        'Hawaii':'HI',
+        'Idaho':'ID',
+        'Illinois':'IL',
+        'Indiana':'IN',
+        'Iowa':'IA',
+        'Kansas':'KS',
+        'Kentucky':'KY',
+        'Louisiana':'LA',
+        'Maine':'ME',
+        'Maryland':'MD',
+        'Massachusetts':'MA',
+        'Michigan':'MI',
+        'Minnesota':'MN',
+        'Mississippi':'MS',
+        'Missouri':'MO',
+        'Montana':'MT',
+        'Nebraska':'NE',
+        'Nevada':'NV',
+        'New Hampshire':'NH',
+        'New Jersey':'NJ',
+        'New Mexico':'NM',
+        'New York':'NY',
+        'North Carolina':'NC',
+        'North Dakota':'ND',
+        'Ohio':'OH',
+        'Oklahoma':'OK',
+        'Oregon':'OR',
+        'Pennsylvania':'PA',
+        'Rhode Island':'RI',
+        'South Carolina':'SC',
+        'South Dakota':'SD',
+        'Tennessee':'TN',
+        'Texas':'TX',
+        'Utah':'UT',
+        'Vermont':'VT',
+        'Virginia':'VA',
+        'Washington':'WA',
+        'West Virginia':'WV',
+        'Wisconsin':'WI',
+        'Wyoming':'WY',
+        'American Samoa':'AS',
+        'Guam':'GU',
+        'Northern Mariana Islands':'MP',
+        'Puerto Rico':'PR',
+        'Virgin Islands':'VI'
     };
 
-	$.fn.socialText.defaultSettings = {
-        length      :120, // The desired length of a sentence
-        commas      :false,
-        semicolons  :false,
-        periods     :true,
-        squeeze     :false,
-        disemvowel  :false
-	};
+    // Matches keys above with word boundaries to left and right
 
-	function SocialText(settings)
-	{
-		this.socialtext = null;
-		this.settings = settings;
-        this.words = {
-            // Numerals
-            'one':1,
-            'two':2,
-            'three':3,
-            'four':4,
-            'five':5,
-            'six':6,
-            'seven':7,
-            'eight':8,
-            'nine':9,
-            'ten':10,
-            'eleven':11,
-            'twelve':12,
-            'thirteen':13,
-            'fourteen':14,
-            'fifteen':15,
-            'sixteen':16,
-            'seventeen':17,
-            'eighteen':18,
-            'nineteen':19,
-            'twenty':20,
-            'thirty':30,
-            'forty':40,
-            'fifty':50,
-            'sixty':60,
-            'seventy':70,
-            'eighty':80,
-            'ninety':90,
-            'hundred':100,
-            'thousand':'1k',
-            'million':'mm',
-            'billion':'bn',
-            'trillion':'trln',
+    // Borrowed from underscore.js
+    var keys = [];
+    for (var key in words) keys[keys.length] = key;
+    word_regex = new RegExp('(\\b)(' + keys.join("|") + ')(\\b)', 'gi');
 
-            // Days of week
-            'monday':'Mon',
-            'tuesday':'Tue',
-            'wednesday':'Wed',
-            'thursday':'Thu',
-            'friday':'Fri',
-            'saturday':'Sat',
-            'sunday':'Sun',
 
-            // Days of week
-            'january':'Jan',
-            'february':'Feb',
-            'march':'Mar',
-            'april':'Apr',
-            'may':'May',
-            'june':'Jun',
-            'july':'Jul',
-            'august':'Aug',
-            'september':'Sep',
-            'october':'Oct',
-            'november':'Nov',
-            'december':'Dec',
 
-            // Misc terms
-            'every':'vry',
-            'see':'C',
-            'cool':'k',
-            'overheard':'OH',
-            'whatever':'wtv',
-            'your':'Ur',
-            'you':'U',
-            'about':'abt',
-            'because':'b\/c',
-            'before':'b4',
-            'chk':'chk',
-            'to':'2',
-            'and':'&',
-            'their':'thr',
-            'from':'frm',
-            'them':'thm',
-            'be':'B',
-            'large':'lrg',
-            'absolute':'abs.',
-            'becomes':'bcms',
-            'equal':'=',
-            'which':'whch',
-            'for':'4',
-            'are':'R',
-            'great':'gr8',
-            'at':'@',
-            'that':'th@',
-            'quarter':'1\/4',
-            'half':'1\/2'
-        };
+    $.fn.lengthfilter = function (length) {
+           var $this = this;
 
-        // Matches keys above with word boundaries to left and right
-        this.word_regex = new RegExp('(\\W)(' + keys(words).join("|") + ')(\\W)', 'gi');
+           return $this.each(function () {
+                $(this).removeClass('socialtext-hide socialtext-show');
+                var css_class = 'socialtext-hide';
+                if ($(this).data('size') < length) css_class = 'socialtext-show';
+                $(this).addClass(css_class);
+           });
+    };
 
-		return this;
-	}
+    $.fn.slider = function () {
 
-	SocialText.prototype =
-	{
-		generate: function()
-		{
-			var $this = this;
+    };
 
-			if($this.boiler) return $this.boiler;
 
-			$this.boiler = $('<div>boiler</div>');
+    $.fn.socialtext = function (option, settings) {
+        dbg("Adding socialtext function to jQuery namespace.");
+        if (typeof option === 'object') {
+            settings = option;
+        }
+        else if (typeof option === 'string') {
+            var data = this.data('_socialText');
 
-			return $this.boiler;
-		},
-        _toAbbreviation:function (prefix, word, suffix) {
-            dbg(word);
+            if (data) {
+                if ($.fn.socialtext.defaultSettings[option] !== undefined) {
+                    if (settings !== undefined) {
+                        //if you need to make any specific changes to the
+                        // DOM make them here
+                        data.settings[option] = settings;
+                        return true;
+                    }
+                    else return data.settings[option];
+                }
+                else return false;
+            }
+            else return false;
+        }
+
+        settings = $.extend({}, $.fn.socialtext.defaultSettings, settings || {});
+
+        return this.each(function () {
+
+
+            var $elem = $(this);
+
+            var $settings = jQuery.extend(true, {}, settings);
+
+            var socialtext = new SocialText($settings, $elem);
+            socialtext.init();
+
+            $elem.data('_socialText', socialtext);
+        });
+    };
+
+    $.fn.socialtext.defaultSettings = {
+        length:120, // The desired length of a sentence
+        commas:0,
+        semicolons:false,
+        periods:true,
+        squeeze:false,
+        disemvowel:false,
+        parent:$('body'),
+        footer:$('<div id="socialtext-footer">Footer here</div>')
+    };
+
+    function SocialText(settings, source) {
+        this.source = source;
+        this.parsed = null;
+        this.settings = settings;
+        return this;
+    }
+
+    SocialText.prototype =
+    {
+        init:function () {
+
+            var $this = this;
+
+            if ($this.parsed) return $this.parsed;
+
+            this.divide();
+            this.filter();
+            return $this;
+
+        },
+
+        _parse:function () {
+            var $this = this;
+            var string = this.source.text().trim();
+
+            string = string.replace(/ +/gi, ' ');
+
+            if ($this.settings.squeeze) string = $this._squeeze(string);
+
+            if ($this.settings.disemvowel) string = $this._disemvowel(string);
+
+            var statements = [];
+            var accum = [];
+            var size = 0;
+            var in_quote = false;
+
+            function _glue(statement_type) {
+                var statement_type = statement_type ? statement_type : 'NEUTRAL';
+                if (accum.length > 0) {
+                    var new_string = accum.join("");
+                    statements.push({'statement':new_string, 'size':size, 'statement_type':statement_type});
+                    accum = [];
+                    size = 0;
+                }
+            }
+            function _really(string, i) {
+                if (string.charAt(i+1).match(/[\w\)"”]/) || string.charAt(i+2).match(/[a-z]/)) {
+                    return false;
+                }
+                return true;
+            }
+            for (var i = 0; i < string.length; i++) {
+                var char = string.charAt(i);
+                size++;
+                accum.push(char);
+
+                switch (char) {
+                    case '.':
+                        if (!_really(string, i)) break;
+                        _glue('PERIOD');
+                        break;
+
+                    case '!':
+                        if (!_really(string, i)) break;
+                        _glue('EXCLAMATION');
+                        break;
+
+                    case '?':
+                        if (!_really(string, i)) break;
+                        _glue('QUESTION');
+                        break;
+
+                    case ';':
+                        if ($this.settings.semicolons > 0 && accum.length > $this.settings.semicolons) {
+                            _glue('SEMICOLON');
+                        }
+                        break;
+
+                    case '"':
+                        if (in_quote && $this.settings.quotes) {
+                            _glue('QUOTE');
+                            in_quote = false;
+                       }
+                       else {
+                            in_quote = true;
+                        }
+                       break;
+
+                    case '“':
+                        in_quote = true;
+                        break;
+
+                    case '”':
+                        if (!_really(string, i)) break;
+                        _glue('QUOTE' && $this.settings.quotes);
+                        in_quote = false;
+                        break;
+
+                    case ',':
+                        if (string.charAt(i+1).match(/[”"]/)) break;
+
+
+                        if ($this.settings.commas > 0 && accum.length < $this.settings.commas && accum.length > 80) {
+                            _glue('COMMA');
+                        }
+                        break;
+
+                    case '—':
+                        if ($this.settings.emdashes > 0 && accum.length < $this.settings.emdashes && accum.length > 80) {
+                            _glue('EMDASH');
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+            _glue(); //Catch remainder
+            return statements;
+        },
+
+        divide:function () {
+            var $this = this;
+            var o = this._parse();
+            this.source.html("");
+
+            for (var i=0;i< o.length; i++) {
+                var s = o[i];
+
+                this.source.append(
+                    $('<span class="socialtext-statement" title="(' + s.statement_type + ':' + s.size + ')">' + s.statement + '</span>').data(s));
+            }
+
+        },
+
+        _toAbbreviation:function (left, word, right) {
             /* Using the table of abbreviations look up an
              * abbreviation.
              *
-             * param:prefix The left word boundary character
+             * param:left The left word boundary character
              *
              * param:word The captured term
              *
-             * param:suffix The left word boundary character
+             * param:right The right word boundary character
              *
              */
-            var lc_word = word.toLowerCase(); // Regexp passes through all cases
-            return prefix + this.words[lc_word] + suffix;
+            var lc_word = word.toLowerCase(); // Regexp passes through all cases so lc
+            return left + words[lc_word] + right;
         },
+
         _toFirstSlash:function (str) {
-            /* Return the first and slash, i.e. turn "with" into
-             * "w/"
-             *
-             * param:str The string to be chopped
-             *
-             */
-            return str.charAt(0) + '/';
+            return str./**/charAt(0) + '/';
 
         },
 
-        squeeze:function () {
-            var _this = this;
-
-            /* Return an abbreviated version of the text */
-            var new_text = _this.text();
+        _squeeze:function (text) {
+            $this = this;
+            var new_text = text;
 
             new_text = new_text.replace
                     (
-                            this.word_regex,
+                            word_regex,
                             function (a, b, c, d) {
-                                return _this._toAbbreviation(b, c, d);
+                                return $this._toAbbreviation(b, c, d);
                             }
                     );
             new_text = new_text.replace
                     (
                             /(with|of)\W/g,
                             function (m) {
-                                return _this._toFirstSlash(m);
+                                return $this._toFirstSlash(m);
                             }
                     );
+            new_text = new_text.replace(/\s+the\s+/gi, ' ');
             new_text = new_text.replace(/(without)/g, 'w/out');
             new_text = new_text.replace(/e(r|d)(\W)/g, '\$1\$2');
             new_text = new_text.replace(/ has/g, '\'s ');
-            new_text = new_text.replace(/\s+the\s+/g, ' ');
-            new_text = new_text.replace(/ess/g, 's');
-            new_text = new_text.replace(/er/g, 'r');
+            new_text = new_text.replace(/est/g, 'st');
+            new_text = new_text.replace(/\sam\b/g, '’m');
+            new_text = new_text.replace(/\b(will|shall)/g, '’ll');
+            new_text = new_text.replace(/\bnot/g, 'n’t');
+            new_text = new_text.replace(/e(r|n)(\b)/g, '\$1\$2');
             new_text = new_text.replace(/\sfor/g, ' 4');
             new_text = new_text.replace(/ have/g, '\'ve');
-
+            new_text = new_text.replace(/(1[0-9]|20)/g, function(a) {return '&#' + (parseInt(a) + 9311) + ';'});
             return new_text;
         },
 
-        hideLong: function() {
+
+        filter:function (length) {
+            var $this = this;
+
+            var length = (length) ? length : $this.settings.length;
+
+            $this.source.children('.socialtext-statement').each(function() {
+                $(this).removeClass('socialtext-hide socialtext-show');
+                var css_class = 'socialtext-hide';
+                if ($(this).data().size < length) css_class = 'socialtext-show';
+                $(this).addClass(css_class);
+            });
+        },
+        _words:function(text) {
+            var new_text = text;
+            var words = [];
+            new_text = new_text.replace(/\b([\w']+)\b/g, function(a) {words.append(a)});
+            return new_text;
+
+        },
+        _disemvowel:function (text) {
+            var new_text = text;
+            new_text = new_text.replace(/\b([\w']+)\b/g, '\$1');
+            return new_text;
+        },
+
+
+        dress:function () {
+            // Provide a nice halo.
             return false;
         },
 
-        showLong: function() {
-            return false;
-        },
-
-        split: function() {
-            return false;
-        },
-
-        dress: function() {
-          // Provide a nice halo.
-            return false;
+        slider:function () {
+            /**
+             * Generates a slider and inserts it int
+             *
+             * @requires jqueryui-slider
+             *
+             */
+            return $('<div id="socialtext-slider"/>')
+                    .append(this.footer);
         }
-
-
-	}
+    }
 })(jQuery);
+

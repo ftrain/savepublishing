@@ -1,0 +1,35 @@
+body {
+    font-family: 'Helvetica Neue', 'Arial';
+    width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 200px;
+    font-weight: 200;
+    line-height: 2em;
+
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 100;
+    color: #008;
+    margin: 2em 0 0 -25pt;
+
+}
+
+h1 {
+    font-size: 300%;
+}
+
+h2 {
+    font-size: 200%;
+}
+
+a.bookmarklet {
+    background: red;
+    padding: 5px;
+    border-radius: 5px;
+    text-transform: uppercase;
+    text-decoration: none;
+    font-weight: bold;
+    color: white;
+}
