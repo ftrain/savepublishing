@@ -12,15 +12,9 @@
  *
  ******************************************/
 
-var dbg = (typeof console !== 'undefined') ? function (s) {
-    console.log("socialtext: ", s);
-} : function () {
-};
-dbg("Reading file.");
-
-
 (function ($) {
-    dbg("Evaluating function.");
+
+
     var words = {
         // Numerals
         'one':1,
@@ -40,7 +34,7 @@ dbg("Reading file.");
         'eight':8,
         'eighth':'8th',
         'nine':9,
-        'nineth':'9th',
+        'ninth':'9th',
         'ten':10,
         'tenth':'10th',
         'eleven':11,
@@ -187,16 +181,14 @@ dbg("Reading file.");
     word_regex = new RegExp('(\\b)(' + keys.join("|") + ')(\\b)', 'gi');
 
 
-
     $.fn.lengthfilter = function (length) {
-           var $this = this;
-
-           return $this.each(function () {
-                $(this).removeClass('socialtext-hide socialtext-show');
-                var css_class = 'socialtext-hide';
-                if ($(this).data('size') < length) css_class = 'socialtext-show';
-                $(this).addClass(css_class);
-           });
+        var $this = this;
+        return $this.each(function () {
+            $(this).removeClass('socialtext-hide socialtext-show');
+            var css_class = 'socialtext-hide';
+            if ($(this).data('size') < length) css_class = 'socialtext-show';
+            $(this).addClass(css_class);
+        });
     };
 
     $.fn.slider = function () {
@@ -205,7 +197,6 @@ dbg("Reading file.");
 
 
     $.fn.socialtext = function (option, settings) {
-        dbg("Adding socialtext function to jQuery namespace.");
         if (typeof option === 'object') {
             settings = option;
         }
@@ -299,12 +290,14 @@ dbg("Reading file.");
                     size = 0;
                 }
             }
+
             function _really(string, i) {
-                if (string.charAt(i+1).match(/[\w\)"”]/) || string.charAt(i+2).match(/[a-z]/)) {
+                if (string.charAt(i + 1).match(/[\w\)"”]/) || string.charAt(i + 2).match(/[a-z]/)) {
                     return false;
                 }
                 return true;
             }
+
             for (var i = 0; i < string.length; i++) {
                 var char = string.charAt(i);
                 size++;
@@ -336,11 +329,11 @@ dbg("Reading file.");
                         if (in_quote && $this.settings.quotes) {
                             _glue('QUOTE');
                             in_quote = false;
-                       }
-                       else {
+                        }
+                        else {
                             in_quote = true;
                         }
-                       break;
+                        break;
 
                     case '“':
                         in_quote = true;
@@ -353,7 +346,7 @@ dbg("Reading file.");
                         break;
 
                     case ',':
-                        if (string.charAt(i+1).match(/[”"]/)) break;
+                        if (string.charAt(i + 1).match(/[”"]/)) break;
 
 
                         if ($this.settings.commas > 0 && accum.length < $this.settings.commas && accum.length > 80) {
@@ -380,11 +373,16 @@ dbg("Reading file.");
             var o = this._parse();
             this.source.html("");
 
-            for (var i=0;i< o.length; i++) {
+            for (var i = 0; i < o.length; i++) {
                 var s = o[i];
 
                 this.source.append(
-                    $('<span class="socialtext-statement" title="(' + s.statement_type + ':' + s.size + ')">' + s.statement + '</span>').data(s));
+                        $('<span class="socialtext-statement" title="(' + s.statement_type + ':' + s.size + ')">' + s.statement + '<a href="' +
+                                'http://www.twitter.com/home?status=' +
+                                s.statement.replace(/\s/g,'+')
+                                + '+'
+                                + location.href
+                                + '">#</a></span>').data(s));
             }
 
         },
@@ -438,7 +436,9 @@ dbg("Reading file.");
             new_text = new_text.replace(/e(r|n)(\b)/g, '\$1\$2');
             new_text = new_text.replace(/\sfor/g, ' 4');
             new_text = new_text.replace(/ have/g, '\'ve');
-            new_text = new_text.replace(/(1[0-9]|20)/g, function(a) {return '&#' + (parseInt(a) + 9311) + ';'});
+            new_text = new_text.replace(/(1[0-9]|20)/g, function (a) {
+                return '&#' + (parseInt(a) + 9311) + ';'
+            });
             return new_text;
         },
 
@@ -448,29 +448,29 @@ dbg("Reading file.");
 
             var length = (length) ? length : $this.settings.length;
 
-            $this.source.children('.socialtext-statement').each(function() {
+            $this.source.children('.socialtext-statement').each(function () {
                 $(this).removeClass('socialtext-hide socialtext-show');
                 var css_class = 'socialtext-hide';
                 if ($(this).data().size < length) css_class = 'socialtext-show';
                 $(this).addClass(css_class);
             });
         },
-        _words:function(text) {
+
+        _words:function (text) {
             var new_text = text;
             var words = [];
-            new_text = new_text.replace(/\b([\w']+)\b/g, function(a) {words.append(a)});
+            new_text = new_text.replace(
+                    /\b([\w']+)\b/g,
+                    function (a) {
+                        words.append(a);
+                    }
+            );
             return new_text;
 
         },
-        _disemvowel:function (text) {
-            var new_text = text;
-            new_text = new_text.replace(/\b([\w']+)\b/g, '\$1');
-            return new_text;
-        },
 
-
-        dress:function () {
-            // Provide a nice halo.
+        socialize:function () {
+            // Add a halo to a content object to make it shareable.
             return false;
         },
 
@@ -486,4 +486,3 @@ dbg("Reading file.");
         }
     }
 })(jQuery);
-
