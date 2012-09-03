@@ -280,6 +280,8 @@
             var accum = [];
             var size = 0;
             var in_quote = false;
+            var in_parenthesis = false;
+            var in_bracket = false;
 
             function _glue(statement_type) {
                 var statement_type = statement_type ? statement_type : 'NEUTRAL';
@@ -291,21 +293,35 @@
                 }
             }
 
-            function _really(string, i) {
-                if (string.charAt(i + 1).match(/[\w\)"”]/) || string.charAt(i + 2).match(/[a-z]/)) {
-                    return false;
-                }
+            function _really(string, i, lastcap) {
+                /**
+                 *
+                 * Is this really the end a sentence?
+                 *
+                 * @param string The string we're evaluating
+                 * @param i The niumber
+                 * @param lastcap The position of the last capital letter
+                 *
+                 */
+                if (string.charAt(i + 1).match(/[\w\)"”]/) || string.charAt(i + 2).match(/[a-z]/)) return false;
+                if (string.charAt(i - 1) === '.') return false;
+                if (lastcap && (i - lastcap) < 4) return false;
+
                 return true;
             }
 
+            var lastcap, lastspace = 0;
             for (var i = 0; i < string.length; i++) {
                 var char = string.charAt(i);
                 size++;
                 accum.push(char);
 
+                if (char.match(/[A-Z]/)) lastcap = i;
+
                 switch (char) {
                     case '.':
-                        if (!_really(string, i)) break;
+                        if (!_really(string, i, lastcap)) break;
+
                         _glue('PERIOD');
                         break;
 
@@ -360,6 +376,24 @@
                         }
                         break;
 
+                    case '(':
+                        in_parenthesis = true;
+                        break;
+                    case ')':
+                        in_parenthesis = false;
+                        break;
+                    case '[':
+                        in_bracket = true;
+                        break;
+                    case ']':
+                        in_bracket = false;
+                        break;
+
+
+                    case ' ':
+                        lastspace = i;
+                        break;
+
                     default:
                         break;
                 }
@@ -376,15 +410,25 @@
             for (var i = 0; i < o.length; i++) {
                 var s = o[i];
 
-                this.source.append(
-                        $('<span class="socialtext-statement" title="(' + s.statement_type + ':' + s.size + ')">' + s.statement + '<a href="' +
-                                'http://www.twitter.com/home?status=' +
-                                s.statement.replace(/\s/g,'+')
-                                + '+'
-                                + location.href
-                                + '">#</a></span>').data(s));
-            }
 
+                this.source.append(
+                        $('<span class="socialtext-statement" title="(' + s.statement_type + ':' + s.size + ')">'+ s.statement +'</span>')
+                                .data(s)
+                                .append(
+                                $(
+                                        '<a href="'
+                                                + 'https://twitter.com/intent/tweet?text='
+                                                + encodeURI(s.statement)
+                                                + '&via=savepub'
+                                                + '&related=ftrain,savepub'
+                                                + '&url='
+                                                + encodeURI(location.href)
+                                                + '">#</a>'
+
+                                )
+                        )
+                )
+            }
         },
 
         _toAbbreviation:function (left, word, right) {
