@@ -8,15 +8,14 @@ body {
     position: fixed;
     opacity: 1;
     line-height:200%;
-    z-index: 1000000;
+    z-index: 100000;
     font-size: 15px;
+    top:220px;
 }
 
 #socialtext-header {
-
     background-color: white;
     color: black;
-
     width: 50%;
     margin: -210px auto 50px auto;
     font-family: 'Scala Sans','Gill Sans','Helvetica Neue', 'Arial';
@@ -30,11 +29,18 @@ body {
     box-shadow: 11px 11px 19px rgba(50, 50, 50, 0.3);
 }
 
+.socialtext-checkbox {
+    cursor:pointer;
+}
+
+.socialtext-checkbox input {
+    cursor:pointer;
+}
+
 #socialtext-reset {
-    width:100%;
-    border:1px solid black;
     text-align:right;
-    margin-bottom:-1em;
+    margin:-1em -.5em 0 0;
+
 }
 
 #socialtext-wrapper a {
@@ -59,14 +65,15 @@ body {
 }
 
 #socialtext-footer {
-    font-size: 90%;
-    margin-top: 10px;
-    text-align: right;
+    font-size: 80%;
+    border-top:1px dotted #bbb;
+    padding-top:3px;
+
 }
 
 .socialtext-show {
     text-decoration: none, background: white;
-    color: darkred;
+    color: red;
 }
 
 .socialtext-hide {

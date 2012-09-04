@@ -235,7 +235,7 @@
     };
 
     $.fn.socialtext.defaultSettings = {
-        length:120, // The desired length of a sentence
+        length:118, // The desired length of a sentence
         commas:0,
         semicolons:false,
         periods:true,
@@ -268,7 +268,7 @@
 
         _parse:function () {
             var $this = this;
-            var string = this.source.text().trim();
+            var string = $this.source.text();
 
             string = string.replace(/ +/gi, ' ');
 
@@ -282,11 +282,20 @@
             var in_quote = false;
             var in_parenthesis = false;
             var in_bracket = false;
+            var lastcap, lastspace = 0;
 
             function _glue(statement_type) {
                 var statement_type = statement_type ? statement_type : 'NEUTRAL';
                 if (accum.length > 0) {
                     var new_string = accum.join("");
+                    new_string = new_string.replace(
+                            /([<>"&])/g,
+                            function(a) {
+                                if (a==='&') return '&amp;';
+                                if (a==='<') return '&lt;';
+                                if (a==='>') return '&gt;';
+                                if (a==='"') return '&quot;';
+                    });
                     statements.push({'statement':new_string, 'size':size, 'statement_type':statement_type});
                     accum = [];
                     size = 0;
@@ -303,14 +312,17 @@
                  * @param lastcap The position of the last capital letter
                  *
                  */
-                if (string.charAt(i + 1).match(/[\w\)"”]/) || string.charAt(i + 2).match(/[a-z]/)) return false;
+                if (string.charAt(i + 1).match(/[\w\)"”]/)
+                        || string.charAt(i + 2).match(/[a-z]/)
+                        || string.charAt(i + 1).match(/[^\s]/)
+                        )
+                    return false;
                 if (string.charAt(i - 1) === '.') return false;
-                if (lastcap && (i - lastcap) < 4) return false;
+                if ((i - lastcap) < 4) return false;
 
                 return true;
             }
 
-            var lastcap, lastspace = 0;
             for (var i = 0; i < string.length; i++) {
                 var char = string.charAt(i);
                 size++;
@@ -402,6 +414,18 @@
             return statements;
         },
 
+        _makeUrl:function (statement) {
+            statement = $.trim(statement);
+            return $('<a href="'
+                    + 'https://twitter.com/intent/tweet?text='
+                    + encodeURI("“" + statement + "”")
+                    // + '&via=savepub'
+                    + '&related=ftrain,savepub'
+                    + '&url='
+                    + encodeURI(location.href)
+                    + '">#</a>');
+        },
+
         divide:function () {
             var $this = this;
             var o = this._parse();
@@ -410,23 +434,10 @@
             for (var i = 0; i < o.length; i++) {
                 var s = o[i];
 
-
                 this.source.append(
-                        $('<span class="socialtext-statement" title="(' + s.statement_type + ':' + s.size + ')">'+ s.statement +'</span>')
+                        $('<span class="socialtext-statement" title="(' + s.statement_type + ':' + s.size + ')">' + s.statement + '</span>')
                                 .data(s)
-                                .append(
-                                $(
-                                        '<a href="'
-                                                + 'https://twitter.com/intent/tweet?text='
-                                                + encodeURI(s.statement)
-                                                + '&via=savepub'
-                                                + '&related=ftrain,savepub'
-                                                + '&url='
-                                                + encodeURI(location.href)
-                                                + '">#</a>'
-
-                                )
-                        )
+                                .append(this._makeUrl(s.statement))
                 )
             }
         },

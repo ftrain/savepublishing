@@ -1,0 +1,1946 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>Stevey's Blog Rants</title>
+
+  <script type="text/javascript">(function() { var a=window,c="jstiming",d="tick";var e=function(b){this.t={};this.tick=function(b,o,f){f=void 0!=f?f:(new Date).getTime();this.t[b]=[f,o]};this[d]("start",null,b)},h=new e;a.jstiming={Timer:e,load:h};if(a.performance&&a.performance.timing){var i=a.performance.timing,j=a[c].load,k=i.navigationStart,l=i.responseStart;0<k&&l>=k&&(j[d]("_wtsrt",void 0,k),j[d]("wtsrt_","_wtsrt",l),j[d]("tbsd_","wtsrt_"))}
+try{var m=null;a.chrome&&a.chrome.csi&&(m=Math.floor(a.chrome.csi().pageT));null==m&&a.gtbExternal&&(m=a.gtbExternal.pageT());null==m&&a.external&&(m=a.external.pageT);m&&(a[c].pt=m)}catch(n){};a.tickAboveFold=function(b){var g=0;if(b.offsetParent){do g+=b.offsetTop;while(b=b.offsetParent)}b=g;750>=b&&a[c].load[d]("aft")};var p=!1;function q(){p||(p=!0,a[c].load[d]("firstScrollTime"))}a.addEventListener?a.addEventListener("scroll",q,!1):a.attachEvent("onscroll",q);
+ })();</script><script type="text/javascript">var a=navigator,b="userAgent",c="indexOf",f="&m=1",g="(^|&)m=",h="?",i="?m=1";function j(){var d=window.location.href,e=d.split(h);switch(e.length){case 1:return d+i;case 2:return 0<=e[1].search(g)?null:d+f;default:return null}}if(-1!=a[b][c]("Mobile")&&-1!=a[b][c]("WebKit")&&-1==a[b][c]("iPad")||-1!=a[b][c]("Opera Mini")||-1!=a[b][c]("IEMobile")){var k=j();k&&window.location.replace(k)};
+</script><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="MSSmartTagsPreventParsing" content="true" />
+<meta name="generator" content="Blogger" />
+<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.blogger.com/favicon.ico"/>
+<link rel="alternate" type="application/atom+xml" title="Stevey&#39;s Blog Rants - Atom" href="http://steve-yegge.blogspot.com/feeds/posts/default" />
+<link rel="alternate" type="application/rss+xml" title="Stevey&#39;s Blog Rants - RSS" href="http://steve-yegge.blogspot.com/feeds/posts/default?alt=rss" />
+<link rel="service.post" type="application/atom+xml" title="Stevey&#39;s Blog Rants - Atom" href="http://www.blogger.com/feeds/13674163/posts/default" />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://www.blogger.com/rsd.g?blogID=13674163" />
+ <link rel="stylesheet" type="text/css" href="http://www.blogger.com/static/v1/v-css/50269083-blog_controls.css"/> <link rel="stylesheet" type="text/css" href="http://www.blogger.com/dyn-css/authorization.css?targetBlogID=13674163&zx=0d1d5b93-b69e-4723-9c79-9cd270fce34f"/>
+
+  <script data-main="../js/lib/main.js" src="../js/lib/require-jquery.js"></script>
+
+  <style type="text/css">
+/*
+-----------------------------------------------
+Blogger Template Style
+Name:     Minima
+Designer: Douglas Bowman
+URL:      www.stopdesign.com
+Date:     26 Feb 2004
+----------------------------------------------- */
+
+
+body {
+  background:#fff;
+  margin:0;
+  padding:40px 20px;
+  font:x-small Georgia,Serif;
+  text-align:center;
+  color:#333;
+  font-size/* */:/**/small;
+  font-size: /**/small;
+  }
+a:link {
+  color:#58a;
+  text-decoration:none;
+  }
+a:visited {
+  color:#969;
+  text-decoration:none;
+  }
+a:hover {
+  color:#c60;
+  text-decoration:underline;
+  }
+a img {
+  border-width:0;
+  }
+
+
+/* Header
+----------------------------------------------- */
+@media all {
+  #header {
+    width:660px;
+    margin:0 auto 10px;
+    border:1px solid #ccc;
+    }
+  }
+@media handheld {
+  #header {
+    width:90%;
+    }
+  }
+#blog-title {
+  margin:5px 5px 0;
+  padding:20px 20px .25em;
+  border:1px solid #eee;
+  border-width:1px 1px 0;
+  font-size:200%;
+  line-height:1.2em;
+  font-weight:normal;
+  color:#666;
+  /*text-transform:uppercase;*/
+  letter-spacing:.2em;
+  }
+#blog-title a {
+  color:#666;
+  text-decoration:none;
+  }
+#blog-title a:hover {
+  color:#c60;
+  }
+#description {
+  margin:0 5px 5px;
+  padding:0 20px 20px;
+  border:1px solid #eee;
+  border-width:0 1px 1px;
+  max-width:700px;
+  font:78%/1.4em "Trebuchet MS",Trebuchet,Arial,Verdana,Sans-serif;
+  text-transform:uppercase;
+  letter-spacing:.2em;
+  color:#999;
+  }
+
+
+/* Content
+----------------------------------------------- */
+@media all {
+  #content {
+    width:760px;
+    margin:0 auto;
+    padding:0;
+    text-align:left;
+    }
+  #main {
+    width:510px;
+    float:left;
+    }
+  #sidebar {
+    width:220px;
+    float:right;
+    }
+  }
+@media handheld {
+  #content {
+    width:90%;
+    }
+  #main {
+    width:100%;
+    float:none;
+    }
+  #sidebar {
+    width:100%;
+    float:none;
+    }
+  }
+
+/* Headings
+----------------------------------------------- */
+h2 {
+  margin:1.5em 0 .75em;
+  font: "Trebuchet MS",Trebuchet,Arial,Verdana,Sans-serif;
+  /*text-transform:uppercase;*/
+  letter-spacing:.2em;
+  /*color:#999;*/
+  }
+
+
+/* Posts
+----------------------------------------------- */
+@media all {
+  .date-header {
+    margin:1.5em 0 .5em;
+    }
+  .post {
+    margin:.5em 0 1.5em;
+    border-bottom:1px dotted #ccc;
+    padding-bottom:1.5em;
+    }
+  }
+@media handheld {
+  .date-header {
+    padding:0 1.5em 0 1.5em;
+    }
+  .post {
+    padding:0 1.5em 0 1.5em;
+    }
+  }
+.post-title {
+  margin:.25em 0 0;
+  padding:0 0 4px;
+  font-size:140%;
+  font-weight:normal;
+  line-height:1.4em;
+  color:#c60;
+  }
+.post-title a, .post-title a:visited, .post-title strong {
+  display:block;
+  text-decoration:none;
+  color:#c60;
+  font-weight:normal;
+  }
+.post-title strong, .post-title a:hover {
+  color:#333;
+  }
+.post div {
+  margin:0 0 .75em;
+  line-height:1.6em;
+  }
+p.post-footer {
+  margin:-.25em 0 0;
+  color:#ccc;
+  }
+.post-footer em, .comment-link {
+  font:78%/1.4em "Trebuchet MS",Trebuchet,Arial,Verdana,Sans-serif;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  }
+.post-footer em {
+  font-style:normal;
+  color:#999;
+  margin-right:.6em;
+  }
+.comment-link {
+  margin-left:.6em;
+  }
+.post img {
+  padding:4px;
+  border:1px solid #ddd;
+  }
+.post blockquote {
+  margin:1em 20px;
+  }
+.post blockquote p {
+  margin:.75em 0;
+  }
+
+
+/* Comments
+----------------------------------------------- */
+#comments h4 {
+  margin:1em 0;
+  font:bold 78%/1.6em "Trebuchet MS",Trebuchet,Arial,Verdana,Sans-serif;
+  text-transform:uppercase;
+  letter-spacing:.2em;
+  color:#999;
+  }
+#comments h4 strong {
+  font-size:130%;
+  }
+#comments-block {
+  margin:1em 0 1.5em;
+  line-height:1.6em;
+  }
+#comments-block dt {
+  margin:.5em 0;
+  }
+#comments-block dd {
+  margin:.25em 0 0;
+  }
+#comments-block dd.comment-timestamp {
+  margin:-.25em 0 2em;
+  font:78%/1.4em "Trebuchet MS",Trebuchet,Arial,Verdana,Sans-serif;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  }
+#comments-block dd p {
+  margin:0 0 .75em;
+  }
+.deleted-comment {
+  font-style:italic;
+  color:gray;
+  }
+
+
+/* Sidebar Content
+----------------------------------------------- */
+#sidebar ul {
+  margin:0 0 1.5em;
+  padding:0 0 1.5em;
+  border-bottom:1px dotted #ccc;
+  list-style:none;
+  }
+#sidebar li {
+  margin:0;
+  padding:0 0 .25em 15px;
+  text-indent:-15px;
+  line-height:1.5em;
+  }
+#sidebar p {
+  color:#666;
+  line-height:1.5em;
+  }
+
+
+/* Profile
+----------------------------------------------- */
+#profile-container {
+  margin:0 0 1.5em;
+  border-bottom:1px dotted #ccc;
+  padding-bottom:1.5em;
+  }
+.profile-datablock {
+  margin:.5em 0 .5em;
+  }
+.profile-img {
+  display:inline;
+  }
+.profile-img img {
+  float:left;
+  padding:4px;
+  border:1px solid #ddd;
+  margin:0 8px 3px 0;
+  }
+.profile-data {
+  margin:0;
+  font:bold 78%/1.6em "Trebuchet MS",Trebuchet,Arial,Verdana,Sans-serif;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  }
+.profile-data strong {
+  display:none;
+  }
+.profile-textblock {
+  margin:0 0 .5em;
+  }
+.profile-link {
+  margin:0;
+  font:78%/1.4em "Trebuchet MS",Trebuchet,Arial,Verdana,Sans-serif;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  }
+
+
+/* Footer
+----------------------------------------------- */
+#footer {
+  width:660px;
+  clear:both;
+  margin:0 auto;
+  }
+#footer hr {
+  display:none;
+  }
+#footer p {
+  margin:0;
+  padding-top:15px;
+  font:78%/1.6em "Trebuchet MS",Trebuchet,Verdana,Sans-serif;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  }
+
+/* styles I added for code examples, etc. */
+re {color: #4169E1;}
+code {color: #2E8B57;}
+unix {color: #9370DB;}
+span.question {color: #B22222; font-style: italic;}
+
+/* emacs font-lock faces */
+.blue-violet { color: #8a2be2; }
+.constant { color: #696969; }
+.firebrick { color: #b22222; }
+.function-name { color: #b22222; }
+.keyword { color: #0000cd; }
+.string { color: #4169e1; }
+.type { color: #4682b4; }
+.variable-name { color: #2e8b57; }
+
+/* from htmlize.el */
+.comment {
+  /* font-lock-comment-face */
+  color: #006400;
+}
+.comment-delimiter {
+}
+.function-name {
+  /* font-lock-function-name-face */
+  color: #cd2626;
+}
+.keyword {
+  /* font-lock-keyword-face */
+  color: #0000cd;
+}
+.string {
+  /* font-lock-string-face */
+  color: #4169e1;
+}
+.variable-name {
+  /* font-lock-variable-name-face */
+  color: #2e8b57;
+}
+
+</style>
+
+<link rel="me" href="http://www.blogger.com/profile/14812997485690838920" />
+<link rel="openid.server" href="http://www.blogger.com/openid-server.g" />
+<!-- --><style type="text/css">@import url(http://www.blogger.com/static/v1/v-css/navbar/3334278262-classic.css);
+div.b-mobile {display:none;}
+</style>
+
+</head>
+
+<body><script type="text/javascript">
+    function setAttributeOnload(object, attribute, val) {
+      if(window.addEventListener) {
+        window.addEventListener('load',
+          function(){ object[attribute] = val; }, false);
+      } else {
+        window.attachEvent('onload', function(){ object[attribute] = val; });
+      }
+    }
+  </script>
+<div id="navbar-iframe-container"></div>
+<script defer type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
+<script type="text/javascript">
+        (function() {
+          var init = function() {
+            if (window.iframes && iframes.open) {
+              iframes.open(
+                  '//www.blogger.com/navbar.g?targetBlogID\07513674163\46blogName\75Stevey\47s+Blog+Rants\46publishMode\75PUBLISH_MODE_BLOGSPOT\46navbarType\75BLUE\46layoutType\75CLASSIC\46searchRoot\75http://steve-yegge.blogspot.com/search\46blogLocale\75en_US\46v\0752\46homepageUrl\75http://steve-yegge.blogspot.com/\46vt\75-1622540352829215587',
+                  {
+                    container: "navbar-iframe-container",
+                    id: "navbar-iframe"
+                  },
+                  {
+                  });
+            }
+          }
+          if(window.addEventListener) {
+            window.addEventListener('load', init, false);
+          } else {
+            window.attachEvent('onload', init);
+          }
+        })();
+      </script>
+
+<div id="header">
+
+  <h1 id="blog-title">
+
+	Stevey's Blog Rants
+
+  </h1>
+  <p id="description">Random whining and stuff.</p>
+
+</div>
+
+<!-- Begin #content -->
+<div id="content">
+
+
+<!-- Begin #main -->
+<div id="main"><div id="main2">
+
+<div class='adsense' style='text-align:center; padding: 0px 3px 0.5em 3px;'>
+<script type="text/javascript"><!--
+google_ad_client="ca-pub-1448465482748307";
+google_ad_host = "pub-1556223355139109";
+google_ad_width=468;
+google_ad_height=60;
+google_ad_format="468x60_as";
+google_ad_type="text";
+google_color_border="FFFFFF";
+google_color_bg="FFFFFF";
+google_color_link="CC6600";
+google_color_url="CC6600";
+google_color_text="999999";
+//--></script>
+<script type="text/javascript"
+  src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+
+</div>
+
+
+
+  <h2 class="date-header">Monday, March 12, 2012</h2>
+
+
+
+
+  <!-- Begin .post -->
+  <div class="post"><a name="1472048487960530464"></a>
+
+    <h3 class="post-title">
+
+	 The Borderlands Gun Collector's Club
+
+    </h3>
+
+
+	         <div class="post-body">
+	<div>
+      <div style="clear:both;"></div><style type="text/css">
+.dropcap {
+  font-weight:bold;
+  font-size:120px;
+  float:left;
+  padding:0;
+  margin:-4px 5px 0px 0px;
+  position: relative;
+  background-color:none;
+  line-height:0.9;
+}
+.note {
+  color: #4169e1;
+  font-style: italic;
+}
+</style>
+
+<br />
+<table><tbody>
+<tr><td width="20%"></td><td><em>Craw is so damn frustrating!!! He and his sidekicks have killed me so many times that I think I am starting to get sore in real life....arghhh need better weapon!! He will die though, oh yes he will die and I will do the brick dance around his stupid purple corpse. --<a href="http://forums.gearboxsoftware.com/showthread.php?t=97845&amp;page=6">dedbydwn</a></em>
+<br />
+<br />
+<em>At the end of it all, Borderlands is well presented, but get under the {incomprehensible mumble} polish, it's just a dull, spare, nuts-and-bolts shooter with some unnecessarily good writing bridging the slow process of watching numbers steadily increase.  A game for the kind of person who takes pictures of his car's odometer whenever it clocks another thousand miles.&nbsp;</em><br />
+<em>--<a href="http://www.escapistmagazine.com/videos/view/zero-punctuation/1448-Borderlands">Zero Punctuation</a></em>
+<br />
+<br />
+<em><b>Diablogenarian</b>: Someone who played Diablo as a kid, still waiting for Diablo III on his 80th birthday.</em></td></tr>
+</tbody></table>
+<br />
+<br />
+<span class="note"><b>Editor's Note:</b>  I totally did not write this post.  My friend did.  Hi-*her* name is Chaz...mina.  So for all you dear people waiting on me for "stuff", whether it's Wyvern or js2-mode or Amazon War Stories or Talent42 or PVOTU or the Effective Emacs movie screenplay or whatever:  you can rest easy, confident in the knowledge that I am working 24x7 on your personal needs.  I would never DREAM of playing Borderlands all day long for months on end.  So *please* stop stalking me.  Thank you!</span>
+<br />
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Predictions</h2>
+<br />
+<span class="dropcap">G</span>earbox gets it.  Well, sort of.  I mean, it's kinda hard to tell.
+<br />
+<br />
+I predict that Borderlands 2 is going to be an awesome game... but that's a pretty lame prediction, isn't it? &nbsp;We already <i>know</i> they "get it" at least that much.  Gearbox knows how to make an awesome game.
+<br />
+<br />
+Afterwards, though, I predict that everyone will immediately go back to playing Borderlands 1.  Now _that_ is a prediction for you.
+<br />
+<br />
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://pcmedia.ign.com/pc/image/article/100/1007246/borderlands-20090724015041249_640w.jpg" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" height="225" src="http://pcmedia.ign.com/pc/image/article/100/1007246/borderlands-20090724015041249_640w.jpg" width="400" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;"><i>Looking back fondly at Borderlands 2</i></td></tr>
+</tbody></table>
+<br />
+And then Gearbox will sit back and scratch their heads for an uncomfortably long time.  Long enough to where you start wondering in all seriousness whether it's lice or something.  But then after about a year, a very scratchy year, they'll release a DLC that <em>finally</em> gets people to stop playing Borderlands 1, over 5 years after its initial release.  Even then it will be a slow transition, because they were too damned successful with the first game.  People are living there now.
+<br />
+<br />
+But I'm not convinced that Gearbox understands why.  The evidence is mixed.
+<br />
+<br />
+Today's topic: <span style="color: #aa0000;">the Magic Recipe for creating addiction.</span>  Hell, it doesn't even matter if it's a game or not.  If you want your website or product to be addictive, the recipe is really simple.  I'll even share it with you.  Gearbox somehow stumbled or fumbled into the recipe.  But nothing they've said publicly since then indicates that they understand all the ingredients that went into creating it -- including a few all-important rats and cockroaches that fell in while they weren't looking.
+<br />
+<br />
+Another prediction:  there's going to be an MMO version of Borderlands someday.  And when it happens, you will be able to find me there.  I will renounce every last shred of my real-world identity and go live there until I'm finally whacked by one of my helpful stalkers.
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Wait, dude, hang on -- I played Borderlands.  It was OK, but nothing to go cryin' to Mom about</h2>
+Well, no.  No, you didn't really play Borderlands.  What you played was more like a teaser demo.  If you made it through the main storyline and killed the huge vaginalien (complete with Japanese-style tentacles) in the comically misnamed "Vault", but <em>then you put the game away</em> -- well, my friend, I'm sad to tell you that you missed out.  All you got was the merest sniff of what the game had in store.  And it smelled like... well, the ending was a little fishy, if you catch my drift.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://images.wikia.com/borderlands/images/a/a9/The_Destroyer.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="233" src="http://images.wikia.com/borderlands/images/a/a9/The_Destroyer.jpg" width="400" /></a></div>
+<br />
+See, you have to play the whole thing all the way through _twice_.  Not with different characters, either.  You have to play the <em>same exact character</em>, with all the loot and skills you built up on the first run-through.  The second time around, the enemies will sort-of kind-of be leveled to you except not really.  Not yet anyway.
+<br />
+<br />
+OK then, what about after you finish it the second time?  Ha!  Still not done.  Yes, it's true that you now have more than a sniff -- you're up to a taste.  MMmmmm.  But THEN you have to purchase at least two of the DLCs -- Knoxx for sure, and arguably Moxxi just for the bank -- and play those too.  Now you're getting close to, uh, penetrating the secrets of Borderlands.  (This appalling metaphor is 100% Gearbox's fault.  I accept no responsibility.)
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://4.bp.blogspot.com/_KqLKZFRTHM8/TMrCWPwPjWI/AAAAAAAAC6k/7TQIAGywS8Y/s1600/Mad+Moxxi.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="231" src="http://4.bp.blogspot.com/_KqLKZFRTHM8/TMrCWPwPjWI/AAAAAAAAC6k/7TQIAGywS8Y/s400/Mad+Moxxi.jpg" width="400" /></a></div>
+<br />
+Finally, after all that -- in order to <em>truly</em> appreciate the greatness of Borderlands -- you have to stumble across not one, but TWO bugs in the game.  Bugs without which everyone on earth would have basically forgotten the game by now, and it'd be a lovely historical footnote like BioShock or Fallout 3.  A game to be played, sure, maybe a couple of times even, but shelved in the end.  As opposed to the situation we have today, which is thousands of people playing it on- and offline around the clock, almost 4 years after the release.
+<br />
+<br />
+If you didn't experience the end-game, then you didn't really play Borderlands.  Paraphrasing <a href="http://borderlands.wikia.com/wiki/Marcus">Marcus Kincaid</a>, <i>"A Borderlands player without a lobster grudge is just a guy with a game."
+</i><br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+So What's Borderlands, you ask?</h2>
+Oh, man.  My sincere apologies to the six million or so of you who've played the game (according to Gearbox). &nbsp;But I guess some people didn't get the memo.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://www.gamersunity.de/img/sys/2009-45/thumbs/borderlands-wallpaper-5.625-391.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="250" src="http://www.gamersunity.de/img/sys/2009-45/thumbs/borderlands-wallpaper-5.625-391.jpg" width="400" /></a></div>
+<br />
+Borderlands is a multi-platform 3D shooter/RPG released in 2009 by Gearbox, published by 2K.  It was a surprise hit, since it had no prior franchise titles.  It featured an open game world developed apparently from scratch using a modded Unreal 3 engine.  The game won numerous awards and garnered solid (though not earth-shattering) reviews.  Following its release, over the next 18-odd months, Gearbox released four purchasable Downloadable Content (DLC) add-on packs.  Together the four DLCs add up to an experience approximately the same size and scope as the original game.  Which was decently big.
+<br />
+<br />
+Borderlands is not MMO.  It's 4-player co-op ("PvE" or players-vs-enemies).  Which makes it a bit like the old Diablo games, except that in Diablo "co-op" meant "You log in and shout 'Hi Everybody!' and someone kills you instantly and takes every last goddamned shred of a possession you ever owned while mocking your ancestry."  In Borderlands the online co-op play is far more civil.  At worst, abusers might violate polite social convention, whereas in Diablo it was more like the Geneva Convention.  Fortunately these days that kind of behavior tends to be confined to XBox Live, where it's so similar to Microsoft's internal culture that they haven't noticed anything unusual about it.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://www.atomicgamer.com/screenshots/game-3465/82069-800.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="245" src="http://www.atomicgamer.com/screenshots/game-3465/82069-800.jpg" width="400" /></a></div>
+<br />
+Borderlands plays a little like an Old West cowboy adventure, complete with massively overpowered six-shooters.  Except it's in a sci-fi-ish scenario set on some backwater planet at the edge of nowhere -- a planet that a dozen or so arms manufacturers have exploited fully and are now using as a big trash heap, now largely overrun by bandits and hungry local fauna.
+<br />
+<br />
+The game is distinguished by its use of a 3D rendering technique called cel shading, which imparts a cartoonish and often timeless look.  Cel shading is somewhat controversial, but in Borderlands Gearbox somehow managed to make it gritty and ultimately appealing to the hardcore gaming crowd sending out their totally hardcore reviews from Mom's Basement Central.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://images.wikia.com/borderlands/images/6/69/Borderlands-Spiderant.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="225" src="http://images.wikia.com/borderlands/images/6/69/Borderlands-Spiderant.jpg" width="400" /></a></div>
+<br />
+Borderlands is also distinguished by its superb production values.  It has solid voice acting (verging on greatness in the DLCs), outstanding character design, intriguing area design, memorable visuals, satisfying sound and music, clever writing, a generally smooth frame rate, and an acceptably low bugscape -- well, at least in single-player mode.  We'll get to the Borderlands multiplayer connectivity shit sandwich in a little bit.  But even then it's one of the tastiest poop meals you can spend your hard-earned money on.
+<br />
+<br />
+Oh, and Borderlands has <a href="http://www.youtube.com/watch?v=UVCOoQIDrt0">Claptraps</a>.  Claptraps alone give Borderlands enough character to make it franchise-worthy.  To be fair, the game is pretty light on story and character development -- even for a shooter, where the bar can't get much lower.  But they've set up just enough tantalizing back-story to give them plenty of space to develop these things properly in sequels.  And in the meantime, Borderlands really delivers in the Claptrap department.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://www.co-optimus.com/images/upload/image/2009/borderlands_claptrap.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="225" src="http://www.co-optimus.com/images/upload/image/2009/borderlands_claptrap.jpg" width="400" /></a></div>
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</h2>
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Writing: good.  Cut scenes: arghhh.</h2>
+Another standout feature of Borderlands is its heavy bias towards fun, and towards actual, you know, <em>gameplay</em>.  Which makes it unlike a lot of other titles today, which lamely try to buy you off with a bunch of nonplayable prerendered cutscenes, sometimes made even worse by embarrassingly juvenile dialog and character designs (hello BioWare, Lionhead, EA).
+<br />
+<br />
+Folks:  It's OK for the subject matter to be juvenile.  It's OK for the characters to be juvenile.  It's OK for the target audience to be juvenile.  <b>But it's a fucking train wreck when the <em>writers</em> are juvenile</b>, because they'll alienate everyone above their own level of sophistication -- a demographic that just so happens to have the most disposable income to spend on games.  I could rant about this for hours, but I can already tell this post is going to be huge.
+<br />
+<br />
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://3.bp.blogspot.com/-NrQw9A6ZREo/TeVCxUP-nMI/AAAAAAAACKc/MmNZsOUjb9c/s1600/ass_effect.jpg" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" height="250" src="http://3.bp.blogspot.com/-NrQw9A6ZREo/TeVCxUP-nMI/AAAAAAAACKc/MmNZsOUjb9c/s400/ass_effect.jpg" width="400" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;">"<a href="http://freodom.blogspot.com/2011/11/mass-effect-2-is-white-supremacist-game.html" target="_blank">Ass Effect 2</a>"</td></tr>
+</tbody></table>
+<br />
+Ah, me. &nbsp;Anyway, Borderlands has good writing.  Or as the internationally celebrated and occasionally intelligible game critic Ben "Yahtzee" Croshaw of "Zero Enunciation" fame put it, "unnecessarily good writing".  Ben evidently didn't care for Borderlands, but then again he didn't make it to the endgame.  Which is good for the rest of us, because now he can find time to shit all over Mass Effect 3.  At least I hope he does.
+<br />
+<br />
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://images.wikia.com/zeropunctuation/images/8/8a/Borderlands_1.png" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" height="223" src="http://images.wikia.com/zeropunctuation/images/8/8a/Borderlands_1.png" width="400" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;"><i>Ben and his friends playing Borderlands</i></td></tr>
+</tbody></table>
+<br />
+So where were we -- oh yeah, cutscenes.  Gearbox knew they had a damn good game right out of the starting gate, so they didn't need to try to bluff up an artificial sense of money's-worthiness by padding it out with massive cutscenes.  So the few cutscenes they DO have are all (a) short and (b) full of awesome.  As it should be.
+<br />
+<br />
+Don't get me wrong.  Borderlands isn't perfect. &nbsp;There are precious few games in history that can make that claim. &nbsp;And heck, there's nothing wrong with a few imperfections.  They can sometimes give a game more character! &nbsp;In fact it is in precisely that fun-loving spirit of character-inducing imperfection that Borderlands features several <a href="https://www.google.com/search?q=Borderlands+vaginas">truly colossal vaginas</a>.  I'm not just talking about the guy who implemented their driving physics, either.  Good guess though.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://4.bp.blogspot.com/-TRZ0SXaznAw/T12VwY7ptiI/AAAAAAAAAn8/FBvAgDoN3rU/s1600/rakk_hive.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="230" src="http://4.bp.blogspot.com/-TRZ0SXaznAw/T12VwY7ptiI/AAAAAAAAAn8/FBvAgDoN3rU/s400/rakk_hive.jpg" width="400" /></a></div>
+<br />
+But whatever.  <b>None</b> of the awesome qualities or quirks of Borderlands really matters in the long run.
+<br />
+<br />
+In the end, above all else, Borderlands will be remembered as the <b>only</b> single-player title since the Diablo games to capture the fun of a Diabloesque loot system.  For almost ten years people tried and failed, and then Gearbox finally came along out of nowhere and got it more or less right.
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Is Borderlands an RPG?</h2>
+Borderlands claims to be part shooter, part RPG.  The RPG claim was IMO a minor marketing mistake, since people have preconceived notions about what it means, and Borderlands isn't an exact match.  In fact I didn't play the game when it came out because I couldn't figure out what kind of game it was.  It was only when I'd completely run out of stuff to play -- I, <a href="http://borderlands.wikia.com/wiki/Chaz#Trivia" target="_blank">Chazmina</a>, that is, and totally not that Stevey guy who's busy doing stuff for you -- that I started playing through old "Game of the Year" titles looking desperately for something that didn't suck.  And it took me a while to see why they felt they could get away with calling it an RPG.
+<br />
+<br />
+It turns out that Borderlands has classes and skill trees and skill points and experience points and levels and specializations and support for parties of adventurers ("vault hunters") with mixed and complementary skillsets.  With that in mind, it's easy to see why 2K marketed it as part-RPG, knowing the game like they did.<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://media.giantbomb.com/uploads/0/6414/1172208-borderlands_lilith_build_super.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="301" src="http://media.giantbomb.com/uploads/0/6414/1172208-borderlands_lilith_build_super.jpg" width="400" /></a></div>
+<br />
+But it might have been better to let the critics and players arrive at that conclusion, because it's missing many of the other elements people have come to expect of RPGs -- elements such as "the decisions I make affect the plot outcome", "I have meaningful, stateful, persistent interactions with individual NPCs", "I put on my robe and wizard hat", "People mock me in real life", and all the other things we've come to expect from role-playing games and gamers.
+<br />
+<br />
+I think they might have done better initially by just marketing how fun it was.  Instead it took a slow-burning word-of-mouth campaign before the sales really took off.
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+You mentioned "fun"?  I like "fun".</h2>
+Borderlands is huge on the fun factor.  You hardly realize it as you play it the first or even the second time, but the team at Gearbox put a lot of stock in <b>fun</b>.
+<br />
+<br />
+For comparison, just look over at <a href="http://www.rage.com/gate/?return=%2F" target="_blank">Rage</a>, an Id Software title that came out last year.  Rage is named for the emotion that new players feel when, after an hour of gameplay, they die for the first time and discover the game has no auto-save system.  Rage (let's be honest here) copied a lot from the Borderlands crib sheet.  Or they tried.  But unfortunately all Id knows how to do well is graphics.  So of course Rage has startlingly high frame rates and graphics that are more realistic than looking outside your basement window.  As you play it you're all "wow man this is... uh, very <em>real</em>" as you play it.  But it winds up being a disappointing (though gorgeous) slogfest.
+<br />
+<br />
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://www.gameguideblog.com/wp-content/uploads/2011/10/Rage-2011-Wallpaper-1024x640.jpg" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" height="250" src="http://www.gameguideblog.com/wp-content/uploads/2011/10/Rage-2011-Wallpaper-1024x640.jpg" width="400" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;"><i>Almost as pretty as Red Dead Redemption</i></td></tr>
+</tbody></table>
+<br />
+Which is no surprise, since Id lost their divining rod for "fun" many, many years ago.  You wind up playing through the game as a chore, out of nostalgia or professional respect.  And today, just a few months after its release, nobody's playing Rage anymore.  The fun it offers is ephemeral:  typical fire-and-forget mediocre-shooter fun.  It's really sad to watch Id sinking into irrelevance.  Maybe they should just focus on selling their engine.  Rage offers nothing at all in the addiction department, so if they were trying to mimic the success of Borderlands they did a piss-poor job of it.
+<br />
+<div class="separator" style="clear: both; text-align: -webkit-auto;">
+<br /></div>
+Then you have your RPGs.  A lot of RPG-ish games these days like to focus on "realistic immersion", but it's hard to get right.  RPG developers are always falling into this trap of trying to add "just enough" realism.  But it's a slippery slope, and they add Weapon Repair and Realistic Ammo Limits and Bizarre Inventory Restrictions (<em>"you can carry 60kg of usable stuff, and 20 metric shit-tons of components"</em>) and Walking for Hours and all this other un-fun stuff.  It's like they're trying to add a touch of Survival Horror to the game, but it just winds up making the gameplay irritating.  RPG developers:  let fun take precedence over realism, for cryin' out loud.<br />
+<br />
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://vaystudios.com/img/Defined32-Close.png" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" height="210" src="http://vaystudios.com/img/Defined32-Close.png" width="400" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;"><i>Realism doesn't matter if the game is <b>fun</b></i></td></tr>
+</tbody></table>
+<br />
+One developer who got the mix right for exactly one title:  Bethesda's Fallout 3 was a perfect blend of gritty survival realism, shooter/looter joy and fiddly RPG mechanics.  Their crowning achievement was the Dunwich Building, although probably only if you're a Lovecraft fan.  But even if you missed that frightening little side mission, or didn't get to it until you were insanely overpowered (the downfall of every Bethesda game in history, and they still don't fucking get it right in "I'm so grossly overpowered now that I now let my horse deal with any pesky dragons" Skyrim), Fallout 3 is still an amazing game.  (And New Vegas was an amazingly good <em>attempt</em> at being a great game, so it gets partial credit.)
+<br />
+<br />
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://www.wired.com/images_blogs/gamelife/images/2008/11/25/fallout3_dogmeat.jpg" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" height="147" src="http://www.wired.com/images_blogs/gamelife/images/2008/11/25/fallout3_dogmeat.jpg" width="400" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;"><i><br /></i></td></tr>
+</tbody></table>
+It's no wonder everyone wishes for a cross between Borderlands and Fallout.  Think of it:  all the cerebral fun and horror of Fallout 3 combined with the visceral fun and humor of Borderlands.  It can be done!  Someone will do it.  We might all be Diablogenarians by then, but it'll happen someday.
+<br />
+<br />
+Anyhoo...
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Fun Isn't Enough</h2>
+If you spend enough time in Borderlands you start to develop a picture of their design meetings:
+<br />
+<br />
+<i>"Hey, wouldn't it be cool if we had, like, angry midgets?"
+</i><br />
+<i><br /></i><br />
+<i>"Uh, don't they prefer to be called Little Dudes?"
+</i><br />
+<i><br /></i><br />
+<i>"Not on Pandora.  On Pandora they prefer to be called aaaaAAarguhgh as they shoot your ass with a shotgun so big that it throws them onto their backs."
+</i><br />
+<i><br /></i><br />
+<i>"Woah!  There's no *possible* way Legal will let it through, but it does sound fun!  Let's go with it for now."
+</i><br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://www.bushmackel.com/pics/borderlands_midget.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="223" src="http://www.bushmackel.com/pics/borderlands_midget.jpg" width="400" /></a></div>
+<br />
+It's like Gearbox decided to take the FUN knob and turn that thing hard right until it breaks off, and ship whatever the hell emerges from that decision.  And it works.  The game is <em>unrelentingly</em> unrealistic from a typical RPG viewpoint, but you wind up forgiving and forgetting almost everything because the fun factor is through the roof.
+<br />
+<br />
+Here's the problem, though:  <b>fun isn't enough to create addiction</b>.  Hell, if you want the latest proof, go play <a href="http://www.bulletstorm.com/home" target="_blank">Bulletstorm</a>.  It is without question the highest fun-density ever packed into any game, EVER. &nbsp;Bulletstorm makes Borderlands look like a season-length National Geographic documentary series about kittens. But Bulletstorm blows your entire fun wad in one 10-hour sitting, and then it's over.  You'll probably play it one more time, because you'll be thinking "Did I _seriously_ just do all that shit?  Must... do... again!"  But after the second playthrough, which is 100% identical to the first playthrough, you realize that's it.  It's over.  You wish there were more, but it basically kicks you out.  You're done.  Move on to the next game.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://www.gameranx.com/images/wallpapers/bulletstorm/12905324361080pbulletstorm_8.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="225" src="http://www.gameranx.com/images/wallpapers/bulletstorm/12905324361080pbulletstorm_8.jpg" width="400" /></a></div>
+<br />
+Fun alone won't keep people playing your game -- both offline and online -- <em>four years later</em>.  Nope.  In fact Fun has very little to do with the Magic Recipe for Addiction.  All Fun can do for you is get people in the door.
+<br />
+<br />
+We all know that MMOs keep players coming back day after day, long after the players have ceased to have any semblance of "fun" (at least in the usual sense of the word) while they're playing.  Let's review how they do it.  By incorporating these simple rules into your boring game, or your shitty website that everyone is calling a "ghost town", I'll show you how you'll be able to salvage something halfway decent out of the mess you've made.
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The Mechanics of Addiction</h2>
+I could write a big full-featured post on this topic, but that would be realistic and totally not fun.  So I'll just dump the highlights on you.
+<br />
+<a href="http://1.bp.blogspot.com/_Zme48fcULcQ/TCyflGvmrJI/AAAAAAAAAFo/6EXJYjGODzM/s320/smiley-classroom.jpg" imageanchor="1" style="clear: right; float: right; margin-bottom: 1em; margin-left: 1em;"><img border="0" src="http://1.bp.blogspot.com/_Zme48fcULcQ/TCyflGvmrJI/AAAAAAAAAFo/6EXJYjGODzM/s320/smiley-classroom.jpg" /></a><br />
+A <em>Token Economy</em> is any system in which you are awarded meaningless but highly visible "tokens" for Good Behavior -- that is, for the behavior the creator of the system is trying to provoke in you.
+<br />
+<br />
+<b>True But Apparently Little-Known Fact</b>:  Token economies are among the most <a href="http://en.wikipedia.org/wiki/Token_economy">powerful drivers</a> of human behavior.  They're used in grade schools, prisons, mental institutions and the military to incent people to act in certain ways.  And it works, boy howdy does it ever work.  Once they start handing out those gold stars, you'd shoot your own grandmother to get one.<br />
+<br />
+Some companies think they have the whole Token Economy thing figured out, so they create a Badge system or (equivalently) a Trophy system.  Badge systems are what stupid people do when they think they've figured out Token Economies.
+<br />
+<br />
+Hey, don't shoot the messenger here.  I'm just reporting facts.  It's what I'm known for.
+<br />
+<br />
+<b>Token economies need *scored* tokens.</b>  That's why badge systems are lame.  They can never generate the addictive pull because there's no high-score list possible, other than the overall badge count.  The count itself can be reasonably addictive if there are enough players -- think "number of Facebook friends".  But that's Weaksauce Flavored Sauce Substitute <em>(Note: contains no actual Weaksauce)</em> compared to the addiction levels achievable by having multiple token categories, multiple high-score lists, and a tight bell curve for token rarity.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://upload.wikimedia.org/wikipedia/commons/e/e9/South_African_military_decorations_-_1975.gif" imageanchor="1" style="clear: left; float: left; margin-bottom: 1em; margin-right: 1em;"><img border="0" height="320" src="http://upload.wikimedia.org/wikipedia/commons/e/e9/South_African_military_decorations_-_1975.gif" width="156" /></a></div>
+Some token economies let you purchase the tokens at a high cost.  Some token economies even have physical tokens.  Disney <a href="http://www.ebay.com/sch/i.html?&amp;rt=nc&amp;_nkw=disney+pin&amp;_ipg=200&amp;_sop=3">understands this</a>.  So does <a href="http://www.ebay.com/sch/i.html?&amp;rt=nc&amp;_nkw=louis+vuitton&amp;_ipg=200&amp;_sop=3">Luis Vuitton</a>.  Scroll through a few pages and try to figure out where those prices are coming from.<br />
+<br />
+Token economies are fragile.  If Billy breaks into the teacher's desk after hours and starts handing everyone fistfuls of gold stars, they become worthless and the economy collapses,&nbsp;irrecoverably.  In high-end fashion handbag terms, counterfeit products threaten to destroy the token value.  In game terms:  game balance is hard, and getting it wrong can tank the economy.
+<br />
+<br />
+All this is just another way of saying that <b>rarity creates desirability</b>.  It's hardwired into the human brain.  There are multiple complementary parallelizable exploitable ways of creating rarity.  Most people don't get this, though, and consequently they create nifty products and systems that ultimately fail to achieve any kind of stickiness: creations destined to be nothing but flashes in the pan.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://www.us-coin-values-advisor.com/image-files/rare-coins-index-last-12-mos-main-page.jpg" imageanchor="1" style="clear: right; float: right; margin-bottom: 1em; margin-left: 1em;"><img border="0" height="209" src="http://www.us-coin-values-advisor.com/image-files/rare-coins-index-last-12-mos-main-page.jpg" width="320" /></a></div>
+If you don't already know all this stuff better than I do, then you know fuck-all about creating addiction, and it's no wonder your product's badge system isn't generating adoption or stickiness or 7-day actives or any of that other shit you're measuring.
+<br />
+<br />
+It irritates me to the point of boiling rage that I have to explain this stuff -- that the people most companies put in charge of mission-critical initiatives are so completely fucking clueless, to the detriment of their companies <em>and</em> all the rest of us.  So I'll stop here before I have a heart attack.  You either get it, or you don't.
+<br />
+<br />
+Gearbox gets it.
+<br />
+<br />
+Well, sort of.  I mean, it's kinda hard to tell.  They definitely get <em>part</em> of it.
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Disallowing jumping is what Stupid Designers do</h2>
+I need to relax a bit, so I'm going to time-out here for an utterly incongruous digression.  This section has absolutely nothing to do with the rest of the post.  But it has to be said.
+<br />
+<br />
+<em>Jumping is fun</em>.  Period.  End of story.  If playing your game involves manipulating a humanoid ragdoll in three dimensions, and it doesn't support jumping, then you suck.  No, don't go pointing at Zelda.  Zelda gets a bye because it's *Zelda* for christ's sake.  But Zelda is un-fun exactly to the extent that it fails to support jumping, except off ledges which is kinda OK but not really true jumping.<br />
+<br />
+Practically the first thing everyone tries in a game is jumping.  If the game doesn't let you jump, then people enter a Fuck You mode that can be hard (possible, but hard) to overcome.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://thecontrolleronline.com/wp/wp-content/uploads/2011/12/SSX.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="280" src="http://thecontrolleronline.com/wp/wp-content/uploads/2011/12/SSX.jpg" width="400" /></a></div>
+<br />
+You kinda don't want your players to enter Fuck You mode.  Just sayin'.  Yeah, I'm going out on a limb here, but I'll contend that it's probably a good idea <em>not</em> to make a game that puts people in Fuck Everything About This mode.  If you're not exactly sure what that mode looks like, well, it looks like the <a href="http://www.youtube.com/watch?v=LVEPMTihlE0&amp;feature=results_main&amp;playnext=1&amp;list=PL6AF59CB16D7A2A4A">Acornfilms Dead Rising 2 review</a>.  Which I <i>heartily</i> recommend watching in its entirety, but for the impatient the most relevant section is from <a href="http://www.youtube.com/watch?v=LVEPMTihlE0&amp;t=6m20s" target="_blank">6:20-6:45</a>.
+<br />
+<br />
+If a game doesn't let you jump over a foot-high obstacle, then -- that's right, you've got the idea now -- Fuck This Game.  It might be possible to recover and get people to enjoy it anyway, but you're working against a bad first impression.  How fucking hard can it really be, game developers?
+<br />
+<br />
+Borderlands (of course) lets you jump pretty high, on account of low gravity.  In contrast with Rage, which lets you do this pathetic little fart-jump that accomplishes nothing except making you feel even more sorry for Id than you already felt -- and let's face it, you do feel pretty sorry for them.
+<br />
+<br />
+Metroid -- now THAT was a game that let you *jump*.  Metroid got a whole lot of things right.  But right off the bat they got jumping right.  You can jump <em>really high</em> in Metroid.  And that's before you find the mods that make your jumping really start to kick ass.  Like Borderlands, the Metroid franchise focuses on <b>fun</b> over <b>realism</b>, and on gameplay over lame cut scenes.
+<br />
+<br />
+In fact Metroid is even better than Borderlands in some aspects, such as the important aspect of not springing a Surprise Vagina on you at the end of the game.  (<em>No</em>, Samus doesn't count.  Jeez people!)
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://obsoletegamer.com/wp-content/uploads/2011/11/metroid_ending.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="231" src="http://obsoletegamer.com/wp-content/uploads/2011/11/metroid_ending.jpg" width="400" /></a></div>
+<br />
+And of course let's not forget Super Mario Galaxy, critically acclaimed as one of the greatest games ever created, and it was basically a feature-length exercise in fancy new jumping physics and camerawork.
+<br />
+<br />
+Make no mistake:  jumping *<em>puzzles*</em> aren't for everyone.  Especially when the camera management fucking blows so hard that it singlehandedly sinks the game at review-time, before it's even launched (hello and goodbye, <a href="http://en.wikipedia.org/wiki/Epic_Mickey">Epic Mickey</a>).  Jumping puzzles are definitely not guaranteed to be slam-dunk in the Fun department.  It comes down partly to personal taste and partly to execution quality in the game's design and mechanics.
+<br />
+<br />
+But <em>everyone</em> likes jumping.
+<br />
+<br />
+I'm not saying games where you can't jump can't be cool.  I'm just saying jumping is fun.  In case you care.
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The Gun Collector's Club</h2>
+We're back on topic!  w00t!
+<br />
+<br />
+Most of the people playing Borderlands today are <b>collecting guns</b>.  There's no other good explanation for what's going on.  The game isn't particularly social -- communication is highly limited without mics, which most players don't use.  The mission replay value is modestly high, but there's only so much any game can do before familiarity and boredom set in.  The only tried-and-true way to keep people coming back is with a token economy.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://i241.photobucket.com/albums/ff181/Bhall_69/BorderlandsGuns.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="267" src="http://i241.photobucket.com/albums/ff181/Bhall_69/BorderlandsGuns.jpg" width="400" /></a></div>
+<br />
+Even supposedly pure-social, non-gaming environments are based on token economies.  This is true of every successful ecosystem -- even Facebook -- because people crave status and recognition, and those needs generally derive from actions and events that are countable and rankable.  Most sites that have succeeded in becoming addictive have an obvious token economy:  karma, or star ratings, or anything along those lines to encourage users to keep contributing content.  Sites that don't weave at least one token economy into their fabric are left wondering why nobody's showing up to their party.  Or more accurately, people show up but they don't see any reason to stick around.
+<br />
+<br />
+In the gaming world, traditional RPG-style experience points (XP) are countable, so a lot of games have global high-score lists for experience.  But the smarter designers divide up their lists by in-game demographics, geography and other differentiators so that even if you have no hope of climbing the global high score lists, you can be one of the best in your area or specialization.  The more subdivisions the merrier.
+<br />
+<br />
+Unfortunately Borderlands caps XP -- you stop earning it when you hit max level.  So no XP addiction for YOU.
+<br />
+<a href="http://images.wikia.com/borderlands/images/8/88/Weaponcolors.jpg" imageanchor="1" style="clear: right; float: right; margin-bottom: 1em; margin-left: 1em;"><img border="0" height="163" src="http://images.wikia.com/borderlands/images/8/88/Weaponcolors.jpg" width="200" /></a><br />
+Instead, the primary addictive tokens in Borderlands are the guns.  There are some other, weaker kinds of tokens in the game -- for instance there are collectable items dropped by Claptraps in the last DLC, and some of them are ultra-rare.  So there's a small group of collectors off hunting those.  But it's not as addictive as hunting for guns for a number of important reasons.<br />
+<br />
+Let's look a little closer.
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Ingredients for Addiction</h2>
+Any game can <em>overlay</em> any number of token economies.  There doesn't have to be just one.  You can create token economies targeted at every kind of player, in the simplistic <a href="http://en.wikipedia.org/wiki/Bartle_Test">Bartle Test</a> sense of "kind".<br />
+<br />
+If you want to hook in <b>explorers</b>, just keep track of visited areas, missions completed and other countable explore-ish actions taken.  If you want to hook in the <b>PvPers</b>, make a bunch of arenas, then keep track of a bunch of statistics about kills.  (Um, or <a href="http://www.theverge.com/gaming/2012/3/10/2859950/diablo-iii-will-ship-when-its-not-done">not</a>, if you're Diablo III.) If you want to catch <b>socializers</b> in your web, keep stats on followers, likes/dislikes and all that happy social shit.  For <b>builders</b>, keep stats on what areas they've built and how popular they are.  Etc.  You rope people in by counting stuff that they like to do and reporting it somehow -- preferably to everyone.
+<br />
+<br />
+Token economies also can be created from (or emerge naturally from) big, complicated rules systems that are heavy on memorization and light on deductive reasoning.  Obvious examples include the National Football League, the Linux operating system, the underground music scene, the comic book scene, your neighborhood Bible-study group and other paper-and-dice RPGs.<br />
+<br />
+Whenever a community framework of <i>any kind</i> -- gaming, sporting, social, technical, whatever -- is based on a huge system of fiddly rules and trivia to memorize, it attracts <b>mavens</b> who derive satisfaction and status from their knowledge of the system.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://www.youtube.com/watch?v=zng5kRle4FA"><img border="0" height="282" src="http://thenerdstalgia.com/wp-content/uploads/2011/06/Screen-shot-2011-06-10-at-4.09.15-PM-350x248.png" width="400" /></a></div>
+<br />
+Mavens create the pulse of a community.  They set the beat.  Some mavens generate new content.  Others specialize in documentation.  Some become critics and provide valuable reviews.  Some become entrepreneurs within the economy and act as vendors, facilitators, go-betweens, fences or even thieves, depending on what's possible in the framework.  Some mavens become hipsters and try to make the community seem more exclusive and prestigious by virtue of being insufferable (but ultimately valuable) dickheads.
+<br />
+<br />
+A community only needs a small percentage of its members to be mavens in order to grow and thrive.<br />
+<br />
+If you count and score peoples' actions, and then stack-rank them in a set of high score lists, it sends the addictive pull soaring.  Sometimes the stack ranking is even built right into the system.  If you're a Freemason, then being a Master Mason is way better than being a lowly Apprentice.  Oh sure, go ahead and laugh it up over their silly ranking system.  Then go back to your day job and worry some more about your next promotion.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://www.caterpillar.org.uk/warning/btn32.gif" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="280" src="http://www.caterpillar.org.uk/warning/btn32.gif" width="320" /></a></div>
+<br />
+Explicit stack-ranking is such a critical ingredient that without it the addiction dish pretty much fails.  It's a catalyst.  It's yeast for the tasty Token Loaf.<br />
+<br />
+But in token economies with <i>physical</i> tokens -- not just counts of actions or connections, but distinct physical or virtual items that you can collect and accumulate -- stack ranking isn't enough by itself.  You also need <b><em>display cases</em></b>.  Because -- follow my reasoning carefully here -- what the fuck good is collecting things if you can't show off your collection?
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://www.prlog.org/10162399-the-uniform-display-case-us-army-version.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="348" src="http://www.prlog.org/10162399-the-uniform-display-case-us-army-version.jpg" width="400" /></a></div>
+<br />
+Actually even without display cases collecting can still be fun, because it scatches that collector's itch, which has its roots in the fundamental pattern recognition activity our brains engage in to survive. People can always work around the social issue by talking about their collections in forums or whatever.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://www.prguitarman.com/photos/2010/Stuff/Pokemon/Collection/img255.jpg" imageanchor="1" style="clear: right; float: right; margin-bottom: 1em; margin-left: 1em;"><img border="0" height="320" src="http://www.prguitarman.com/photos/2010/Stuff/Pokemon/Collection/img255.jpg" width="231" /></a></div>
+But letting people show off their collections makes it a whole different ball game.  Communities will <em>always</em> find a venue for showing off their collections, even if you're too stupid to provide one for them.  But if you feature it directly in the system, it concentrates everyone's focus within the system, making it inherently stickier.  (In the sense of "measurable consecutive hours spent on the site.")  If, on the other hand, you force people to wander off to eBay or a random forum to share and trade their collectibles, then you're letting your revenue stream walk out the door.
+<br />
+<br />
+A display case in a game can be as simple as allowing you to look at someone else's inventory. Seriously, how hard is that, Gearbox?  Players want this feature so badly that every day they risk losing their best items by dropping them and picking them up again just so others can see them flash by, you lovable dumb fuckers!  How can you not know this by now?
+<br />
+<br />
+A token display case can be <em>anything</em> and <em>anywhere</em>, as long as it has the player's name and hopefully pic attached to it somewhere.
+<br />
+<br />
+Oh yeah.  Pics.  Fuck me, now there's a side-rant for you.
+<br />
+<br />
+<b>TL;DR:</b>  <b>Personalization is another <em>highly</em> key ingredient for addiction.</b>  Everyone wants to make their avatar stand out as a unique reflection of their own personal bad taste.  And everyone wants a fucking profile page.  Christ, now we're getting into shit that's so painfully obvious that it makes my eyes twitch, but most companies <em>still</em> don't seem to get it.
+<br />
+<br />
+In any case I won't talk too much about it today, except to observe that no matter how well you support custom avatars, you could be doing more, and it <em>will</em> make people happier.  Doesn't even matter what you do, as long as it's more personalizable.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://www.blogcdn.com/www.joystiq.com/media/2007/01/evil_mii-425.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="285" src="http://www.blogcdn.com/www.joystiq.com/media/2007/01/evil_mii-425.jpg" width="400" /></a></div>
+<br />
+And even a little bit of personalization is infinitely better than nothing.  Even the cookie-cutter new <a href="http://reckoning.amalur.com/">Kingdoms of Amatrope</a> is roughly a 1.5 on a 1-10 scale here -- but at least it's not a zero. &nbsp;Game designers have been offering personalization for at least&nbsp;<i>a thousand years</i>,&nbsp;but Borderlands is like a 0.2, god dammit. They let you change your shirt and hair color. &nbsp;Whoop.<br />
+<br />
+But let's just move on; we've got bigger fish to fry.
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The Borderlands Recipe</h2>
+OK, we're finally ready to look at what's driving people to play Borderlands four years after the launch, and three and a half years after almost any other game would have disappeared into the annals.
+<br />
+<br />
+We'll take a look at what Gearbox did right, and then I'll bag in a mean but friendly way on Gearbox for being total jackasses, and then we'll have cake.
+<br />
+<br />
+The Borderlands token economy is based on <em>items</em>, 90% of which are guns.  Weapons in games are an especially powerful kind of token because they're self-reinforcing:  the better your weapons, the easier it becomes to collect more of them.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://images1.wikia.nocookie.net/__cb20100311122005/borderlands/images/a/a0/46_Liquid_Penetrator.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="300" src="http://images1.wikia.nocookie.net/__cb20100311122005/borderlands/images/a/a0/46_Liquid_Penetrator.jpg" width="400" /></a></div>
+<br />
+Borderlands has really clever system for generating randomized guns.  The guns -- made by around a dozen manufacturers -- have a whole bunch of variable parameters: &nbsp;damage, range, accuracy, rate of fire, magazine size, reload speed, zoom, sway, recoil, bullet speed and "elemental" effects.  Some rarer guns also have fancy custom effects -- stuff like increased critical-hit damage, ricocheting bullets, increased blast radius, multiple projectile effects, unusual bullet trajectories, you name it.<br />
+<br />
+Even disallowing a bunch of overpowered or nonsense combinations, when you multiply out all these dimensions you have between 8 and 17 million possible guns, depending on who's counting.  That's a pretty good spread.<br />
+<br />
+If all you want to do is finish the game and move on, then you don't need to think much about guns.  You only need a handful at most -- one each for short-range, medium-range and long-range, and maybe a couple of elemental effects for enemies that require them.  Guns are leveled, so every once in a while you'll want to hit a BioShock-style vending machine and upgrade.  But you can get through the game with nothing but a good submachine gun, a combat rifle and maybe a sniper rifle.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://4.bp.blogspot.com/_aY7B0euHeGo/SwZjl4vMPLI/AAAAAAAAADs/VGFmTU0lAtA/s1600/It+R+a+Vending+Machine!.JPG" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="300" src="http://4.bp.blogspot.com/_aY7B0euHeGo/SwZjl4vMPLI/AAAAAAAAADs/VGFmTU0lAtA/s400/It+R+a+Vending+Machine!.JPG" width="400" /></a></div>
+<br />
+To avoid running out of ammo in the final vaginal assault, I suppose it's a good idea to have one weapon in each of the game's seven ammunition categories.  But even that's not strictly necessary, because there are guns and class mods that regenerate ammo for you, plus a fair amount of ammo just lying around in most places.  Borderlands is definitely not Survival Horror.  There's <em>plenty</em> of ammo.
+<br />
+<br />
+So a lot of people (including me, the first time around) just notice in a vague way that their guns seem to be getter better as the enemies are getting stronger, and that's about it.
+<br />
+<br />
+During my second playthrough a year later, I was surprised to learn online that each gun has half a dozen distinguished components.  A gun's abilities derive from the assembly of its grip, body, barrel, scope and so on -- each of which has its own rarity and special effects.  You can actually look at a gun from afar and figure out a ton about it.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://images3.wikia.nocookie.net/__cb20091118161802/borderlands/images/5/52/Rocket-Grenade_Launcher.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="271" src="http://images3.wikia.nocookie.net/__cb20091118161802/borderlands/images/5/52/Rocket-Grenade_Launcher.jpg" width="400" /></a></div>
+<br />
+Borderlands guns follow a normal distribution, with most guns being roughly average, but with occasional outliers that can be very powerful.  Following Diablo's convention, the guns are color-coded by rarity:  white, green, blue, purple, yellow, orange and dark orange, the latter being the most powerful.  You don't start encountering random orange weapons until late in the game, and you quickly learn to stop and examine them closely whenever you find one.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://images.wikia.com/borderlands/images/f/f0/Borderlands_2009-11-01_00-24-57-42.png" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="300" src="http://images.wikia.com/borderlands/images/f/f0/Borderlands_2009-11-01_00-24-57-42.png" width="400" /></a></div>
+<br />
+Aaaaaand... that's pretty much it.  That's the Borderlands recipe.  At any rate, that's what they designed and set out to build.  And it's not too bad.  I'd say their recipe was blue, maybe bluish purple in the first release.  Pretty potent.
+<br />
+<br />
+But then, through a series of deliberate improvements and happy accidents, their token-economy recipe ripened into a deep, lush orange.
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Power-Up #1:  Playthrough 2.5</h2>
+A little-advertised and little-understood feature of the initial release is that there are <b>three</b> very different playthroughs of the game, each with its own signature characteristics.
+<br />
+<br />
+The first playthough is the one everyone's familiar with.  You start off level 1 without so much as a gun to your name, and by the time you wax the big beaver you're around level 35.  Your best weapons are blue and purple, you've worked your way through about half the skill tree, and you're just starting to get comfortable with the system.  And then -- boom, it's over.
+<br />
+<br />
+They don't even give you any money or anything.  Just a mercifully brief verbal thank-you from the most gratuitously annoying "Guardian Angel" in history -- not just gaming history, but <em>all</em> history, period.  All she ever fucking says is lame variations of:  "Now is the time for you to go do whatever it is you were planning to do next.  Ta!"  The real prize you get for finishing Borderlands is that she <em>finally</em> shuts the hell up.
+<br />
+<br />
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://i.neoseeker.com/mgv/368201-chautemoc/201/22/borderlands_20100815_15362747.jpg" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" height="250" src="http://i.neoseeker.com/mgv/368201-chautemoc/201/22/borderlands_20100815_15362747.jpg" width="400" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;"><i>"Now is the time for you to mute the fucking game for a while."</i></td></tr>
+</tbody></table>
+<br />
+After that you can still go back and do all the side-quests you skipped, but it's pointless because you're now vastly overpowered.  Not only is there no challenge, but the loot enemies drop is the same level they are, so there's no benefit.  So at that point most people call it a day and move on.
+<br />
+<br />
+<a href="http://images.wikia.com/borderlands/images/b/b0/BadMutha_Maniac2.PNG" imageanchor="1" style="clear: left; float: left; margin-bottom: 1em; margin-right: 1em;"><img border="0" src="http://images.wikia.com/borderlands/images/b/b0/BadMutha_Maniac2.PNG" /></a>But Borderlands gives you the unusual option of playing the whole story again in what they call "Playthrough 2".  You keep your loot, your experience, your skills, everything.  All that resets are the quests and areas-unlocked.  In Playthrough 2, the enemies are higher-level, and they get a <a href="http://borderlands.wikia.com/wiki/Midget#Nomenclature" target="_blank">little more creative with the enemy names</a>.  But the balance is still a little dodgy, so initially you blaze through the missions, and enemy levels don't catch up with you for a while.  When they do, it gets tough in a hurry.
+<br />
+<br />
+I should note that in Borderlands, even though there are 69 possible player levels, there is a HUGE difference in power between any two levels.  If you're level 37 fighting a level 38 bad guy, expect it to be a tough fight.  If the bad guy is 2 levels up, expect pain.  3 levels up:  expect death.  4 levels up:  you, Sir, are on the wrong fucking side of the train tracks.
+<br />
+<br />
+It winds up being self-balancing, because you breeze through the easy parts and then spend most of your time butted right up against the edge of what you personally can handle.  If the main quest starts getting too hairy, you can detour to some side quests until you level up.  You can even pretend you're doing it for the exploration value.
+<br />
+<br />
+But the sudden sharp drop in enemy difficulty at the beginning of Playthough 2 is a bit weird, and probably causes a lot of people to abandon it.  It's only if you persist that enemies eventually catch up with you.
+<br />
+<br />
+<b>Here's the weird (and important) part:</b>  once you finish the main storyline quest the second time, the game enters a magical and totally undocumented mode that players call <b>"Playthrough 2.5"</b>.  In P2.5, all enemies are automatically advanced to level 48-52, with 50 being the max player level unless you buy the DLCs.<br />
+<br />
+In P2.5, the enemies are all by definition around as tough as you are, which means the loot they drop is as good as you'll find.  So the game becomes both challenging <i>and</i> rewarding.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://newbreview.com/wp-content/uploads/2009/10/borderlands-002.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="222" src="http://newbreview.com/wp-content/uploads/2009/10/borderlands-002.jpg" width="400" /></a></div>
+<br />
+Um.  But.  OK... I know what you're thinking here.  Why the ever-loving <em>fuck</em> wouldn't they make it challenging and rewarding <em>to begin with</em>?  Why make you play through the whole game <em>twice</em>?
+<br />
+<br />
+Well, that's a complicated question.  Players like to feel a sense of increasing power as they progress through the game.  If enemies always level up with you (which they do, in many games), then the question becomes <em>"Why the fuck am I leveling up in the first place?"</em>  There are a gajillion ways to tackle this problem, all of them slightly unsatisfying.  It's sort of the core design problem of RPGs.
+<br />
+<br />
+Gearbox decided to let you have it both ways.  The first time through, you power up slightly faster than your enemies, although never really in an unbalanced way.  Later, once the loot-hunting end-game starts, enemies level up so you can feel challenged again and find better loot.
+<br />
+<br />
+Why they make you play the game <em>twice</em> before it kicks into end-game mode is anyone's guess.  Maybe it's because they wanted you to exhaust the skill tree first, and they'd already balanced it to get you halfway there on the first playthrough.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://www.blogiversity.org/blogs/willburns1/Screen%20shot%202009-10-22%20at%2012.15.24%20PM.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="295" src="http://www.blogiversity.org/blogs/willburns1/Screen%20shot%202009-10-22%20at%2012.15.24%20PM.jpg" width="400" /></a></div>
+<br />
+<br />
+Whatever the reason, you have to play the Borderlands main storyline <em>twice</em> before it kicks into the P2.5 endgame.  But at least it's there.  <b>The game simply could not be addictive without it.</b>  You have to have a good loot story for the looting to be any fun.  And you can't just hand it out -- players have to work for it.<br />
+<br />
+All in all, the Borderlands initial release had a pretty decent story for the endgame.  But "pretty decent" doesn't explain why four years later, at 3am on a random weekday, I can log into PSN -- well, assuming they're up, which is iffy, and assuming I still have enough money in the bank to pay my electricity bill after Sony gave my credit card info away, equally iffy -- and find unlimited players to adventure with.
+<br />
+<br />
+Their system needed a few more power-ups before it would become the fully-matured beast that everyone will go back to playing the instant they finish Borderlands 2.
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Power-Up #2:  The Bank</h2>
+After a while, players started complaining loudly that they didn't have enough inventory slots.
+<br />
+<br />
+And that's a valid complaint.  Borderlands inventory slots have essentially no effect on game balance, particularly later in the game.  Items have no size or weight, so it really is just a slot system.  Towards the end of the game, you're only using the slots for hauling crap to vending machines to sell it.  Fewer slots just forces players to do more trips.  And in the endgame, inventory is <em>only</em> used for storing collectible guns that you'll never use, but you need a place to stash them.
+<br />
+<br />
+So the endgamers were right -- Gearbox didn't give them enough slots.
+<br />
+<br />
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://hosting11.imagecross.com/image-hosting-21/358Borderlands-2009-11-23-23-05-06-56.png" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" height="250" src="http://hosting11.imagecross.com/image-hosting-21/358Borderlands-2009-11-23-23-05-06-56.png" width="400" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;"><i>"Honey, I'll uh, go get us a shopping cart."</i></td></tr>
+</tbody></table>
+<br />
+That's kind of weird, when you think about it.  Recall that Gearbox is focused on fun, not "realistic immersion", so arbitrarily limiting your inventory slots is kind of a boneheaded overture to the world of "grown-up" (and hence not-so-fun) RPGs.  If your inventory contents actually affected the game balance in any meaningful way, then slot limiting would make sense.  But the game's money-economy is laughably unbalanced, with high-level characters able to max out at 2 billion dollars legitimately in a few hours, blow it all by jumping off cliffs (more on that later), and make it all back again in another few hours.
+<br />
+<br />
+So the number of inventory slots doesn't matter.  Moreover their usefulness is seriously limited by the UI, which as Ben Croshaw rightly pointed out, forces you to spend inordinate amounts of time just scrolling around.  More inventory items just makes it worse.
+<br />
+<br />
+I suspect the folks at Gearbox were saddled with their preconceived RPG baggage, and they didn't think the issue through very well.  It *is* satisfying (and balancing) to increase your carrying capacity as you progress through the main game.  But lack of capacity is crippling in the endgame -- which is where everyone winds up in pretty short order, no matter how rich and detailed the regular game might be.<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://www.mobygames.com/images/shots/l/480418-borderlands-mad-moxxi-s-underdome-riot-windows-screenshot.png" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="225" src="http://www.mobygames.com/images/shots/l/480418-borderlands-mad-moxxi-s-underdome-riot-windows-screenshot.png" width="400" /></a></div>
+<br />
+<br />
+So people bitched about it.  Gearbox listened, and responded by <b>(a)</b> giving you a bank with not enough slots (max 42), and <b>(b)</b> adding a few new Claptrap rescue missions, each with a <em>random</em> chance of increasing your inventory slots.  That's right, random.  Hellooo, farming.  And we're talking the absolute worst kind of shit-slog farming, where if the random chance doesn't trigger, you have to physically shut down the game before it saves your progress, then start the mission all over again after logging back in.
+<br />
+<br />
+<a href="http://www.whitegadget.com/attachments/xbox-forum/52041d1300923090-borderlands-x-box-borderlands.jpg" imageanchor="1" style="clear: right; float: right; margin-bottom: 1em; margin-left: 1em;"><img border="0" height="320" src="http://www.whitegadget.com/attachments/xbox-forum/52041d1300923090-borderlands-x-box-borderlands.jpg" width="215" /></a>Gearbox got so carried away with setting up farming for their primary tokens that they started making people farm non-tokens too:  absolutely essential shit that you need in order to participate in the token economy at all.
+<br />
+<br />
+<b>Farming non-tokens is hella Not Fun.</b>  <i>Forcing</i> people to do it is flat-out fucking retarded.  So the very first thing everyone does when they figure out the endgame is download <a href="http://blmodding.wikidot.com/" target="_blank">WillowTree</a> -- a nifty open-source unsanctioned warranty-voiding player-file editor -- and bump up their inventory slots.  Some people bump it to 72, the  maximum value obtainable in legitimate (albeit heavily farmed) gameplay.  Others shrug and say Fuck It, Gearbox is being fucking stupid here, gimme 999 slots and let me deal with the gray hairs as I scroll around painfully.
+<br />
+<br />
+It's shit like this that makes me think that Gearbox only <em>kind</em> of gets it.  But whatever; inventory and bank slots are fixable out of band with WillowTree, so it's not the end of the world.
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Power-Up #3:  Pearlescents</h2>
+Remember the Borderlands weapon color-coding scheme, where white means <em>shit</em> and orange means <em>the shit</em>? &nbsp;Well, your inventory sorts them by color, with better colors being higher up and thus more easily accessible.
+<br />
+<br />
+Check this out:  in the original Borderlands release there was a bug where some weapons were generated with off-scale rarity, so the game didn't know what color to assign them and they defaulted to white.  Nobody at the time knew they they weren't orange.  But there they were, right up at the top, leering at you with their big white grin like they knew somethin' you didn't.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://images1.wikia.nocookie.net/__cb20091105064127/borderlands/images/6/6c/Guncolorrarity.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="301" src="http://images1.wikia.nocookie.net/__cb20091105064127/borderlands/images/6/6c/Guncolorrarity.jpg" width="320" /></a></div>
+<br />
+These weapons were the subject of intense debate on the forums, and in the information vacuum they soon became shrouded in mystique.  Players began calling them "Pearlescents".  They of course became highly collectible.
+<br />
+<br />
+Gearbox paid attention, and hit on the absolutely brilliant and game-changing idea of <b>formally supporting Pearlescents in their third DLC release</b>.  They fixed the glitch and simultaneously introduced a tiny category of cyan-colored super-legendary weapons, one per manufacturer, with fancy names and fancy effects.  And yes, they were actually called <a href="http://borderlands.wikia.com/wiki/Pearlescent">Pearlescents</a>.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://images.wikia.com/borderlands/images/8/8c/7ac64594.png" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="240" src="http://images.wikia.com/borderlands/images/8/8c/7ac64594.png" width="400" /></a></div>
+These cyan weapons are ultra-rare.  Insanely rare.  Stupidly rare.  <em>Irritatingly</em> rare.  Taaaaaantalizingly rare.  A lot of players never get close enough to sniff one of them.  They go to all the potential drop points, and they shoot all the right bad guys, again and again, and after weeks on end they still may not have spotted one.
+<br />
+<br />
+If you believe the Big Dogs at the fashion houses, the art houses, the back-rooms at Harry Winston's, the auction blocks at Sotheby's -- if you believe that rarity creates desire, then with this move Gearbox gave their player base a cyan-veined fucking priapism.
+<br />
+<br />
+Borderlands gun collectors aren't dicking around with purples and oranges, noooooes.  Rare as some of them are, it would never have been enough to keep the game thriving for four-plus years.  Borderlands gun collectors are after the Pearlescents (or "Pearls" for short).
+<br />
+<br />
+Funny thing is, as weapons they're not even that great, for the most part.  The power ranges of the different colors have significant overlap, so only the top 15% or so oranges are better than the top purples.  And only around the top 10% of all Pearlescents are better than the top oranges.  So even when you find a Pearl you probably won't use it.
+<br />
+<br />
+Doesn't matter.  They're rare, and special, so people go looking for them.
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Power-up #4:  The Armory Bug</h2>
+Gearbox admits (again and again) that they fucked up the ending of the main game.  Right from the opening scene they start promising you a treasure-filled Vault, and you chase it the entire game, only to find that "Vault" was just a euphemism for Hentai Boss Monster, or maybe some twisted metaphor for realizing you were abused as a child, or some shit like that.
+<br />
+<br />
+They get it now.  They're sorry.
+<br />
+<br />
+And they made up for it.  After putting out the obligatory and awesome zombie expansion pack ("<a href="http://borderlands.wikia.com/wiki/The_Zombie_Island_of_Dr._Ned" target="_blank">The Zombie Island of Dr. Ned</a>"), they released an epic DLC titled <a href="http://borderlands.wikia.com/wiki/General_Knoxx" target="_blank">The Secret Armory of General Knoxx.</a><br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://oyster.ignimgs.com/ve3d/images/06/57/65764_BorderlandsTheSecretArmoryOfGeneralKnoxx-01_normal.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="223" src="http://oyster.ignimgs.com/ve3d/images/06/57/65764_BorderlandsTheSecretArmoryOfGeneralKnoxx-01_normal.jpg" width="400" /></a></div>
+<br />
+This DLC has a <em>very</em> different style and feel from the main game:  an open road through the middle of a dusty sunken sea, with off-ramps to dunes infested with towering spiders, windbitten bandit camps, thriving midget colonies, junkyard strip clubs, corporate military installations, and the most hilariously awesome gay prison in gaming history.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://bulk2.destructoid.com/ul/165414-/Knoxx4-620x.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="225" src="http://bulk2.destructoid.com/ul/165414-/Knoxx4-620x.jpg" width="400" /></a></div>
+<br />
+The plotline involves overthrowing a surprisingly well-written general named Knoxx who's been consigned to the planet and -- to his lasting chagrin -- reports directly to a five-year-old named Admiral Mikey.  Knoxx is charming and funny and deadly, and the DLC taken as a whole is one of the best-realized and most memorable mini-worlds ever produced in a video game.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://bulk.destructoid.com/ul/165414-/Knoxx6-620x.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="225" src="http://bulk.destructoid.com/ul/165414-/Knoxx6-620x.jpg" width="400" /></a></div>
+<br />
+The *entire* Borderlands endgame takes place in this DLC.  It is the grand finale, the steady-state home base of operations for gun collectors everywhere.  Even though there was one more DLC afterwards ("<a href="http://borderlands.wikia.com/wiki/Claptrap's_New_Robot_Revolution" target="_blank">Claptrap's New Robot Revolution</a>"), with a setting and story every bit as brilliant and distinctive as the previous two, it has ultimately failed to capture much long-term attention from endgamers because it has no Pearlescents.  It <em>does</em> have its own new token economies, such as&nbsp;<a href="http://borderlands.wikia.com/wiki/What_a_party!" target="_blank">collecting rare robot parts</a>, but it's missing power-ups 4 and 5, so it's just not as much fun.
+<br />
+<br />
+Looking again at the "Secret Armory" part of the Knoxx title, we see that Gearbox has once again promised a big vault full of loot -- but this time, they deliver.  In a big way.  The storyline winds up giving you three separate runs through Knoxx's armory, timed at two and a half minutes each, during which you can grab all the loot you can carry.
+<br />
+<br />
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://images.wikia.com/borderlands/images/f/f1/FOV101_armory_1.jpg" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" height="250" src="http://images.wikia.com/borderlands/images/f/f1/FOV101_armory_1.jpg" width="400" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;"><i>The Marcus Kindcaid "Super Sweep" looting spree</i></td></tr>
+</tbody></table>
+<br />
+That's cool and all; it's blatant penance for the first game, and with it all is forgiven.  But let's face it:  150 seconds isn't a very long shopping spree, even if you get three of them.  Knoxx's Armory is <em>huge</em>.  It's a four-story warehouse with elevators and ramps and movable platforms and crate-mazes, with the loot-chests scattered everywhere.  It's got around 120 chests in all, with 20 being the super-rare kind that have a zillion-to-one chance of generating Pearls, but it's so vast that on any given run you'll only get to a small fraction of the loot.
+<br />
+<br />
+Which means the Armory, as nice as it is story-wise, isn't such a great bargain for collectors.  Or it <em>wouldn't</em> have been, except for the infamous "Armory Glitch".
+<br />
+<br />
+It turns out -- and I'm one of the people who stumbled on this bug completely by accident -- that it's possible to fall through the floor at a particular spot on the way in, landing directly in the armory without arming the 2-minute timer, and then you can loot every single chest at your leisure.
+<br />
+<br />
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://i666.photobucket.com/albums/vv21/KSerge83/Borderlands%20Armory%20Glitch/Paydirt.jpg" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" height="300" src="http://i666.photobucket.com/albums/vv21/KSerge83/Borderlands%20Armory%20Glitch/Paydirt.jpg" width="400" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;"><i>After falling through the crack, it's a 40-foot drop into the Armory</i></td></tr>
+</tbody></table>
+It's the guiltiest gaming pleasure ever.  You're transformed into a kid who can sneak into the Chocolate Factory while the oompa loompas are sleeping.  And you can do it again the next night, every night, forever.
+<br />
+<br />
+The bug is actually present throughout the game.  At pretty much any edge joining elevated flat surfaces in Borderlands you can wiggle around and fall through the crack.  Most of the time it's an incredible annoyance -- for instance you'll fall into an elevator shaft whose sole purpose is spawning bad guys, and the only way out is to kill yourself with grenades or exit the game.
+<br />
+<br />
+But the bug turns the Armory into a Farmery, and that, friends, is the super-MSG that makes the Borderlands end-game recipe the most successful of its kind since Ye Olde Diabloe back before you were born.
+<br />
+<br />
+Strictly speaking I suppose "farming" is the wrong word for it.  It's not really farming if the vegetables can kill you.  I think when you have to slug your way into a vault through a bunch of bad guys, and each time you run a genuine risk of dying, they call it "grinding".  So fine, it's the Secret Grindery.
+<br />
+<br />
+The "Armory glitch", as they call it on the forums, is the gateway drug that hooks you in and leads you inevitably to the Lobster Safari, up up up to the high mountaintop arena where you'll spend the rest of your free time forever and ever.  You'll need to make a hundred or so runs on the armory before you're well-equipped enough to face the Lobster.  But during that few weeks you'll be as happy as a heavily armed kid in a four-story military candy store.
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Power-Up #5:  Crawmerax the Invincible and the "Ledge Glitch"</h2>
+So here we are at the climax.  We made it!  There should be a popcorn vendor here.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://images.wikia.com/borderlands/images/d/da/Hit_the_weak_spot_small.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="225" src="http://images.wikia.com/borderlands/images/d/da/Hit_the_weak_spot_small.jpg" width="400" /></a></div>
+<br />
+Crawmerax the Invincible is a whale-sized one-eyed purple people eater that Gearbox introduced in DLC3 <em>specifically</em> for advanced multi-player co-op.  He's introduced in a late side-mission accurately titled <b>"You. Will. Die."</b>&nbsp; You're not supposed to be able to kill him by yourself.  He's intended as a challenge for groups of heavily-armed, experienced Vault Hunters who've grown weary of existence and want to die like they're playing Demon's Souls.
+<br />
+<br />
+Crawmerax's location is heavily advertised with big road signs reading "Secret Final Boss Monster: 20 km", "Secret Final Boss Monster: exit now".  When you arrive the earth shakes.  Inside his lair is a cavernous "staging area" with some ammo/health vending machines, a few mutilated corpses, miscellaneous hastily dumped construction equipment, and an elevator ascending directly into the solid rock overhead.  It looks as if the military has built just enough infrastructure to let all comers try to slay the beast, and so far no luck.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://images.wikia.com/borderlands/images/6/68/FOV101_craw_1.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="250" src="http://images.wikia.com/borderlands/images/6/68/FOV101_craw_1.jpg" width="400" /></a></div>
+<br />
+The second critical Borderlands bug is the "ledge glitch".  Like the Armory falling-through-the-floor glitch, it's a bug that makes it possible to farm Crawmerax... sort of.  Its success rate is low enough that it can seem like he's farming YOU.  The glitch involves running like mad to a sheer drop on the left, diving into a small nook just below the arena floor, squatting down, facing the corner like he's the Blair Witch, and hoping you survive the acid barf until he decides whether you're unreachable or you're his next ledge meal.  It can go either way.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+</div>
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://images.wikia.com/borderlands/images/b/bf/Craw_banner.jpg" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" height="100" src="http://images.wikia.com/borderlands/images/b/bf/Craw_banner.jpg" width="400" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;"><i>"I'll have the bisque."</i></td></tr>
+</tbody></table>
+*IF* all goes as planned, and that's a pretty big if, then he starts roaring and displaying, but he won't attack you as long as you stay put.  At that point it's <em>still</em> nontrival to kill him, because one of his total six vulnerable spots is on his back, facing away from you.  There are whole strategy guides devoted to hitting that spot.  I can tell you it's no picnic.
+<br />
+<br />
+But the payoff.  Oh, the payoff.
+<br />
+<br />
+Players call Craw the "Lobster Piñata" on account of the vast amount of high-quality loot he drops when he dies.  Except he doesn't really "drop" the loot so much as <em>explode</em> multicolored items in all directions, and for several loooong seconds, tokens simply rain from the sky.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://i45.tinypic.com/zva7w9.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="250" src="http://i45.tinypic.com/zva7w9.jpg" width="400" /></a></div>
+<br />
+<br />
+If raiding the Armory is like refined highbrow shopping at Saks Fifth Avenue, then Crawmerax's death is like a bomb going off in a Toys R Us.  It's like Santa's Sleigh plowing into the Hindenberg.  It's absolutely spectacular to watch.
+<br />
+<br />
+In multiplayer mode after the piñata explodes, everyone scrambles around like cockroaches in three distinct waves:  first a mad dash to try to spot a Pearlescent, which <em>might</em> happen every forty or fifty kills, then a light circular sprint to check out the orange weapons, and finally a smooth comb through every item to look for upgrades and rare finds.
+<br />
+<br />
+If there's nothing good, many players start dropping their Pearlescents and then "pretending" to find them by picking them up again.  This is incredibly risky, as the co-op mode is <em>extremely</em> buggy when it comes to inventory manipulation, but people do it anyway because Gearbox didn't give them any other way to show off their prizes.
+<br />
+<br />
+Then it's back to the cave entrance, out-and-back to make him respawn (thank you Gearbox for that, btw), and the hunt starts all over again.  I've seen multiplayer runs on Crawmerax take anywhere from 20 seconds to over an <em>hour</em> of nonstop chaos, depending on luck and everyone's equipment. &nbsp;Heck, last night four of us tried six or eight times and just gave up. &nbsp;He's that tough.<br />
+<br />
+The "ledge glitch", which allows single players to have a chance of killing him, is a <b>critically important</b> part of the addictive cycle.  Many players are reluctant to jump into online co-op play because they feel underequipped and under-experienced.  Killing Crawmerax over and over can gradually improve your gear and confidence to the point where you're ready to try the co-op version.
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The Path of Least Resistance</h2>
+Game developers always worry about players getting stuck in endgame ruts, going after the same boss monsters again and again for months or years.  Players will eventually discover the easiest way to advance in the token economy, at which point all other routes become wasted effort.
+<br />
+<br />
+The Diablo III team at Blizzard claims in interviews that they're all angsty about this, that it keeps them up at night.  They're thinking waaaay too fucking hard about it.  They need to man up and launch.  People seem to like grinding OK, and the alternative of making all paths equally difficult is an impossible problem.  Even if you made the game self-tuning via dynamic feedback loops, people would be pissed because it's nondeterministic, with stuff getting randomly nerfed or powered up without warning.
+<br />
+<br />
+So just launch already.
+<br />
+<br />
+Gearbox waited until DLC3 to introduce a grinder path, and it's interesting that they have <em>two</em> of them -- the Armory and Crawmerax. &nbsp;What's even more interesting is that they're approximately equal in terms of payoff over time. &nbsp;A legit player with decent equipment can raid the armory two, maybe three times an hour, and probably see an average of 8 oranges per run.  The same player could ledge-glitch Crawmerax maybe 4 or 5 times an hour, and see maybe 4 oranges per run.<br />
+<br />
+In terms of legendary weapons per hour, the two grinds are surprisingly close (~20/hour), so it comes down to a matter of personal preference.  Crawmerax will get you killed more often, but he seems to have a higher drop-rate for Pearlescents.  Most player probably graduate from Armory runs to Crawmerax runs to multiplayer Crawmerax runs, and are eventually (after months of upgrades) able to "solo" him alone without using the ledge glitch.
+<br />
+<br />
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://images.wikia.com/borderlands/images/9/93/Legendary_weapons_-_Crawmerax_-_graph_OBY.jpg" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" height="195" src="http://images.wikia.com/borderlands/images/9/93/Legendary_weapons_-_Crawmerax_-_graph_OBY.jpg" width="400" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;"><i>This dude had way too much free time. &nbsp;I'm jealous.</i></td></tr>
+</tbody></table>
+<br />
+Regardless of which path you prefer, the whole treadmill exists to try to collect rare guns. &nbsp;And we're talking guns that you can't really show anyone else, except indirectly via screenshots, <a href="http://www.youtube.com/watch?v=pA8oUm4Wgwo">videos</a>, or using the desperate gamble of dropping them in a live game.  Players can usually tell which weapon you're wielding by its looks and firing pattern, but they can't see its stats.<br />
+<br />
+In the end, the underground collection scene is a little surprising for existing at all. &nbsp;It was half intentional and half accidental.<br />
+<br />
+I don't hear Gearbox talking about this stuff in interviews.<br />
+<br />
+We'll see.<br />
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epilogue</h2>
+Yeah, well, none of it prolly matters, since rumor has it they're finally going to announce the Diablo III release date.
+<br />
+<br />
+Borderlands 2, we hardly knew ye.
+<br />
+<br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Appendix:  Don't Do This</h2>
+Hi-ho, since we're on the subject of Dos and Donts for creating an optimal gaming experience, I feel obligated to highlight some of the bigger fuck-ups present in Borderlands.  I do this in the sincere hope that there's still time to fix them in the sequel.  It's probably still a year away from launch, as I write this, so there's hope.
+<br />
+<br />
+<b>"It's like White Christmas":</b>  The Borderlands game world is a rich, thriving, multiculural melting-pot with thousands of white settlers and exactly one black guy.  <em>One</em>.  And he's from offworld.  Jesus H. Teddy Fucking Roosevelt Christ on a sidecar, Gearbox -- that's *not* what we meant when we asked for a "token" economy.  We were all horribly embarrassed to be members of the human race when Josh Whedon's Firefly series pulled this stunt, featuring a fully Asianized future without any actual Asians in it.  And we thought:  "Gosh, well, at least <em>now</em> nobody's ever gonna make <em>that</em> particular douchewit mistake again."  What. The. Fuck.<br />
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://farm4.static.flickr.com/3094/2547277032_7dae47e0cf.jpg" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" height="179" src="http://farm4.static.flickr.com/3094/2547277032_7dae47e0cf.jpg" width="320" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;"><i>Firefly cast. &nbsp;Sigh.</i></td></tr>
+</tbody></table>
+<b>Hot buttons:</b> Having only four equipped-weapon slots in a world where <a href="http://lmgtfy.com/?q=weapon+wheel" target="_blank">EVERYONE ELSE</a> has figured out that you can squeeze in eight on a wheel -- that's pretty fucking disappointing.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://www.zeldainformer.com/images/news/Zelda_Skyward_Sword_1014_04.bmp" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="223" src="http://www.zeldainformer.com/images/news/Zelda_Skyward_Sword_1014_04.bmp" width="400" /></a></div>
+<br />
+<b><br /></b><br />
+<b>Networking:</b>  After spending years developing and polishing the single-player game, they apparently outsourced the multiplayer lobby and connectivity code directly to Sony's network-security team.  What's wrong with Borderlands networking?  Well, um, let's see... how about "everything".  Yes, that sounds accurate.  It crashes all the fucking time, randomly eats your precious inventory items, fails to give you even the slightest insight into what any given party is doing until you actually join their game, randomly goes full amnesiac about which character you were using and logs you in as a level-1 unequipped n00b... the list goes on.<br />
+<br />
+Once you're actually connected to a game and your party is firing on all cylinders, the experience is usually pretty smooth, as long as you <em>never</em> change anything in your equipped inventory slots.  But finding and connecting to a reasonable group of players is just a miserable shit sandwich.
+<br />
+<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="http://i34.photobucket.com/albums/d133/dancedance9823/3-2.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" height="223" src="http://i34.photobucket.com/albums/d133/dancedance9823/3-2.jpg" width="400" /></a></div>
+<br />
+<b><br /></b><br />
+<b>Money S(t)inks:</b>  Next time around they need a money sink.  I know I ranted against too much immersive realism, but if you're going to make money THAT readily available, why bother with it at all?  People have so much money in the endgame that it's customary to leave the Crawmerax arena after he's dead by <em>killing yourself</em>, since it respawns you about a hundred feet closer to the exit than if you take the elevator teleporter.  When players are choosing to pay a hundred million dollars to save ten seconds of running, it's a good bet your game has a money problem.
+<br />
+<br />
+<b>Invisible Wallet:</b>  Oh, and speaking of money, you can't tell how much you have, nor how much anything costs, because they only have seven digit cash displays.  By the end of the game every price over $10M is displayed as 9999999 dollars, and your wallet has 9999999 dollars.  You can only see how much money you have when you die, and it tells you you lost 150323855 dollars (the max you can lose at once, 7% of 2^31-1).
+<br />
+<br />
+<table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody>
+<tr><td style="text-align: center;"><a href="http://images.wikia.com/borderlands/images/0/03/PPZ470_Detonating_Cobra_OBYF.png" imageanchor="1" style="margin-left: auto; margin-right: auto;"><img border="0" height="240" src="http://images.wikia.com/borderlands/images/0/03/PPZ470_Detonating_Cobra_OBYF.png" width="400" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;"><i>"So how much?"</i></td></tr>
+</tbody></table>
+<br />
+<b>Midgets:</b>&nbsp; You should be able to play as one.  It would be utterly bad-ass.  Haven't you guys read <em>Game of Thrones?</em>
+<br />
+<em><br /></em><br />
+<h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FAQ</h2>
+<span class="Apple-style-span" style="font-size: large;"><em><br /></em></span><br />
+<span class="Apple-style-span" style="font-size: large;"><em>Q: Aren't you being a little hard on Gearbox's vagina?</em>
+</span><br />
+<br />
+Hey, it's not <em>that</em> little.  Nobody's ever complained bef... oh, I misread that.
+<br />
+<br />
+<span class="Apple-style-span" style="font-size: large;"><em>Q: Doesn't modding ruin the economy?</em>
+</span><br />
+<br />
+I mentioned that if Billy breaks into the teacher's drawer and distributes all the Gold Stars then they become valueless.  And I also mentioned that there's a player-file editor called WillowTree, one that happens to be capable of creating any weapon the game can generate -- and many combinations that the game does NOT generate because they are overpowered and/or nonsensical.
+<br />
+<br />
+<a href="http://www.infinitemonkeyproductions.net/wow_forum/borderlands_reditem_stats.png" imageanchor="1" style="clear: right; float: right; margin-bottom: 1em; margin-left: 1em;"><img border="0" height="223" src="http://www.infinitemonkeyproductions.net/wow_forum/borderlands_reditem_stats.png" width="320" /></a>So of course there are modders.  And they show up with their modded weapons, and they throw them around in big piles, daring people to come on over to the Dark Side, to grow up and git yerself a <i>reeeeeal</i>&nbsp;gun.
+<br />
+<br />
+Surprisingly, it doesn't seem to hurt anything.  In fact in co-op Crawmerax missions it's common for someone to throw out a pile of modded shields of invincibility, and for at least one player to wear one.  Otherwise it's too easy for everyone to die simultaneously, causing Craw to return to full strength.  Even with a super-shield, you can easily be blasted off a cliff and die anyway, so it's not a <em>total</em> cheat.  A high percentage of players have apparently decided that overpowered shields are part of the acceptable core infrastructure for otherwise legit gun-collecting.  I <em>think</em> this implies that Gearbox didn't make their top-end legit shields powerful enough.
+<br />
+<br />
+<table cellpadding="0" cellspacing="0" class="tr-caption-container" style="float: left; margin-right: 1em; text-align: left;"><tbody>
+<tr><td style="text-align: center;"><a href="http://pics.livejournal.com/boev_machin/pic/000a10q9/s640x480" imageanchor="1" style="clear: left; margin-bottom: 1em; margin-left: auto; margin-right: auto;"><img border="0" height="320" src="http://pics.livejournal.com/boev_machin/pic/000a10q9/s640x480" width="216" /></a></td></tr>
+<tr><td class="tr-caption" style="text-align: center;"><i>Krom's Canyon. &nbsp;Just 'cuz.</i></td></tr>
+</tbody></table>
+I'm pretty sure if Borderlands were MMO, with persistent highly-visible score lists and real money on the line (because for MMOs there is <em>always</em> an exchange rate between game currency and real-world currency, whether the publisher likes it or not), then yeah:  the modding would fuck everything up.
+<br />
+<br />
+<b>But the Borderlands token economy is only just barely alive.</b>  Gearbox hasn't done a damn thing to increase its addictive pull since releasing The Secret Armory of General Knoxx, the DLC that introduced all three of the critical enhancements that cemented the economy.  So it's all basically honor-system.  And the players are surprisingly honorable.  You can tell immediately if -- and to what extent -- people are abusing the mods system.  There are a lot of players out there who stay on the legit side to keep it sustainably challenging.  Hell, some of them don't even use the ledge glitch.  At least not when people are watching.
+<br />
+<br />
+You can also tell that the modders are no longer having fun, because their behavior becomes bizarre -- the kind of shit you normally only see at the end of a Bethesda game, where once you've leveled up high enough you get completely bored and start jumping off cliffs naked to try to air-kill boss monsters with a single swing of a broomstick.
+<br />
+<br />
+<span class="Apple-style-span" style="font-size: large;"><em>Q: Are you going to <a href="http://dearrhialto.wordpress.com/" target="_blank">bring Wyvern back</a>?</em>
+</span><br />
+<br />
+Patience.  I'm working on it.<br />
+<br />
+<br />
+<i>Special thanks to Andrew Wilson for proofreading this post and making me take out stuff I'd regret.</i><br />
+<i><br /></i><br />
+<i>Oh, and I almost forgot -- Thank You, everyone at Gearbox, for creating such an incredible game!</i><div style="clear:both; padding-bottom:0.25em"></div>
+    </div>
+    </div>
+
+    <p class="post-footer">
+      <em>posted by Steve Yegge at <a href="http://steve-yegge.blogspot.com/2012/03/borderlands-gun-collectors-club.html" title="permanent link">1:44 AM</a></em>
+
+
+         <a class="comment-link" href="http://www.blogger.com/comment.g?blogID=13674163&amp;postID=1472048487960530464"location.href=http://www.blogger.com/comment.g?blogID=13674163&postID=1472048487960530464;>22 comments</a>
+
+
+  <span class="item-control blog-admin pid-1139049968"><a style="border:none;" href="http://www.blogger.com/post-edit.g?blogID=13674163&postID=1472048487960530464&from=pencil" title="Edit Post"><img class="icon-action" alt="" src="http://img2.blogblog.com/img/icon18_edit_allbkg.gif" height="18" width="18"></a></span>
+    </p>
+
+  </div>
+  <!-- End .post -->
+
+
+
+  <!-- Begin #comments -->
+
+
+  <!-- End #comments -->
+
+
+</div></div>
+<!-- End #main -->
+
+
+
+
+
+
+
+<!-- Begin #sidebar -->
+<div id="sidebar"><div id="sidebar2">
+
+
+  <!-- Begin #profile-container -->
+
+   <div id="profile-container"><h2 class="sidebar-title">About Me</h2>
+<dl class="profile-datablock"><dt class="profile-img"><a href="http://www.blogger.com/profile/14812997485690838920"><img src="http://bp3.blogger.com/__0laCHgF5uc/R9xGFbqMvKI/AAAAAAAAAAg/hn4yyyItA4w/S220/stevey-6-21-07.jpg" width="80" height="59" alt="My Photo"></a></dt>
+<dd class="profile-data"><strong>Name:</strong> <a rel="author" href="http://www.blogger.com/profile/14812997485690838920"> Steve Yegge </a></dd>
+<dd class="profile-data"><strong>Location:</strong>  Kirkland, Washington, United States </dd></dl>
+
+<p class="profile-link"><a rel="author" href="http://www.blogger.com/profile/14812997485690838920">View my complete profile</a></p></div>
+
+  <!-- End #profile -->
+
+
+
+  <h2 class="sidebar-title">Feeds</h2>
+    <ul>
+    	<li><a href="http://steve-yegge.blogspot.com/atom.xml">Atom</a></li>
+    	<li><a href="http://feeds.feedburner.com/SteveysBlogRants">FeedBurner</a></li>
+    </ul>
+
+  <h2 class="sidebar-title">My Sites</h2>
+    <ul>
+    	<li><a href="http://steve.yegge.googlepages.com/blog-rants">Stevey's Drunken Blog Rants<sup>TM</sup></a></li>
+    	<li><a href="http://www.cabochon.com/">Wyvern</a> (my extensible game)</li>
+    	<li><a href="http://www.cabochon.com/~stevey/sokoban">Stevey's JVM Soko-Shootout</a></li>
+    	<li><a href="http://www.oreillynet.com/ruby">O'Reilly Ruby</a> <em>(guest blogger)</em></li>
+    </ul>
+
+  <h2 class="sidebar-title">Some Favorite Languages</h2>
+    <ul>
+    	<li><a href="http://www.ruby-lang.org">Ruby</a></li>
+    	<li><a href="http://www.digitalmars.com/d/index.html">D language</a></li>
+    	<li><a href="http://www.iolanguage.com">Io language</a></li>
+    	<li><a href="http://www.jython.org">Jython</a></li>
+    	<li><a href="http://www.gigamonkeys.com/book/">Common Lisp</a></li>
+    	<li><a href="http://www.schemers.org">Scheme</a></li>
+    	<li><a href="http://jruby.sourceforge.net">JRuby</a></li>
+    	<li><a href="http://nice.sourceforge.net">The Nice language</a></li>
+    	<li><a href="http://www.haskell.org/haskellwiki/Haskell">Haskell</a></li>
+    	<li><a href="http://caml.inria.fr">Objective Caml</a></li>
+  </ul>
+
+
+
+  <h2 class="sidebar-title">Previous Posts</h2>
+    <ul id="recently">
+
+        <li><a href="http://steve-yegge.blogspot.com/2012/03/borderlands-gun-collectors-club.html">The Borderlands Gun Collector&#39;s Club</a></li>
+
+        <li><a href="http://steve-yegge.blogspot.com/2011/07/hacker-news-fires-steve-yegge.html">Hacker News Fires Steve Yegge</a></li>
+
+        <li><a href="http://steve-yegge.blogspot.com/2011/07/ebay-patents-10-click-checkout.html">eBay Patents 10-Click Checkout</a></li>
+
+        <li><a href="http://steve-yegge.blogspot.com/2010/12/haskell-researchers-announce-discovery.html">Haskell Researchers Announce Discovery of Industry...</a></li>
+
+        <li><a href="http://steve-yegge.blogspot.com/2010/07/wikileaks-to-leak-5000-open-source-java.html">Wikileaks To Leak 5000 Open Source Java Projects W...</a></li>
+
+        <li><a href="http://steve-yegge.blogspot.com/2010/07/blogger-finger.html">Blogger Finger</a></li>
+
+        <li><a href="http://steve-yegge.blogspot.com/2009/05/programmers-view-of-universe-part-3.html">A programmer&#39;s view of the Universe, part 3:  The ...</a></li>
+
+        <li><a href="http://steve-yegge.blogspot.com/2009/04/have-you-ever-legalized-marijuana.html">Have you ever legalized marijuana?</a></li>
+
+        <li><a href="http://steve-yegge.blogspot.com/2009/03/story-time.html">Story Time</a></li>
+
+        <li><a href="http://steve-yegge.blogspot.com/2008/12/programmers-view-of-universe-part-2.html">A programmer&#39;s view of the Universe, part 2:  Mari...</a></li>
+
+  </ul>
+
+
+  <h2 class="sidebar-title">Archives</h2>
+    <ul class="archive-list">
+
+    	<li><a href="http://steve-yegge.blogspot.com/2006_03_01_archive.html">March 2006</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2006_04_01_archive.html">April 2006</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2006_05_01_archive.html">May 2006</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2006_06_01_archive.html">June 2006</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2006_07_01_archive.html">July 2006</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2006_08_01_archive.html">August 2006</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2006_09_01_archive.html">September 2006</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2006_10_01_archive.html">October 2006</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2006_12_01_archive.html">December 2006</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2007_01_01_archive.html">January 2007</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2007_02_01_archive.html">February 2007</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2007_06_01_archive.html">June 2007</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2007_08_01_archive.html">August 2007</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2007_09_01_archive.html">September 2007</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2007_12_01_archive.html">December 2007</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2008_01_01_archive.html">January 2008</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2008_02_01_archive.html">February 2008</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2008_03_01_archive.html">March 2008</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2008_04_01_archive.html">April 2008</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2008_05_01_archive.html">May 2008</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2008_06_01_archive.html">June 2008</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2008_08_01_archive.html">August 2008</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2008_09_01_archive.html">September 2008</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2008_10_01_archive.html">October 2008</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2008_11_01_archive.html">November 2008</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2008_12_01_archive.html">December 2008</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2009_03_01_archive.html">March 2009</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2009_04_01_archive.html">April 2009</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2009_05_01_archive.html">May 2009</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2010_07_01_archive.html">July 2010</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2010_12_01_archive.html">December 2010</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2011_07_01_archive.html">July 2011</a></li>
+
+    	<li><a href="http://steve-yegge.blogspot.com/2012_03_01_archive.html">March 2012</a></li>
+
+
+  </ul>
+
+
+      <p id="powered-by"><a href="http://www.blogger.com"><img src="http://buttons.blogger.com/bloggerbutton1.gif" alt="Powered by Blogger" /></a></p>
+
+  <!--
+  <p>This is a paragraph of text that could go in the sidebar.</p>
+  -->
+
+
+
+</div></div>
+<!-- End #sidebar -->
+
+
+</div>
+<!-- End #content -->
+
+
+
+<!-- Begin #footer -->
+<div id="footer"><hr />
+  <p><!--This is an optional footer. If you want text here, place it inside these tags, and remove this comment. -->&nbsp;</p>
+
+</div>
+<!-- End #footer -->
+
+
+<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+</script>
+<script type="text/javascript">
+_uacct = "UA-238999-1";
+urchinTracker();
+</script>
+<script type="text/javascript" src="//www.blogger.com/static/v1/common/js/3472483503-csitail.js"></script>
+<script type="text/javascript">BLOG_initCsi('classic_blogspot');</script></body>
+</html>
