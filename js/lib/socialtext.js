@@ -182,19 +182,23 @@
 
 
     $.fn.lengthfilter = function (length) {
+        var i = 0;
+
         var $this = this;
-        return $this.each(function () {
-            $(this).removeClass('socialtext-hide socialtext-show');
-            var css_class = 'socialtext-hide';
-            if ($(this).data('size') < length) css_class = 'socialtext-show';
-            $(this).addClass(css_class);
-        });
+        $this.each(function () {
+                    $(this).removeClass('socialtext-hide socialtext-show');
+                    var css_class = 'socialtext-hide';
+                    if ($(this).data('size') < length) {
+                        css_class = 'socialtext-show';
+                        i++;
+                    }
+                    $(this).addClass(css_class);
+
+                }
+        );
+        return i;
+
     };
-
-    $.fn.slider = function () {
-
-    };
-
 
     $.fn.socialtext = function (option, settings) {
         if (typeof option === 'object') {
@@ -290,12 +294,12 @@
                     var new_string = accum.join("");
                     new_string = new_string.replace(
                             /([<>"&])/g,
-                            function(a) {
-                                if (a==='&') return '&amp;';
-                                if (a==='<') return '&lt;';
-                                if (a==='>') return '&gt;';
-                                if (a==='"') return '&quot;';
-                    });
+                            function (a) {
+                                if (a === '&') return '&amp;';
+                                if (a === '<') return '&lt;';
+                                if (a === '>') return '&gt;';
+                                if (a === '"') return '&quot;';
+                            });
                     statements.push({'statement':new_string, 'size':size, 'statement_type':statement_type});
                     accum = [];
                     size = 0;
@@ -419,7 +423,7 @@
             return $('<a href="'
                     + 'https://twitter.com/intent/tweet?text='
                     + encodeURI("“" + statement + "”")
-                    // + '&via=savepub'
+                // + '&via=savepub'
                     + '&related=ftrain,savepub'
                     + '&url='
                     + encodeURI(location.href)

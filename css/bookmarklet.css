@@ -49,17 +49,19 @@ body {
 }
 
 #socialtext-slider {
-    height:100px;
     width:100%;
-    border:1px solid black;
+    -webkit-box-shadow: 2px 5px 10px rgba(50, 50, 50, 0.3);
+    -moz-box-shadow:    2px 2px 10px rgba(50, 50, 50, 0.3);
+    box-shadow:         2px 2px 10px rgba(50, 50, 50, 0.3);
+
 }
 
 #socialtext-header h1 {
-    font-size: 35px;
+    font-size: 20px;
     text-transform: uppercase;
-    letter-spacing: 0em;
+    letter-spacing: 1em;
     font-weight: 100;
-    margin-top: 0em;
+    margin-top: -10px;
     text-align: center;
     color: #678c9a;
 }
