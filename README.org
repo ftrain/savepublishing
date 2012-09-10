@@ -233,3 +233,16 @@ This will not be an accessible tool; it will not work in flat-text browsers or i
 
 There's not much I can do about that and still get this done. I'm a parasite upon the web, not a resource.
 
+
+
+<2012-09-02 Sun>
+
+Now I'm off to work. We're winding it up. The DOM is behaving, roughly.
+
+Sites are messy inside. The real world has won; the idea of well-behaved, structured content is gone. The power of the computer, and the innate willingness.
+
+No one makes money off of structure. People make money off of people. We keep losing the thread there; I do as well.
+
+Medium, for example—I knew it was coming and I had ideas as to what I wanted.
+
+The key thing is to give people power.

@@ -230,7 +230,6 @@
                     var current_score = s + score;
                     p.data('score', current_score);
                     if (current_score >= min_score && p[0].nodeName != 'BODY') {
-                        console.log(p[0].nodeName);
                         p.addClass('socialtext-scored');
                     }
                     p.attr('score', current_score);
@@ -350,7 +349,6 @@
         semicolons:false,
         periods:true,
         squeeze:false,
-        disemvowel:false,
         parent:$('body'),
         footer:$('<div id="socialtext-footer">Footer here</div>')
     };
@@ -546,7 +544,8 @@
 
         _makeUrl:function (statement) {
             statement = $.trim(statement);
-            return '<a class="socialtext-statement" href="'
+            statement = this._squeeze(statement);
+            return '<a class="socialtext-statement" style="text-decoration: none;" href="'
                     + 'https://twitter.com/intent/tweet?text='
                     + encodeURI("“" + statement + "”")
                 // + '&via=savepub'
@@ -555,42 +554,24 @@
                     + encodeURI(location.href)
                     + '">'
                     + statement
-                    +'</a>';
+                    + '</a>';
         },
 
         divide:function () {
             var $this = this;
             var tn = $this._getTextNodes();
-            tn.each(function() {
-                var parsed = $this._parse(this.nodeValue);
-                var newval = $('<span class="socialtext-statement-set"/>');
-                for (i in parsed) {
-                    if (parsed[i] && parsed[i].size > 1) {
-                        newval.append($($this._makeUrl(parsed[i].statement)).data('size', parsed[i].size));
+            tn.each(function () {
+                if (!($(this).parent().hasClass('socialtext-statement'))) {
+                    var parsed = $this._parse(this.nodeValue);
+                    var newval = $('<span class="socialtext-statement-set"/>');
+                    for (i in parsed) {
+                        if (parsed[i] && parsed[i].size > 2) {
+                            newval.append($($this._makeUrl(parsed[i].statement)).data('size', parsed[i].size));
+                        }
                     }
+                    $(this).replaceWith(newval);
                 }
-                $(this).replaceWith(newval);
             });
-
-/*            var el = $('<span class="socialtext-statementset"/>');
-            for (var i = 0; i < o.length; i++) {
-                var s = o[i];
-                el.append(
-                        $('<span class="socialtext-statement" title="('
-                                + s.statement_type
-                                + ':'
-                                + s.size
-                                + ':'
-
-                                + ')">'
-                                + s.statement
-                                + '</span>')
-                                .data(s)
-                                .append(this._makeUrl(s.statement))
-                )
-            }
-            $this.source.empty().append(el);*/
-
         },
 
         _toAbbreviation:function (left, word, right) {

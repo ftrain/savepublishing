@@ -75,11 +75,17 @@ body {
 }
 
 a.socialtext-show {
-    text-decoration: none;
-    border-bottom:1px solid white;
-    color: black;
     background:yellow;
+    color:#0000cd;
     margin-right:.5em;
+    border-bottom:1px solid white;
+    text-decoration: none;
+
+}
+
+a.socialtext-show:after, a.socialtext-hide:after {
+    content:"\2605";
+    color:silver;
 }
 
 
@@ -91,7 +97,6 @@ a.socialtext-hide {
 
 }
 
-/*.socialtext-scored {
-    color:#deb887;
-}*/
-
+.socialtext-scored {
+    color:#dc143c;
+}

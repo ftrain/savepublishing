@@ -15,18 +15,23 @@ function loadCss(url) {
         document.createStyleSheet(url);
     }
     else {
-        document.getElementsByTagName("head")[0].appendChild(link);
+        document.getElementsByTagName("body")[0].appendChild(link);
     }
 }
-loadCss('https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/themes/ui-lightness/jquery-ui.css');
-loadCss('http://www.savepublishing.com/css/bookmarklet.css');
 
 require(["jquery", "twidgets", "ui", "socialtext"], function ($) {
 
     $(function () {
+        loadCss('https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/themes/ui-lightness/jquery-ui.css');
+        loadCss('http://www.savepublishing.com/css/bookmarklet.css');
+
+        // Get rid of scripts
+
         window.onload = window.onunload = function() {};
         $('script').remove();
 
+
+        // Fade stuff out
         $('img,object,iframe,script,ins').fadeTo('fast', 0.3);
         $('b,strong').replaceWith(function () {
             return '*' + $(this).text().trim() + '*';
@@ -41,7 +46,7 @@ require(["jquery", "twidgets", "ui", "socialtext"], function ($) {
         html = html.replace(/([^<>]+)<br[^>]?>\s*<br[^>]?>/gim, '<p>\$1</p>');
         html = html.replace(/([^<>]+)<br[^>]?>/gim, '<div class="socialtext-break">\$1</div>');
         $('body').html(html);
-        $('body').score(50);
+        $('body').score(400);
         $('.socialtext-scored').socialtext();
         $('body').header();
 
