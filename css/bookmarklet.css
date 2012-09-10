@@ -19,6 +19,7 @@ body {
     width: 50%;
     margin: -210px auto 50px auto;
     font-family: 'Scala Sans','Gill Sans','Helvetica Neue', 'Arial';
+    font-size:15px;
     height: 150px;
     padding: 1em 1em 1em 1em;
     opacity:.95;
@@ -43,8 +44,8 @@ body {
 
 }
 
-#socialtext-wrapper a {
-    color: #678C9A;
+#socialtext-wrapper a.socialtext-show {
+    color: #ccc;
     text-decoration: none;
 }
 
@@ -73,13 +74,24 @@ body {
 
 }
 
-.socialtext-show {
-    text-decoration: none, background: white;
-    color: red;
+a.socialtext-show {
+    text-decoration: none;
+    border-bottom:1px solid white;
+    color: black;
+    background:yellow;
+    margin-right:.5em;
 }
 
-.socialtext-hide {
-    text-decoration: none, background: white;
+
+a.socialtext-hide {
+    text-decoration: none;
+    background: white;
     color: silver;
+    margin-right:.5em;
+
 }
+
+/*.socialtext-scored {
+    color:#deb887;
+}*/
 

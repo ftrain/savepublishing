@@ -17,6 +17,7 @@
 
     var words = {
         // Numerals
+
         'one':1,
         'first':'1st',
         'two':2,
@@ -173,6 +174,7 @@
         'Virgin Islands':'VI'
     };
 
+
     // Matches keys above with word boundaries to left and right
 
     // Borrowed from underscore.js
@@ -200,6 +202,110 @@
 
     };
 
+    $.fn.score = function (min_score) {
+
+        function _countMatches(arr) {
+            return arr ? arr.length : 0;
+        }
+
+        $(this)
+                .find(":not(iframe)")
+                .andSelf()
+                .contents()
+                .filter(function () {
+                    return this.nodeType == 3 && this.nodeValue.match(/\S/);
+                })
+                .each(function () {
+                    var text = this.nodeValue;
+                    var punct = _countMatches(text.match(/\w{2}[,;]/g)) + 1;
+                    var period = 1 + 2 * _countMatches(text.match(/\w{2}[\.?!;()"“”]/g));
+                    var uc = _countMatches(text.match(/[A-Z]/g));
+                    var lc = _countMatches(text.match(/[a-z]/g));
+                    var spaces = _countMatches(text.match(/[\W]/g));
+                    var score = parseInt(punct * period * spaces * lc / (1 + uc));
+
+                    var p = $(this).parent();
+                    var s = p.data('score');
+                    var s = s ? s : 0;
+                    var current_score = s + score;
+                    p.data('score', current_score);
+                    if (current_score >= min_score && p[0].nodeName != 'BODY') {
+                        console.log(p[0].nodeName);
+                        p.addClass('socialtext-scored');
+                    }
+                    p.attr('score', current_score);
+
+                });
+        return $(this);
+    };
+
+    $.fn.header = function () {
+        $(this).prepend($('<div id="socialtext-wrapper">')
+                .append(
+                $('<div id="socialtext-header"/>')
+                        .append('<div id="socialtext-reset"><a href="' + location.href + '">Dismiss</a></div>')
+                        .append($('<h1><a href="http://www.savepublishing.com">Save Publishing</a></h1>'))
+                        .append(
+                        $('<form>')
+                                .append(
+                                $('<span class="socialtext-checkbox"><input type="checkbox" id="socialtext-hide"/> hide untweetable text</span>')
+                                        .click(
+                                        function () {
+                                            hide = hide ? false : true;
+                                            $('#socialtext-hide').attr('checked', hide);
+                                            if (hide) {
+                                                $('img,.socialtext-hide').css({'display':'none'});
+
+
+                                            }
+                                            else {
+                                                $('img,.socialtext-hide').css({'display':'inline'});
+                                            }
+                                        }
+                                )
+
+                        )
+                                .append(
+                                $('<span class="socialtext-checkbox"> <input type="checkbox" id="socialtext-shrink"/> shrink the shrinkable</span>')
+                                        .click(
+                                        function () {
+                                            shrink = shrink ? false : true;
+                                            $('#socialtext-shrink').attr('checked', shrink);
+                                            if (shrink) {
+                                                mark({'squeeze':true});
+                                            }
+                                            else {
+                                                mark({'squeeze':false});
+
+                                            }
+
+                                        }
+                                )
+                        )
+
+                )
+                        .append('<div id="slider-status">Found TK tweetable sentences under 118 characters or less.</div>')
+                    // TURN INTO FUNCTION PLEASE
+                        .append(
+                        $('<div id="socialtext-slider"/>')
+                                .slider({ min:0,
+                                    max:140,
+                                    value:118,
+                                    slide:function (event, ui) {
+
+                                        var value = $('.socialtext-statement').lengthfilter(ui.value);
+
+                                        $('#slider-status').html("Found <b>" + value + "</b> statements of " + ui.value + " characters or less.");
+                                    }
+                                })
+
+                )
+                        .append($('<div id="socialtext-footer">From your fine friend <a href="http://twitter.com/ftrain">@ftrain</a> &middot; <a href="http://savepublishing.com/faq">Need help?</a> &middot; <a href="mailto:ford+savepublishing@ftrain.com?subject=[SavePublishing.com] My suggestions">Have suggestions?</a></div>')
+                )
+        )
+        );
+        return $(this);
+    }
     $.fn.socialtext = function (option, settings) {
         if (typeof option === 'object') {
             settings = option;
@@ -256,29 +362,36 @@
         return this;
     }
 
+
     SocialText.prototype =
     {
+
         init:function () {
-
             var $this = this;
-
             if ($this.parsed) return $this.parsed;
-
             this.divide();
             this.filter();
             return $this;
+        },
+
+        _getTextNodes:function () {
+            return this
+                    .source
+                    .find(':not(iframe)')
+                    .andSelf()
+                    .contents()
+                    .filter(function () {
+                        return this.nodeType == 3;
+                    });
 
         },
 
-        _parse:function () {
+        _parse:function (string) {
             var $this = this;
-            var string = $this.source.text();
 
             string = string.replace(/ +/gi, ' ');
 
             if ($this.settings.squeeze) string = $this._squeeze(string);
-
-            if ($this.settings.disemvowel) string = $this._disemvowel(string);
 
             var statements = [];
             var accum = [];
@@ -289,6 +402,14 @@
             var lastcap, lastspace = 0;
 
             function _glue(statement_type) {
+                /**
+                 * Glues together statements if it looks like we've reached the
+                 * end of a sentence.
+                 *
+                 * @param {statement_type} One of NEUTRAL, QUESTION,
+                 * EXCLAMATION, or QUOTE
+                 *
+                 */
                 var statement_type = statement_type ? statement_type : 'NEUTRAL';
                 if (accum.length > 0) {
                     var new_string = accum.join("");
@@ -309,11 +430,11 @@
             function _really(string, i, lastcap) {
                 /**
                  *
-                 * Is this really the end a sentence?
+                 * Is this really the end of a sentence?
                  *
-                 * @param string The string we're evaluating
-                 * @param i The niumber
-                 * @param lastcap The position of the last capital letter
+                 * @param {string} string The string we're evaluating
+                 * @param {integer} i The number
+                 * @param {integer} lastcap The position of the last capital letter
                  *
                  */
                 if (string.charAt(i + 1).match(/[\w\)"”]/)
@@ -352,7 +473,8 @@
                         break;
 
                     case ';':
-                        if ($this.settings.semicolons > 0 && accum.length > $this.settings.semicolons) {
+                        if ($this.settings.semicolons > 0
+                                && accum.length > $this.settings.semicolons) {
                             _glue('SEMICOLON');
                         }
                         break;
@@ -381,13 +503,17 @@
                         if (string.charAt(i + 1).match(/[”"]/)) break;
 
 
-                        if ($this.settings.commas > 0 && accum.length < $this.settings.commas && accum.length > 80) {
+                        if ($this.settings.commas > 0
+                                && accum.length < $this.settings.commas
+                                && accum.length > 80) {
                             _glue('COMMA');
                         }
                         break;
 
                     case '—':
-                        if ($this.settings.emdashes > 0 && accum.length < $this.settings.emdashes && accum.length > 80) {
+                        if ($this.settings.emdashes > 0
+                                && accum.length < $this.settings.emdashes
+                                && accum.length > 80) {
                             _glue('EMDASH');
                         }
                         break;
@@ -420,53 +546,86 @@
 
         _makeUrl:function (statement) {
             statement = $.trim(statement);
-            return $('<a href="'
+            return '<a class="socialtext-statement" href="'
                     + 'https://twitter.com/intent/tweet?text='
                     + encodeURI("“" + statement + "”")
                 // + '&via=savepub'
                     + '&related=ftrain,savepub'
                     + '&url='
                     + encodeURI(location.href)
-                    + '">#</a>');
+                    + '">'
+                    + statement
+                    +'</a>';
         },
 
         divide:function () {
             var $this = this;
-            var o = this._parse();
-            this.source.html("");
+            var tn = $this._getTextNodes();
+            tn.each(function() {
+                var parsed = $this._parse(this.nodeValue);
+                var newval = $('<span class="socialtext-statement-set"/>');
+                for (i in parsed) {
+                    if (parsed[i] && parsed[i].size > 1) {
+                        newval.append($($this._makeUrl(parsed[i].statement)).data('size', parsed[i].size));
+                    }
+                }
+                $(this).replaceWith(newval);
+            });
 
+/*            var el = $('<span class="socialtext-statementset"/>');
             for (var i = 0; i < o.length; i++) {
                 var s = o[i];
+                el.append(
+                        $('<span class="socialtext-statement" title="('
+                                + s.statement_type
+                                + ':'
+                                + s.size
+                                + ':'
 
-                this.source.append(
-                        $('<span class="socialtext-statement" title="(' + s.statement_type + ':' + s.size + ')">' + s.statement + '</span>')
+                                + ')">'
+                                + s.statement
+                                + '</span>')
                                 .data(s)
                                 .append(this._makeUrl(s.statement))
                 )
             }
+            $this.source.empty().append(el);*/
+
         },
 
         _toAbbreviation:function (left, word, right) {
             /* Using the table of abbreviations look up an
              * abbreviation.
              *
-             * param:left The left word boundary character
-             *
-             * param:word The captured term
-             *
-             * param:right The right word boundary character
+             * @param left The left word boundary character
+             * @param word The captured term
+             * @param right The right word boundary character
              *
              */
-            var lc_word = word.toLowerCase(); // Regexp passes through all cases so lc
+
+            // Regexp passes through all cases so lc
+            var lc_word = word.toLowerCase();
             return left + words[lc_word] + right;
         },
 
         _toFirstSlash:function (str) {
-            return str./**/charAt(0) + '/';
+            /**
+             * Turns "of" into "o/", etc.
+             *
+             * @param str The string to enslash
+             */
+            return str.charAt(0) + '/';
 
         },
 
         _squeeze:function (text) {
+            /**
+             * Converts text
+             * @type {*}
+             *
+             * @param text The text to squeeze.
+             *
+             */
             $this = this;
             var new_text = text;
 
@@ -507,7 +666,9 @@
 
             var length = (length) ? length : $this.settings.length;
 
-            $this.source.children('.socialtext-statement').each(function () {
+
+            $this.source.find('.socialtext-statement').each(function () {
+
                 $(this).removeClass('socialtext-hide socialtext-show');
                 var css_class = 'socialtext-hide';
                 if ($(this).data().size < length) css_class = 'socialtext-show';
@@ -526,22 +687,6 @@
             );
             return new_text;
 
-        },
-
-        socialize:function () {
-            // Add a halo to a content object to make it shareable.
-            return false;
-        },
-
-        slider:function () {
-            /**
-             * Generates a slider and inserts it int
-             *
-             * @requires jqueryui-slider
-             *
-             */
-            return $('<div id="socialtext-slider"/>')
-                    .append(this.footer);
         }
     }
 })(jQuery);
