@@ -85,7 +85,6 @@ a.socialtext-show {
 
 a.socialtext-show:after, a.socialtext-hide:after {
     content:"\2605";
-    color:silver;
 }
 
 

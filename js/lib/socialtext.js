@@ -182,6 +182,27 @@
     for (var key in words) keys[keys.length] = key;
     word_regex = new RegExp('(\\b)(' + keys.join("|") + ')(\\b)', 'gi');
 
+    // http://stackoverflow.com/questions/298750/how-do-i-select-text-nodes-with-jquery
+    $.fn.getTextNodesIn = function(node, includeWhitespaceNodes) {
+        var textNodes = [], whitespace = /^\s*$/;
+
+        function getTextNodes(node) {
+            if (node.nodeType == 3) {
+                if (includeWhitespaceNodes || !whitespace.test(node.nodeValue)) {
+                    textNodes.push(node);
+                }
+            } else {
+                for (var i = 0, len = node.childNodes.length; i < len; ++i) {
+                    getTextNodes(node.childNodes[i]);
+                }
+            }
+        }
+
+        getTextNodes(node);
+        return textNodes;
+    };
+
+
 
     $.fn.lengthfilter = function (length) {
         var i = 0;
@@ -205,16 +226,22 @@
     $.fn.score = function (min_score) {
 
         function _countMatches(arr) {
+            /**
+             * Returns the length of an array, if that array exists, or zero.
+             * Useful in the context of regular expression results arrays.
+             *
+             * @param arr the array under consideration
+             */
             return arr ? arr.length : 0;
         }
-
+        function _isText(el) {
+            return el.nodeType == 3 && el.nodeValue.match(/\S/);
+        }
         $(this)
                 .find(":not(iframe)")
                 .andSelf()
                 .contents()
-                .filter(function () {
-                    return this.nodeType == 3 && this.nodeValue.match(/\S/);
-                })
+                .filter(function () {return this.nodeType == 3 && this.nodeValue.match(/\S/);})
                 .each(function () {
                     var text = this.nodeValue;
                     var punct = _countMatches(text.match(/\w{2}[,;]/g)) + 1;
@@ -226,7 +253,7 @@
 
                     var p = $(this).parent();
                     var s = p.data('score');
-                    var s = s ? s : 0;
+                    s = s ? s : 0;
                     var current_score = s + score;
                     p.data('score', current_score);
                     if (current_score >= min_score && p[0].nodeName != 'BODY') {
