@@ -544,11 +544,9 @@
 
         _makeUrl:function (statement) {
             statement = $.trim(statement);
-            statement = this._squeeze(statement);
             return '<a class="socialtext-statement" style="text-decoration: none;" href="'
                     + 'https://twitter.com/intent/tweet?text='
                     + encodeURI("“" + statement + "”")
-                // + '&via=savepub'
                     + '&related=ftrain,savepub'
                     + '&url='
                     + encodeURI(location.href)
