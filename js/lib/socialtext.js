@@ -578,7 +578,7 @@
                     + '&url='
                     + encodeURI(location.href)
                     + '">'
-                    + statement
+                    + this._squeeze(statement)
                     + '</a>';
         },
 
