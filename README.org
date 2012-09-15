@@ -246,3 +246,21 @@ No one makes money off of structure. People make money off of people. We keep lo
 Medium, for example—I knew it was coming and I had ideas as to what I wanted.
 
 The key thing is to give people power.
+
+
+<2012-09-01 Sat>
+A brief sidenote on CoffeeScript--a few years ago I went over to DocumentCloud at the Times to say hello. 
+
+Ashkenas showed me some scripts--the headers at the top. I'd been hacking all sorts of stuff, trying to bootstrap Harper's on pennies, but this was someone with a plan. It was insane. 
+
+When you follow the money back for DocumentCloud
+
+CoffeeScript--you find people making it work with the idea that information is important.
+
+<2012-09-14 Sat>
+
+Well we're still at it over here. I've refactored a bit and spent a good deal of time reading code.
+
+The great fear of doing it wrong.
+
+
