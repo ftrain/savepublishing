@@ -12,11 +12,12 @@ require(["jquery",
     "ExtendString",
     "LoadCSS",
     "socialtext",
-    "socialtext-styles"], function ($) {
+    "socialtext-styles",
+    "live"], function ($) {
 
+    loadCss('https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/themes/ui-lightness/jquery-ui.css');
 
     $(function () {
-        loadCss('https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/themes/ui-lightness/jquery-ui.css');
 
         // Get rid of scripts
 
