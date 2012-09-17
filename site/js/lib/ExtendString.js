@@ -27,7 +27,7 @@ String.prototype.stripNewlines = function () {
     return this.replace(newlines, ' ');
 }
 
-var para = /(.+?)SOCIALTEXT_BR\s*SOCIALTEXT_BR/g;
+var para = /(.+?)SOCIALTEXT_BR\s*SOCIALTEXT_BR/gm;
 String.prototype.twoBreaksToSocialtext = function () {
     /**
      * Wraps text before two occurrences of SOCIALTEXT_BR in a socialtext class.
@@ -37,10 +37,10 @@ String.prototype.twoBreaksToSocialtext = function () {
      *  @return {String}
      */
 
-    return this.replace(para, '<span class="socialtext-line">\$1</span><br/><br/>\n\n');
+    return this.replace(para, '<span class="socialtext-line">[[PARA\$1]]</span><br/><br/>\n\n');
 }
 
-var rebreak = /(.*?)SOCIALTEXT_BR/g;
+var rebreak = /(.*?)SOCIALTEXT_BR/gm;
 String.prototype.oneBreakToSocialtext = function () {
     /**
      * Wraps text before a break in a socialtext class.
@@ -49,7 +49,7 @@ String.prototype.oneBreakToSocialtext = function () {
      *
      * Depends on a regular expression in variable rebreak.
      */
-    return this.replace(rebreak, '<span class="socialtext-line">\$1</span><br/>');
+    return this.replace(rebreak, '<span class="socialtext-line">[[TWO\$1]]</span><br/>');
 }
 
 String.prototype.wrapInSpan = function () {
@@ -91,4 +91,13 @@ String.prototype.replaceEntities = function () {
     return this.replace(entities, function (a) {
         return replace(a);
     });
+
+    String.prototype.tokenize = function () {
+        return this;
+    }
+
+    String.prototype.statements = function () {
+        return this;
+    }
+
 }

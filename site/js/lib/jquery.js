@@ -1,2046 +1,5 @@
-/** vim: et:ts=4:sw=4:sts=4
- * @license RequireJS 2.0.6 Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.
- * Available via the MIT or new BSD license.
- * see: http://github.com/jrburke/requirejs for details
- */
-//Not using strict: uneven strict support in browsers, #392, and causes
-//problems with requirejs.exec()/transpiler plugins that may not be strict.
-/*jslint regexp: true, nomen: true, sloppy: true */
-/*global window, navigator, document, importScripts, jQuery, setTimeout, opera */
-
-var st_requirejs, st_require, define;
-(function (global) {
-    var req, s, head, baseElement, dataMain, src,
-        interactiveScript, currentlyAddingScript, mainScript, subPath,
-        version = '2.0.6',
-        commentRegExp = /(\/\*([\s\S]*?)\*\/|([^:]|^)\/\/(.*)$)/mg,
-        cjsRequireRegExp = /[^.]\s*require\s*\(\s*["']([^'"\s]+)["']\s*\)/g,
-        jsSuffixRegExp = /\.js$/,
-        currDirRegExp = /^\.\//,
-        op = Object.prototype,
-        ostring = op.toString,
-        hasOwn = op.hasOwnProperty,
-        ap = Array.prototype,
-        aps = ap.slice,
-        apsp = ap.splice,
-        isBrowser = !!(typeof window !== 'undefined' && navigator && document),
-        isWebWorker = !isBrowser && typeof importScripts !== 'undefined',
-        //PS3 indicates loaded and complete, but need to wait for complete
-        //specifically. Sequence is 'loading', 'loaded', execution,
-        // then 'complete'. The UA check is unfortunate, but not sure how
-        //to feature test w/o causing perf issues.
-        readyRegExp = isBrowser && navigator.platform === 'PLAYSTATION 3' ?
-                      /^complete$/ : /^(complete|loaded)$/,
-        defContextName = '_',
-        //Oh the tragedy, detecting opera. See the usage of isOpera for reason.
-        isOpera = typeof opera !== 'undefined' && opera.toString() === '[object Opera]',
-        contexts = {},
-        cfg = {},
-        globalDefQueue = [],
-        useInteractive = false;
-
-    function isFunction(it) {
-        return ostring.call(it) === '[object Function]';
-    }
-
-    function isArray(it) {
-        return ostring.call(it) === '[object Array]';
-    }
-
-    /**
-     * Helper function for iterating over an array. If the func returns
-     * a true value, it will break out of the loop.
-     */
-    function each(ary, func) {
-        if (ary) {
-            var i;
-            for (i = 0; i < ary.length; i += 1) {
-                if (ary[i] && func(ary[i], i, ary)) {
-                    break;
-                }
-            }
-        }
-    }
-
-    /**
-     * Helper function for iterating over an array backwards. If the func
-     * returns a true value, it will break out of the loop.
-     */
-    function eachReverse(ary, func) {
-        if (ary) {
-            var i;
-            for (i = ary.length - 1; i > -1; i -= 1) {
-                if (ary[i] && func(ary[i], i, ary)) {
-                    break;
-                }
-            }
-        }
-    }
-
-    function hasProp(obj, prop) {
-        return hasOwn.call(obj, prop);
-    }
-
-    /**
-     * Cycles over properties in an object and calls a function for each
-     * property value. If the function returns a truthy value, then the
-     * iteration is stopped.
-     */
-    function eachProp(obj, func) {
-        var prop;
-        for (prop in obj) {
-            if (obj.hasOwnProperty(prop)) {
-                if (func(obj[prop], prop)) {
-                    break;
-                }
-            }
-        }
-    }
-
-    /**
-     * Simple function to mix in properties from source into target,
-     * but only if target does not already have a property of the same name.
-     * This is not robust in IE for transferring methods that match
-     * Object.prototype names, but the uses of mixin here seem unlikely to
-     * trigger a problem related to that.
-     */
-    function mixin(target, source, force, deepStringMixin) {
-        if (source) {
-            eachProp(source, function (value, prop) {
-                if (force || !hasProp(target, prop)) {
-                    if (deepStringMixin && typeof value !== 'string') {
-                        if (!target[prop]) {
-                            target[prop] = {};
-                        }
-                        mixin(target[prop], value, force, deepStringMixin);
-                    } else {
-                        target[prop] = value;
-                    }
-                }
-            });
-        }
-        return target;
-    }
-
-    //Similar to Function.prototype.bind, but the 'this' object is specified
-    //first, since it is easier to read/figure out what 'this' will be.
-    function bind(obj, fn) {
-        return function () {
-            return fn.apply(obj, arguments);
-        };
-    }
-
-    function scripts() {
-        return document.getElementsByTagName('script');
-    }
-
-    //Allow getting a global that expressed in
-    //dot notation, like 'a.b.c'.
-    function getGlobal(value) {
-        if (!value) {
-            return value;
-        }
-        var g = global;
-        each(value.split('.'), function (part) {
-            g = g[part];
-        });
-        return g;
-    }
-
-    function makeContextModuleFunc(func, relMap, enableBuildCallback) {
-        return function () {
-            //A version of a require function that passes a moduleName
-            //value for items that may need to
-            //look up paths relative to the moduleName
-            var args = aps.call(arguments, 0), lastArg;
-            if (enableBuildCallback &&
-                    isFunction((lastArg = args[args.length - 1]))) {
-                lastArg.__requireJsBuild = true;
-            }
-            args.push(relMap);
-            return func.apply(null, args);
-        };
-    }
-
-    function addRequireMethods(req, context, relMap) {
-        each([
-            ['toUrl'],
-            ['undef'],
-            ['defined', 'requireDefined'],
-            ['specified', 'requireSpecified']
-        ], function (item) {
-            var prop = item[1] || item[0];
-            req[item[0]] = context ? makeContextModuleFunc(context[prop], relMap) :
-                    //If no context, then use default context. Reference from
-                    //contexts instead of early binding to default context, so
-                    //that during builds, the latest instance of the default
-                    //context with its config gets used.
-                    function () {
-                        var ctx = contexts[defContextName];
-                        return ctx[prop].apply(ctx, arguments);
-                    };
-        });
-    }
-
-    /**
-     * Constructs an error with a pointer to an URL with more information.
-     * @param {String} id the error ID that maps to an ID on a web page.
-     * @param {String} message human readable error.
-     * @param {Error} [err] the original error, if there is one.
-     *
-     * @returns {Error}
-     */
-    function makeError(id, msg, err, requireModules) {
-        var e = new Error(msg + '\nhttp://requirejs.org/docs/errors.html#' + id);
-        e.requireType = id;
-        e.requireModules = requireModules;
-        if (err) {
-            e.originalError = err;
-        }
-        return e;
-    }
-
-    if (typeof define !== 'undefined') {
-        //If a define is already in play via another AMD loader,
-        //do not overwrite.
-        return;
-    }
-
-    if (typeof st_requirejs !== 'undefined') {
-        if (isFunction(st_requirejs)) {
-            //Do not overwrite and existing requirejs instance.
-            return;
-        }
-        cfg = st_requirejs;
-        st_requirejs = undefined;
-    }
-
-    //Allow for a require config object
-    if (typeof st_require !== 'undefined' && !isFunction(st_require)) {
-        //assume it is a config object.
-        cfg = st_require;
-        st_require = undefined;
-    }
-
-    function newContext(contextName) {
-        var inCheckLoaded, Module, context, handlers,
-            checkLoadedTimeoutId,
-            config = {
-                waitSeconds: 7,
-                baseUrl: './',
-                paths: {},
-                pkgs: {},
-                shim: {}
-            },
-            registry = {},
-            undefEvents = {},
-            defQueue = [],
-            defined = {},
-            urlFetched = {},
-            requireCounter = 1,
-            unnormalizedCounter = 1,
-            //Used to track the order in which modules
-            //should be executed, by the order they
-            //load. Important for consistent cycle resolution
-            //behavior.
-            waitAry = [];
-
-        /**
-         * Trims the . and .. from an array of path segments.
-         * It will keep a leading path segment if a .. will become
-         * the first path segment, to help with module name lookups,
-         * which act like paths, but can be remapped. But the end result,
-         * all paths that use this function should look normalized.
-         * NOTE: this method MODIFIES the input array.
-         * @param {Array} ary the array of path segments.
-         */
-        function trimDots(ary) {
-            var i, part;
-            for (i = 0; ary[i]; i += 1) {
-                part = ary[i];
-                if (part === '.') {
-                    ary.splice(i, 1);
-                    i -= 1;
-                } else if (part === '..') {
-                    if (i === 1 && (ary[2] === '..' || ary[0] === '..')) {
-                        //End of the line. Keep at least one non-dot
-                        //path segment at the front so it can be mapped
-                        //correctly to disk. Otherwise, there is likely
-                        //no path mapping for a path starting with '..'.
-                        //This can still fail, but catches the most reasonable
-                        //uses of ..
-                        break;
-                    } else if (i > 0) {
-                        ary.splice(i - 1, 2);
-                        i -= 2;
-                    }
-                }
-            }
-        }
-
-        /**
-         * Given a relative module name, like ./something, normalize it to
-         * a real name that can be mapped to a path.
-         * @param {String} name the relative name
-         * @param {String} baseName a real name that the name arg is relative
-         * to.
-         * @param {Boolean} applyMap apply the map config to the value. Should
-         * only be done if this normalization is for a dependency ID.
-         * @returns {String} normalized name
-         */
-        function normalize(name, baseName, applyMap) {
-            var pkgName, pkgConfig, mapValue, nameParts, i, j, nameSegment,
-                foundMap, foundI, foundStarMap, starI,
-                baseParts = baseName && baseName.split('/'),
-                normalizedBaseParts = baseParts,
-                map = config.map,
-                starMap = map && map['*'];
-
-            //Adjust any relative paths.
-            if (name && name.charAt(0) === '.') {
-                //If have a base name, try to normalize against it,
-                //otherwise, assume it is a top-level require that will
-                //be relative to baseUrl in the end.
-                if (baseName) {
-                    if (config.pkgs[baseName]) {
-                        //If the baseName is a package name, then just treat it as one
-                        //name to concat the name with.
-                        normalizedBaseParts = baseParts = [baseName];
-                    } else {
-                        //Convert baseName to array, and lop off the last part,
-                        //so that . matches that 'directory' and not name of the baseName's
-                        //module. For instance, baseName of 'one/two/three', maps to
-                        //'one/two/three.js', but we want the directory, 'one/two' for
-                        //this normalization.
-                        normalizedBaseParts = baseParts.slice(0, baseParts.length - 1);
-                    }
-
-                    name = normalizedBaseParts.concat(name.split('/'));
-                    trimDots(name);
-
-                    //Some use of packages may use a . path to reference the
-                    //'main' module name, so normalize for that.
-                    pkgConfig = config.pkgs[(pkgName = name[0])];
-                    name = name.join('/');
-                    if (pkgConfig && name === pkgName + '/' + pkgConfig.main) {
-                        name = pkgName;
-                    }
-                } else if (name.indexOf('./') === 0) {
-                    // No baseName, so this is ID is resolved relative
-                    // to baseUrl, pull off the leading dot.
-                    name = name.substring(2);
-                }
-            }
-
-            //Apply map config if available.
-            if (applyMap && (baseParts || starMap) && map) {
-                nameParts = name.split('/');
-
-                for (i = nameParts.length; i > 0; i -= 1) {
-                    nameSegment = nameParts.slice(0, i).join('/');
-
-                    if (baseParts) {
-                        //Find the longest baseName segment match in the config.
-                        //So, do joins on the biggest to smallest lengths of baseParts.
-                        for (j = baseParts.length; j > 0; j -= 1) {
-                            mapValue = map[baseParts.slice(0, j).join('/')];
-
-                            //baseName segment has config, find if it has one for
-                            //this name.
-                            if (mapValue) {
-                                mapValue = mapValue[nameSegment];
-                                if (mapValue) {
-                                    //Match, update name to the new value.
-                                    foundMap = mapValue;
-                                    foundI = i;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    if (foundMap) {
-                        break;
-                    }
-
-                    //Check for a star map match, but just hold on to it,
-                    //if there is a shorter segment match later in a matching
-                    //config, then favor over this star map.
-                    if (!foundStarMap && starMap && starMap[nameSegment]) {
-                        foundStarMap = starMap[nameSegment];
-                        starI = i;
-                    }
-                }
-
-                if (!foundMap && foundStarMap) {
-                    foundMap = foundStarMap;
-                    foundI = starI;
-                }
-
-                if (foundMap) {
-                    nameParts.splice(0, foundI, foundMap);
-                    name = nameParts.join('/');
-                }
-            }
-
-            return name;
-        }
-
-        function removeScript(name) {
-            if (isBrowser) {
-                each(scripts(), function (scriptNode) {
-                    if (scriptNode.getAttribute('data-requiremodule') === name &&
-                            scriptNode.getAttribute('data-requirecontext') === context.contextName) {
-                        scriptNode.parentNode.removeChild(scriptNode);
-                        return true;
-                    }
-                });
-            }
-        }
-
-        function hasPathFallback(id) {
-            var pathConfig = config.paths[id];
-            if (pathConfig && isArray(pathConfig) && pathConfig.length > 1) {
-                removeScript(id);
-                //Pop off the first array value, since it failed, and
-                //retry
-                pathConfig.shift();
-                context.undef(id);
-                context.require([id]);
-                return true;
-            }
-        }
-
-        /**
-         * Creates a module mapping that includes plugin prefix, module
-         * name, and path. If parentModuleMap is provided it will
-         * also normalize the name via require.normalize()
-         *
-         * @param {String} name the module name
-         * @param {String} [parentModuleMap] parent module map
-         * for the module name, used to resolve relative names.
-         * @param {Boolean} isNormalized: is the ID already normalized.
-         * This is true if this call is done for a define() module ID.
-         * @param {Boolean} applyMap: apply the map config to the ID.
-         * Should only be true if this map is for a dependency.
-         *
-         * @returns {Object}
-         */
-        function makeModuleMap(name, parentModuleMap, isNormalized, applyMap) {
-            var url, pluginModule, suffix,
-                index = name ? name.indexOf('!') : -1,
-                prefix = null,
-                parentName = parentModuleMap ? parentModuleMap.name : null,
-                originalName = name,
-                isDefine = true,
-                normalizedName = '';
-
-            //If no name, then it means it is a require call, generate an
-            //internal name.
-            if (!name) {
-                isDefine = false;
-                name = '_@r' + (requireCounter += 1);
-            }
-
-            if (index !== -1) {
-                prefix = name.substring(0, index);
-                name = name.substring(index + 1, name.length);
-            }
-
-            if (prefix) {
-                prefix = normalize(prefix, parentName, applyMap);
-                pluginModule = defined[prefix];
-            }
-
-            //Account for relative paths if there is a base name.
-            if (name) {
-                if (prefix) {
-                    if (pluginModule && pluginModule.normalize) {
-                        //Plugin is loaded, use its normalize method.
-                        normalizedName = pluginModule.normalize(name, function (name) {
-                            return normalize(name, parentName, applyMap);
-                        });
-                    } else {
-                        normalizedName = normalize(name, parentName, applyMap);
-                    }
-                } else {
-                    //A regular module.
-                    normalizedName = normalize(name, parentName, applyMap);
-                    url = context.nameToUrl(normalizedName);
-                }
-            }
-
-            //If the id is a plugin id that cannot be determined if it needs
-            //normalization, stamp it with a unique ID so two matching relative
-            //ids that may conflict can be separate.
-            suffix = prefix && !pluginModule && !isNormalized ?
-                     '_unnormalized' + (unnormalizedCounter += 1) :
-                     '';
-
-            return {
-                prefix: prefix,
-                name: normalizedName,
-                parentMap: parentModuleMap,
-                unnormalized: !!suffix,
-                url: url,
-                originalName: originalName,
-                isDefine: isDefine,
-                id: (prefix ?
-                        prefix + '!' + normalizedName :
-                        normalizedName) + suffix
-            };
-        }
-
-        function getModule(depMap) {
-            var id = depMap.id,
-                mod = registry[id];
-
-            if (!mod) {
-                mod = registry[id] = new context.Module(depMap);
-            }
-
-            return mod;
-        }
-
-        function on(depMap, name, fn) {
-            var id = depMap.id,
-                mod = registry[id];
-
-            if (hasProp(defined, id) &&
-                    (!mod || mod.defineEmitComplete)) {
-                if (name === 'defined') {
-                    fn(defined[id]);
-                }
-            } else {
-                getModule(depMap).on(name, fn);
-            }
-        }
-
-        function onError(err, errback) {
-            var ids = err.requireModules,
-                notified = false;
-
-            if (errback) {
-                errback(err);
-            } else {
-                each(ids, function (id) {
-                    var mod = registry[id];
-                    if (mod) {
-                        //Set error on module, so it skips timeout checks.
-                        mod.error = err;
-                        if (mod.events.error) {
-                            notified = true;
-                            mod.emit('error', err);
-                        }
-                    }
-                });
-
-                if (!notified) {
-                    req.onError(err);
-                }
-            }
-        }
-
-        /**
-         * Internal method to transfer globalQueue items to this context's
-         * defQueue.
-         */
-        function takeGlobalQueue() {
-            //Push all the globalDefQueue items into the context's defQueue
-            if (globalDefQueue.length) {
-                //Array splice in the values since the context code has a
-                //local var ref to defQueue, so cannot just reassign the one
-                //on context.
-                apsp.apply(defQueue,
-                           [defQueue.length - 1, 0].concat(globalDefQueue));
-                globalDefQueue = [];
-            }
-        }
-
-        /**
-         * Helper function that creates a require function object to give to
-         * modules that ask for it as a dependency. It needs to be specific
-         * per module because of the implication of path mappings that may
-         * need to be relative to the module name.
-         */
-        function makeRequire(mod, enableBuildCallback, altRequire) {
-            var relMap = mod && mod.map,
-                modRequire = makeContextModuleFunc(altRequire || context.require,
-                                                   relMap,
-                                                   enableBuildCallback);
-
-            addRequireMethods(modRequire, context, relMap);
-            modRequire.isBrowser = isBrowser;
-
-            return modRequire;
-        }
-
-        handlers = {
-            'require': function (mod) {
-                return makeRequire(mod);
-            },
-            'exports': function (mod) {
-                mod.usingExports = true;
-                if (mod.map.isDefine) {
-                    return (mod.exports = defined[mod.map.id] = {});
-                }
-            },
-            'module': function (mod) {
-                return (mod.module = {
-                    id: mod.map.id,
-                    uri: mod.map.url,
-                    config: function () {
-                        return (config.config && config.config[mod.map.id]) || {};
-                    },
-                    exports: defined[mod.map.id]
-                });
-            }
-        };
-
-        function removeWaiting(id) {
-            //Clean up machinery used for waiting modules.
-            delete registry[id];
-
-            each(waitAry, function (mod, i) {
-                if (mod.map.id === id) {
-                    waitAry.splice(i, 1);
-                    if (!mod.defined) {
-                        context.waitCount -= 1;
-                    }
-                    return true;
-                }
-            });
-        }
-
-        function findCycle(mod, traced, processed) {
-            var id = mod.map.id,
-                depArray = mod.depMaps,
-                foundModule;
-
-            //Do not bother with unitialized modules or not yet enabled
-            //modules.
-            if (!mod.inited) {
-                return;
-            }
-
-            //Found the cycle.
-            if (traced[id]) {
-                return mod;
-            }
-
-            traced[id] = true;
-
-            //Trace through the dependencies.
-            each(depArray, function (depMap) {
-                var depId = depMap.id,
-                    depMod = registry[depId];
-
-                if (!depMod || processed[depId] ||
-                        !depMod.inited || !depMod.enabled) {
-                    return;
-                }
-
-                return (foundModule = findCycle(depMod, traced, processed));
-            });
-
-            processed[id] = true;
-
-            return foundModule;
-        }
-
-        function forceExec(mod, traced, uninited) {
-            var id = mod.map.id,
-                depArray = mod.depMaps;
-
-            if (!mod.inited || !mod.map.isDefine) {
-                return;
-            }
-
-            if (traced[id]) {
-                return defined[id];
-            }
-
-            traced[id] = mod;
-
-            each(depArray, function (depMap) {
-                var depId = depMap.id,
-                    depMod = registry[depId],
-                    value;
-
-                if (handlers[depId]) {
-                    return;
-                }
-
-                if (depMod) {
-                    if (!depMod.inited || !depMod.enabled) {
-                        //Dependency is not inited,
-                        //so this module cannot be
-                        //given a forced value yet.
-                        uninited[id] = true;
-                        return;
-                    }
-
-                    //Get the value for the current dependency
-                    value = forceExec(depMod, traced, uninited);
-
-                    //Even with forcing it may not be done,
-                    //in particular if the module is waiting
-                    //on a plugin resource.
-                    if (!uninited[depId]) {
-                        mod.defineDepById(depId, value);
-                    }
-                }
-            });
-
-            mod.check(true);
-
-            return defined[id];
-        }
-
-        function modCheck(mod) {
-            mod.check();
-        }
-
-        function checkLoaded() {
-            var map, modId, err, usingPathFallback,
-                waitInterval = config.waitSeconds * 1000,
-                //It is possible to disable the wait interval by using waitSeconds of 0.
-                expired = waitInterval && (context.startTime + waitInterval) < new Date().getTime(),
-                noLoads = [],
-                stillLoading = false,
-                needCycleCheck = true;
-
-            //Do not bother if this call was a result of a cycle break.
-            if (inCheckLoaded) {
-                return;
-            }
-
-            inCheckLoaded = true;
-
-            //Figure out the state of all the modules.
-            eachProp(registry, function (mod) {
-                map = mod.map;
-                modId = map.id;
-
-                //Skip things that are not enabled or in error state.
-                if (!mod.enabled) {
-                    return;
-                }
-
-                if (!mod.error) {
-                    //If the module should be executed, and it has not
-                    //been inited and time is up, remember it.
-                    if (!mod.inited && expired) {
-                        if (hasPathFallback(modId)) {
-                            usingPathFallback = true;
-                            stillLoading = true;
-                        } else {
-                            noLoads.push(modId);
-                            removeScript(modId);
-                        }
-                    } else if (!mod.inited && mod.fetched && map.isDefine) {
-                        stillLoading = true;
-                        if (!map.prefix) {
-                            //No reason to keep looking for unfinished
-                            //loading. If the only stillLoading is a
-                            //plugin resource though, keep going,
-                            //because it may be that a plugin resource
-                            //is waiting on a non-plugin cycle.
-                            return (needCycleCheck = false);
-                        }
-                    }
-                }
-            });
-
-            if (expired && noLoads.length) {
-                //If wait time expired, throw error of unloaded modules.
-                err = makeError('timeout', 'Load timeout for modules: ' + noLoads, null, noLoads);
-                err.contextName = context.contextName;
-                return onError(err);
-            }
-
-            //Not expired, check for a cycle.
-            if (needCycleCheck) {
-
-                each(waitAry, function (mod) {
-                    if (mod.defined) {
-                        return;
-                    }
-
-                    var cycleMod = findCycle(mod, {}, {}),
-                        traced = {};
-
-                    if (cycleMod) {
-                        forceExec(cycleMod, traced, {});
-
-                        //traced modules may have been
-                        //removed from the registry, but
-                        //their listeners still need to
-                        //be called.
-                        eachProp(traced, modCheck);
-                    }
-                });
-
-                //Now that dependencies have
-                //been satisfied, trigger the
-                //completion check that then
-                //notifies listeners.
-                eachProp(registry, modCheck);
-            }
-
-            //If still waiting on loads, and the waiting load is something
-            //other than a plugin resource, or there are still outstanding
-            //scripts, then just try back later.
-            if ((!expired || usingPathFallback) && stillLoading) {
-                //Something is still waiting to load. Wait for it, but only
-                //if a timeout is not already in effect.
-                if ((isBrowser || isWebWorker) && !checkLoadedTimeoutId) {
-                    checkLoadedTimeoutId = setTimeout(function () {
-                        checkLoadedTimeoutId = 0;
-                        checkLoaded();
-                    }, 50);
-                }
-            }
-
-            inCheckLoaded = false;
-        }
-
-        Module = function (map) {
-            this.events = undefEvents[map.id] || {};
-            this.map = map;
-            this.shim = config.shim[map.id];
-            this.depExports = [];
-            this.depMaps = [];
-            this.depMatched = [];
-            this.pluginMaps = {};
-            this.depCount = 0;
-
-            /* this.exports this.factory
-               this.depMaps = [],
-               this.enabled, this.fetched
-            */
-        };
-
-        Module.prototype = {
-            init: function (depMaps, factory, errback, options) {
-                options = options || {};
-
-                //Do not do more inits if already done. Can happen if there
-                //are multiple define calls for the same module. That is not
-                //a normal, common case, but it is also not unexpected.
-                if (this.inited) {
-                    return;
-                }
-
-                this.factory = factory;
-
-                if (errback) {
-                    //Register for errors on this module.
-                    this.on('error', errback);
-                } else if (this.events.error) {
-                    //If no errback already, but there are error listeners
-                    //on this module, set up an errback to pass to the deps.
-                    errback = bind(this, function (err) {
-                        this.emit('error', err);
-                    });
-                }
-
-                //Do a copy of the dependency array, so that
-                //source inputs are not modified. For example
-                //"shim" deps are passed in here directly, and
-                //doing a direct modification of the depMaps array
-                //would affect that config.
-                this.depMaps = depMaps && depMaps.slice(0);
-                this.depMaps.rjsSkipMap = depMaps.rjsSkipMap;
-
-                this.errback = errback;
-
-                //Indicate this module has be initialized
-                this.inited = true;
-
-                this.ignore = options.ignore;
-
-                //Could have option to init this module in enabled mode,
-                //or could have been previously marked as enabled. However,
-                //the dependencies are not known until init is called. So
-                //if enabled previously, now trigger dependencies as enabled.
-                if (options.enabled || this.enabled) {
-                    //Enable this module and dependencies.
-                    //Will call this.check()
-                    this.enable();
-                } else {
-                    this.check();
-                }
-            },
-
-            defineDepById: function (id, depExports) {
-                var i;
-
-                //Find the index for this dependency.
-                each(this.depMaps, function (map, index) {
-                    if (map.id === id) {
-                        i = index;
-                        return true;
-                    }
-                });
-
-                return this.defineDep(i, depExports);
-            },
-
-            defineDep: function (i, depExports) {
-                //Because of cycles, defined callback for a given
-                //export can be called more than once.
-                if (!this.depMatched[i]) {
-                    this.depMatched[i] = true;
-                    this.depCount -= 1;
-                    this.depExports[i] = depExports;
-                }
-            },
-
-            fetch: function () {
-                if (this.fetched) {
-                    return;
-                }
-                this.fetched = true;
-
-                context.startTime = (new Date()).getTime();
-
-                var map = this.map;
-
-                //If the manager is for a plugin managed resource,
-                //ask the plugin to load it now.
-                if (this.shim) {
-                    makeRequire(this, true)(this.shim.deps || [], bind(this, function () {
-                        return map.prefix ? this.callPlugin() : this.load();
-                    }));
-                } else {
-                    //Regular dependency.
-                    return map.prefix ? this.callPlugin() : this.load();
-                }
-            },
-
-            load: function () {
-                var url = this.map.url;
-
-                //Regular dependency.
-                if (!urlFetched[url]) {
-                    urlFetched[url] = true;
-                    context.load(this.map.id, url);
-                }
-            },
-
-            /**
-             * Checks is the module is ready to define itself, and if so,
-             * define it. If the silent argument is true, then it will just
-             * define, but not notify listeners, and not ask for a context-wide
-             * check of all loaded modules. That is useful for cycle breaking.
-             */
-            check: function (silent) {
-                if (!this.enabled || this.enabling) {
-                    return;
-                }
-
-                var err, cjsModule,
-                    id = this.map.id,
-                    depExports = this.depExports,
-                    exports = this.exports,
-                    factory = this.factory;
-
-                if (!this.inited) {
-                    this.fetch();
-                } else if (this.error) {
-                    this.emit('error', this.error);
-                } else if (!this.defining) {
-                    //The factory could trigger another require call
-                    //that would result in checking this module to
-                    //define itself again. If already in the process
-                    //of doing that, skip this work.
-                    this.defining = true;
-
-                    if (this.depCount < 1 && !this.defined) {
-                        if (isFunction(factory)) {
-                            //If there is an error listener, favor passing
-                            //to that instead of throwing an error.
-                            if (this.events.error) {
-                                try {
-                                    exports = context.execCb(id, factory, depExports, exports);
-                                } catch (e) {
-                                    err = e;
-                                }
-                            } else {
-                                exports = context.execCb(id, factory, depExports, exports);
-                            }
-
-                            if (this.map.isDefine) {
-                                //If setting exports via 'module' is in play,
-                                //favor that over return value and exports. After that,
-                                //favor a non-undefined return value over exports use.
-                                cjsModule = this.module;
-                                if (cjsModule &&
-                                        cjsModule.exports !== undefined &&
-                                        //Make sure it is not already the exports value
-                                        cjsModule.exports !== this.exports) {
-                                    exports = cjsModule.exports;
-                                } else if (exports === undefined && this.usingExports) {
-                                    //exports already set the defined value.
-                                    exports = this.exports;
-                                }
-                            }
-
-                            if (err) {
-                                err.requireMap = this.map;
-                                err.requireModules = [this.map.id];
-                                err.requireType = 'define';
-                                return onError((this.error = err));
-                            }
-
-                        } else {
-                            //Just a literal value
-                            exports = factory;
-                        }
-
-                        this.exports = exports;
-
-                        if (this.map.isDefine && !this.ignore) {
-                            defined[id] = exports;
-
-                            if (req.onResourceLoad) {
-                                req.onResourceLoad(context, this.map, this.depMaps);
-                            }
-                        }
-
-                        //Clean up
-                        delete registry[id];
-
-                        this.defined = true;
-                        context.waitCount -= 1;
-                        if (context.waitCount === 0) {
-                            //Clear the wait array used for cycles.
-                            waitAry = [];
-                        }
-                    }
-
-                    //Finished the define stage. Allow calling check again
-                    //to allow define notifications below in the case of a
-                    //cycle.
-                    this.defining = false;
-
-                    if (!silent) {
-                        if (this.defined && !this.defineEmitted) {
-                            this.defineEmitted = true;
-                            this.emit('defined', this.exports);
-                            this.defineEmitComplete = true;
-                        }
-                    }
-                }
-            },
-
-            callPlugin: function () {
-                var map = this.map,
-                    id = map.id,
-                    pluginMap = makeModuleMap(map.prefix, null, false, true);
-
-                on(pluginMap, 'defined', bind(this, function (plugin) {
-                    var load, normalizedMap, normalizedMod,
-                        name = this.map.name,
-                        parentName = this.map.parentMap ? this.map.parentMap.name : null;
-
-                    //If current map is not normalized, wait for that
-                    //normalized name to load instead of continuing.
-                    if (this.map.unnormalized) {
-                        //Normalize the ID if the plugin allows it.
-                        if (plugin.normalize) {
-                            name = plugin.normalize(name, function (name) {
-                                return normalize(name, parentName, true);
-                            }) || '';
-                        }
-
-                        normalizedMap = makeModuleMap(map.prefix + '!' + name,
-                                                      this.map.parentMap,
-                                                      false,
-                                                      true);
-                        on(normalizedMap,
-                            'defined', bind(this, function (value) {
-                                this.init([], function () { return value; }, null, {
-                                    enabled: true,
-                                    ignore: true
-                                });
-                            }));
-                        normalizedMod = registry[normalizedMap.id];
-                        if (normalizedMod) {
-                            if (this.events.error) {
-                                normalizedMod.on('error', bind(this, function (err) {
-                                    this.emit('error', err);
-                                }));
-                            }
-                            normalizedMod.enable();
-                        }
-
-                        return;
-                    }
-
-                    load = bind(this, function (value) {
-                        this.init([], function () { return value; }, null, {
-                            enabled: true
-                        });
-                    });
-
-                    load.error = bind(this, function (err) {
-                        this.inited = true;
-                        this.error = err;
-                        err.requireModules = [id];
-
-                        //Remove temp unnormalized modules for this module,
-                        //since they will never be resolved otherwise now.
-                        eachProp(registry, function (mod) {
-                            if (mod.map.id.indexOf(id + '_unnormalized') === 0) {
-                                removeWaiting(mod.map.id);
-                            }
-                        });
-
-                        onError(err);
-                    });
-
-                    //Allow plugins to load other code without having to know the
-                    //context or how to 'complete' the load.
-                    load.fromText = function (moduleName, text) {
-                        /*jslint evil: true */
-                        var hasInteractive = useInteractive;
-
-                        //Turn off interactive script matching for IE for any define
-                        //calls in the text, then turn it back on at the end.
-                        if (hasInteractive) {
-                            useInteractive = false;
-                        }
-
-                        //Prime the system by creating a module instance for
-                        //it.
-                        getModule(makeModuleMap(moduleName));
-
-                        req.exec(text);
-
-                        if (hasInteractive) {
-                            useInteractive = true;
-                        }
-
-                        //Support anonymous modules.
-                        context.completeLoad(moduleName);
-                    };
-
-                    //Use parentName here since the plugin's name is not reliable,
-                    //could be some weird string with no path that actually wants to
-                    //reference the parentName's path.
-                    plugin.load(map.name, makeRequire(map.parentMap, true, function (deps, cb, er) {
-                        deps.rjsSkipMap = true;
-                        return context.require(deps, cb, er);
-                    }), load, config);
-                }));
-
-                context.enable(pluginMap, this);
-                this.pluginMaps[pluginMap.id] = pluginMap;
-            },
-
-            enable: function () {
-                this.enabled = true;
-
-                if (!this.waitPushed) {
-                    waitAry.push(this);
-                    context.waitCount += 1;
-                    this.waitPushed = true;
-                }
-
-                //Set flag mentioning that the module is enabling,
-                //so that immediate calls to the defined callbacks
-                //for dependencies do not trigger inadvertent load
-                //with the depCount still being zero.
-                this.enabling = true;
-
-                //Enable each dependency
-                each(this.depMaps, bind(this, function (depMap, i) {
-                    var id, mod, handler;
-
-                    if (typeof depMap === 'string') {
-                        //Dependency needs to be converted to a depMap
-                        //and wired up to this module.
-                        depMap = makeModuleMap(depMap,
-                                               (this.map.isDefine ? this.map : this.map.parentMap),
-                                               false,
-                                               !this.depMaps.rjsSkipMap);
-                        this.depMaps[i] = depMap;
-
-                        handler = handlers[depMap.id];
-
-                        if (handler) {
-                            this.depExports[i] = handler(this);
-                            return;
-                        }
-
-                        this.depCount += 1;
-
-                        on(depMap, 'defined', bind(this, function (depExports) {
-                            this.defineDep(i, depExports);
-                            this.check();
-                        }));
-
-                        if (this.errback) {
-                            on(depMap, 'error', this.errback);
-                        }
-                    }
-
-                    id = depMap.id;
-                    mod = registry[id];
-
-                    //Skip special modules like 'require', 'exports', 'module'
-                    //Also, don't call enable if it is already enabled,
-                    //important in circular dependency cases.
-                    if (!handlers[id] && mod && !mod.enabled) {
-                        context.enable(depMap, this);
-                    }
-                }));
-
-                //Enable each plugin that is used in
-                //a dependency
-                eachProp(this.pluginMaps, bind(this, function (pluginMap) {
-                    var mod = registry[pluginMap.id];
-                    if (mod && !mod.enabled) {
-                        context.enable(pluginMap, this);
-                    }
-                }));
-
-                this.enabling = false;
-
-                this.check();
-            },
-
-            on: function (name, cb) {
-                var cbs = this.events[name];
-                if (!cbs) {
-                    cbs = this.events[name] = [];
-                }
-                cbs.push(cb);
-            },
-
-            emit: function (name, evt) {
-                each(this.events[name], function (cb) {
-                    cb(evt);
-                });
-                if (name === 'error') {
-                    //Now that the error handler was triggered, remove
-                    //the listeners, since this broken Module instance
-                    //can stay around for a while in the registry/waitAry.
-                    delete this.events[name];
-                }
-            }
-        };
-
-        function callGetModule(args) {
-            getModule(makeModuleMap(args[0], null, true)).init(args[1], args[2]);
-        }
-
-        function removeListener(node, func, name, ieName) {
-            //Favor detachEvent because of IE9
-            //issue, see attachEvent/addEventListener comment elsewhere
-            //in this file.
-            if (node.detachEvent && !isOpera) {
-                //Probably IE. If not it will throw an error, which will be
-                //useful to know.
-                if (ieName) {
-                    node.detachEvent(ieName, func);
-                }
-            } else {
-                node.removeEventListener(name, func, false);
-            }
-        }
-
-        /**
-         * Given an event from a script node, get the requirejs info from it,
-         * and then removes the event listeners on the node.
-         * @param {Event} evt
-         * @returns {Object}
-         */
-        function getScriptData(evt) {
-            //Using currentTarget instead of target for Firefox 2.0's sake. Not
-            //all old browsers will be supported, but this one was easy enough
-            //to support and still makes sense.
-            var node = evt.currentTarget || evt.srcElement;
-
-            //Remove the listeners once here.
-            removeListener(node, context.onScriptLoad, 'load', 'onreadystatechange');
-            removeListener(node, context.onScriptError, 'error');
-
-            return {
-                node: node,
-                id: node && node.getAttribute('data-requiremodule')
-            };
-        }
-
-        return (context = {
-            config: config,
-            contextName: contextName,
-            registry: registry,
-            defined: defined,
-            urlFetched: urlFetched,
-            waitCount: 0,
-            defQueue: defQueue,
-            Module: Module,
-            makeModuleMap: makeModuleMap,
-
-            /**
-             * Set a configuration for the context.
-             * @param {Object} cfg config object to integrate.
-             */
-            configure: function (cfg) {
-                //Make sure the baseUrl ends in a slash.
-                if (cfg.baseUrl) {
-                    if (cfg.baseUrl.charAt(cfg.baseUrl.length - 1) !== '/') {
-                        cfg.baseUrl += '/';
-                    }
-                }
-
-                //Save off the paths and packages since they require special processing,
-                //they are additive.
-                var pkgs = config.pkgs,
-                    shim = config.shim,
-                    paths = config.paths,
-                    map = config.map;
-
-                //Mix in the config values, favoring the new values over
-                //existing ones in context.config.
-                mixin(config, cfg, true);
-
-                //Merge paths.
-                config.paths = mixin(paths, cfg.paths, true);
-
-                //Merge map
-                if (cfg.map) {
-                    config.map = mixin(map || {}, cfg.map, true, true);
-                }
-
-                //Merge shim
-                if (cfg.shim) {
-                    eachProp(cfg.shim, function (value, id) {
-                        //Normalize the structure
-                        if (isArray(value)) {
-                            value = {
-                                deps: value
-                            };
-                        }
-                        if (value.exports && !value.exports.__buildReady) {
-                            value.exports = context.makeShimExports(value.exports);
-                        }
-                        shim[id] = value;
-                    });
-                    config.shim = shim;
-                }
-
-                //Adjust packages if necessary.
-                if (cfg.packages) {
-                    each(cfg.packages, function (pkgObj) {
-                        var location;
-
-                        pkgObj = typeof pkgObj === 'string' ? { name: pkgObj } : pkgObj;
-                        location = pkgObj.location;
-
-                        //Create a brand new object on pkgs, since currentPackages can
-                        //be passed in again, and config.pkgs is the internal transformed
-                        //state for all package configs.
-                        pkgs[pkgObj.name] = {
-                            name: pkgObj.name,
-                            location: location || pkgObj.name,
-                            //Remove leading dot in main, so main paths are normalized,
-                            //and remove any trailing .js, since different package
-                            //envs have different conventions: some use a module name,
-                            //some use a file name.
-                            main: (pkgObj.main || 'main')
-                                  .replace(currDirRegExp, '')
-                                  .replace(jsSuffixRegExp, '')
-                        };
-                    });
-
-                    //Done with modifications, assing packages back to context config
-                    config.pkgs = pkgs;
-                }
-
-                //If there are any "waiting to execute" modules in the registry,
-                //update the maps for them, since their info, like URLs to load,
-                //may have changed.
-                eachProp(registry, function (mod, id) {
-                    //If module already has init called, since it is too
-                    //late to modify them, and ignore unnormalized ones
-                    //since they are transient.
-                    if (!mod.inited && !mod.map.unnormalized) {
-                        mod.map = makeModuleMap(id);
-                    }
-                });
-
-                //If a deps array or a config callback is specified, then call
-                //require with those args. This is useful when require is defined as a
-                //config object before require.js is loaded.
-                if (cfg.deps || cfg.callback) {
-                    context.require(cfg.deps || [], cfg.callback);
-                }
-            },
-
-            makeShimExports: function (exports) {
-                var func;
-                if (typeof exports === 'string') {
-                    func = function () {
-                        return getGlobal(exports);
-                    };
-                    //Save the exports for use in nodefine checking.
-                    func.exports = exports;
-                    return func;
-                } else {
-                    return function () {
-                        return exports.apply(global, arguments);
-                    };
-                }
-            },
-
-            requireDefined: function (id, relMap) {
-                return hasProp(defined, makeModuleMap(id, relMap, false, true).id);
-            },
-
-            requireSpecified: function (id, relMap) {
-                id = makeModuleMap(id, relMap, false, true).id;
-                return hasProp(defined, id) || hasProp(registry, id);
-            },
-
-            require: function (deps, callback, errback, relMap) {
-                var moduleName, id, map, requireMod, args;
-                if (typeof deps === 'string') {
-                    if (isFunction(callback)) {
-                        //Invalid call
-                        return onError(makeError('requireargs', 'Invalid require call'), errback);
-                    }
-
-                    //Synchronous access to one module. If require.get is
-                    //available (as in the Node adapter), prefer that.
-                    //In this case deps is the moduleName and callback is
-                    //the relMap
-                    if (req.get) {
-                        return req.get(context, deps, callback);
-                    }
-
-                    //Just return the module wanted. In this scenario, the
-                    //second arg (if passed) is just the relMap.
-                    moduleName = deps;
-                    relMap = callback;
-
-                    //Normalize module name, if it contains . or ..
-                    map = makeModuleMap(moduleName, relMap, false, true);
-                    id = map.id;
-
-                    if (!hasProp(defined, id)) {
-                        return onError(makeError('notloaded', 'Module name "' +
-                                    id +
-                                    '" has not been loaded yet for context: ' +
-                                    contextName));
-                    }
-                    return defined[id];
-                }
-
-                //Callback require. Normalize args. if callback or errback is
-                //not a function, it means it is a relMap. Test errback first.
-                if (errback && !isFunction(errback)) {
-                    relMap = errback;
-                    errback = undefined;
-                }
-                if (callback && !isFunction(callback)) {
-                    relMap = callback;
-                    callback = undefined;
-                }
-
-                //Any defined modules in the global queue, intake them now.
-                takeGlobalQueue();
-
-                //Make sure any remaining defQueue items get properly processed.
-                while (defQueue.length) {
-                    args = defQueue.shift();
-                    if (args[0] === null) {
-                        return onError(makeError('mismatch', 'Mismatched anonymous define() module: ' + args[args.length - 1]));
-                    } else {
-                        //args are id, deps, factory. Should be normalized by the
-                        //define() function.
-                        callGetModule(args);
-                    }
-                }
-
-                //Mark all the dependencies as needing to be loaded.
-                requireMod = getModule(makeModuleMap(null, relMap));
-
-                requireMod.init(deps, callback, errback, {
-                    enabled: true
-                });
-
-                checkLoaded();
-
-                return context.require;
-            },
-
-            undef: function (id) {
-                //Bind any waiting define() calls to this context,
-                //fix for #408
-                takeGlobalQueue();
-
-                var map = makeModuleMap(id, null, true),
-                    mod = registry[id];
-
-                delete defined[id];
-                delete urlFetched[map.url];
-                delete undefEvents[id];
-
-                if (mod) {
-                    //Hold on to listeners in case the
-                    //module will be attempted to be reloaded
-                    //using a different config.
-                    if (mod.events.defined) {
-                        undefEvents[id] = mod.events;
-                    }
-
-                    removeWaiting(id);
-                }
-            },
-
-            /**
-             * Called to enable a module if it is still in the registry
-             * awaiting enablement. parent module is passed in for context,
-             * used by the optimizer.
-             */
-            enable: function (depMap, parent) {
-                var mod = registry[depMap.id];
-                if (mod) {
-                    getModule(depMap).enable();
-                }
-            },
-
-            /**
-             * Internal method used by environment adapters to complete a load event.
-             * A load event could be a script load or just a load pass from a synchronous
-             * load call.
-             * @param {String} moduleName the name of the module to potentially complete.
-             */
-            completeLoad: function (moduleName) {
-                var found, args, mod,
-                    shim = config.shim[moduleName] || {},
-                    shExports = shim.exports && shim.exports.exports;
-
-                takeGlobalQueue();
-
-                while (defQueue.length) {
-                    args = defQueue.shift();
-                    if (args[0] === null) {
-                        args[0] = moduleName;
-                        //If already found an anonymous module and bound it
-                        //to this name, then this is some other anon module
-                        //waiting for its completeLoad to fire.
-                        if (found) {
-                            break;
-                        }
-                        found = true;
-                    } else if (args[0] === moduleName) {
-                        //Found matching define call for this script!
-                        found = true;
-                    }
-
-                    callGetModule(args);
-                }
-
-                //Do this after the cycle of callGetModule in case the result
-                //of those calls/init calls changes the registry.
-                mod = registry[moduleName];
-
-                if (!found && !defined[moduleName] && mod && !mod.inited) {
-                    if (config.enforceDefine && (!shExports || !getGlobal(shExports))) {
-                        if (hasPathFallback(moduleName)) {
-                            return;
-                        } else {
-                            return onError(makeError('nodefine',
-                                             'No define call for ' + moduleName,
-                                             null,
-                                             [moduleName]));
-                        }
-                    } else {
-                        //A script that does not call define(), so just simulate
-                        //the call for it.
-                        callGetModule([moduleName, (shim.deps || []), shim.exports]);
-                    }
-                }
-
-                checkLoaded();
-            },
-
-            /**
-             * Converts a module name + .extension into an URL path.
-             * *Requires* the use of a module name. It does not support using
-             * plain URLs like nameToUrl.
-             */
-            toUrl: function (moduleNamePlusExt, relModuleMap) {
-                var index = moduleNamePlusExt.lastIndexOf('.'),
-                    ext = null;
-
-                if (index !== -1) {
-                    ext = moduleNamePlusExt.substring(index, moduleNamePlusExt.length);
-                    moduleNamePlusExt = moduleNamePlusExt.substring(0, index);
-                }
-
-                return context.nameToUrl(normalize(moduleNamePlusExt, relModuleMap && relModuleMap.id, true),
-                                         ext);
-            },
-
-            /**
-             * Converts a module name to a file path. Supports cases where
-             * moduleName may actually be just an URL.
-             * Note that it **does not** call normalize on the moduleName,
-             * it is assumed to have already been normalized. This is an
-             * internal API, not a public one. Use toUrl for the public API.
-             */
-            nameToUrl: function (moduleName, ext) {
-                var paths, pkgs, pkg, pkgPath, syms, i, parentModule, url,
-                    parentPath;
-
-                //If a colon is in the URL, it indicates a protocol is used and it is just
-                //an URL to a file, or if it starts with a slash, contains a query arg (i.e. ?)
-                //or ends with .js, then assume the user meant to use an url and not a module id.
-                //The slash is important for protocol-less URLs as well as full paths.
-                if (req.jsExtRegExp.test(moduleName)) {
-                    //Just a plain path, not module name lookup, so just return it.
-                    //Add extension if it is included. This is a bit wonky, only non-.js things pass
-                    //an extension, this method probably needs to be reworked.
-                    url = moduleName + (ext || '');
-                } else {
-                    //A module that needs to be converted to a path.
-                    paths = config.paths;
-                    pkgs = config.pkgs;
-
-                    syms = moduleName.split('/');
-                    //For each module name segment, see if there is a path
-                    //registered for it. Start with most specific name
-                    //and work up from it.
-                    for (i = syms.length; i > 0; i -= 1) {
-                        parentModule = syms.slice(0, i).join('/');
-                        pkg = pkgs[parentModule];
-                        parentPath = paths[parentModule];
-                        if (parentPath) {
-                            //If an array, it means there are a few choices,
-                            //Choose the one that is desired
-                            if (isArray(parentPath)) {
-                                parentPath = parentPath[0];
-                            }
-                            syms.splice(0, i, parentPath);
-                            break;
-                        } else if (pkg) {
-                            //If module name is just the package name, then looking
-                            //for the main module.
-                            if (moduleName === pkg.name) {
-                                pkgPath = pkg.location + '/' + pkg.main;
-                            } else {
-                                pkgPath = pkg.location;
-                            }
-                            syms.splice(0, i, pkgPath);
-                            break;
-                        }
-                    }
-
-                    //Join the path parts together, then figure out if baseUrl is needed.
-                    url = syms.join('/');
-                    url += (ext || (/\?/.test(url) ? '' : '.js'));
-                    url = (url.charAt(0) === '/' || url.match(/^[\w\+\.\-]+:/) ? '' : config.baseUrl) + url;
-                }
-
-                return config.urlArgs ? url +
-                                        ((url.indexOf('?') === -1 ? '?' : '&') +
-                                         config.urlArgs) : url;
-            },
-
-            //Delegates to req.load. Broken out as a separate function to
-            //allow overriding in the optimizer.
-            load: function (id, url) {
-                req.load(context, id, url);
-            },
-
-            /**
-             * Executes a module callack function. Broken out as a separate function
-             * solely to allow the build system to sequence the files in the built
-             * layer in the right sequence.
-             *
-             * @private
-             */
-            execCb: function (name, callback, args, exports) {
-                return callback.apply(exports, args);
-            },
-
-            /**
-             * callback for script loads, used to check status of loading.
-             *
-             * @param {Event} evt the event from the browser for the script
-             * that was loaded.
-             */
-            onScriptLoad: function (evt) {
-                //Using currentTarget instead of target for Firefox 2.0's sake. Not
-                //all old browsers will be supported, but this one was easy enough
-                //to support and still makes sense.
-                if (evt.type === 'load' ||
-                        (readyRegExp.test((evt.currentTarget || evt.srcElement).readyState))) {
-                    //Reset interactive script so a script node is not held onto for
-                    //to long.
-                    interactiveScript = null;
-
-                    //Pull out the name of the module and the context.
-                    var data = getScriptData(evt);
-                    context.completeLoad(data.id);
-                }
-            },
-
-            /**
-             * Callback for script errors.
-             */
-            onScriptError: function (evt) {
-                var data = getScriptData(evt);
-                if (!hasPathFallback(data.id)) {
-                    return onError(makeError('scripterror', 'Script error', evt, [data.id]));
-                }
-            }
-        });
-    }
-
-    /**
-     * Main entry point.
-     *
-     * If the only argument to require is a string, then the module that
-     * is represented by that string is fetched for the appropriate context.
-     *
-     * If the first argument is an array, then it will be treated as an array
-     * of dependency string names to fetch. An optional function callback can
-     * be specified to execute when all of those dependencies are available.
-     *
-     * Make a local req variable to help Caja compliance (it assumes things
-     * on a require that are not standardized), and to give a short
-     * name for minification/local scope use.
-     */
-    req = st_requirejs = function (deps, callback, errback, optional) {
-
-        //Find the right context, use default
-        var context, config,
-            contextName = defContextName;
-
-        // Determine if have config object in the call.
-        if (!isArray(deps) && typeof deps !== 'string') {
-            // deps is a config object
-            config = deps;
-            if (isArray(callback)) {
-                // Adjust args if there are dependencies
-                deps = callback;
-                callback = errback;
-                errback = optional;
-            } else {
-                deps = [];
-            }
-        }
-
-        if (config && config.context) {
-            contextName = config.context;
-        }
-
-        context = contexts[contextName];
-        if (!context) {
-            context = contexts[contextName] = req.s.newContext(contextName);
-        }
-
-        if (config) {
-            context.configure(config);
-        }
-
-        return context.require(deps, callback, errback);
-    };
-
-    /**
-     * Support require.config() to make it easier to cooperate with other
-     * AMD loaders on globally agreed names.
-     */
-    req.config = function (config) {
-        return req(config);
-    };
-
-    /**
-     * Export require as a global, but only if it does not already exist.
-     */
-    if (!st_require) {
-        st_require = req;
-    }
-
-    req.version = version;
-
-    //Used to filter out dependencies that are already paths.
-    req.jsExtRegExp = /^\/|:|\?|\.js$/;
-    req.isBrowser = isBrowser;
-    s = req.s = {
-        contexts: contexts,
-        newContext: newContext
-    };
-
-    //Create default context.
-    req({});
-
-    //Exports some context-sensitive methods on global require, using
-    //default context if no context specified.
-    addRequireMethods(req);
-
-    if (isBrowser) {
-        head = s.head = document.getElementsByTagName('head')[0];
-        //If BASE tag is in play, using appendChild is a problem for IE6.
-        //When that browser dies, this can be removed. Details in this jQuery bug:
-        //http://dev.jquery.com/ticket/2709
-        baseElement = document.getElementsByTagName('base')[0];
-        if (baseElement) {
-            head = s.head = baseElement.parentNode;
-        }
-    }
-
-    /**
-     * Any errors that require explicitly generates will be passed to this
-     * function. Intercept/override it if you want custom error handling.
-     * @param {Error} err the error object.
-     */
-    req.onError = function (err) {
-        throw err;
-    };
-
-    /**
-     * Does the request to load a module for the browser case.
-     * Make this a separate function to allow other environments
-     * to override it.
-     *
-     * @param {Object} context the require context to find state.
-     * @param {String} moduleName the name of the module.
-     * @param {Object} url the URL to the module.
-     */
-    req.load = function (context, moduleName, url) {
-        var config = (context && context.config) || {},
-            node;
-        if (isBrowser) {
-            //In the browser so use a script tag
-            node = config.xhtml ?
-                    document.createElementNS('http://www.w3.org/1999/xhtml', 'html:script') :
-                    document.createElement('script');
-            node.type = config.scriptType || 'text/javascript';
-            node.charset = 'utf-8';
-            node.async = true;
-
-            node.setAttribute('data-requirecontext', context.contextName);
-            node.setAttribute('data-requiremodule', moduleName);
-
-            //Set up load listener. Test attachEvent first because IE9 has
-            //a subtle issue in its addEventListener and script onload firings
-            //that do not match the behavior of all other browsers with
-            //addEventListener support, which fire the onload event for a
-            //script right after the script execution. See:
-            //https://connect.microsoft.com/IE/feedback/details/648057/script-onload-event-is-not-fired-immediately-after-script-execution
-            //UNFORTUNATELY Opera implements attachEvent but does not follow the script
-            //script execution mode.
-            if (node.attachEvent &&
-                    //Check if node.attachEvent is artificially added by custom script or
-                    //natively supported by browser
-                    //read https://github.com/jrburke/requirejs/issues/187
-                    //if we can NOT find [native code] then it must NOT natively supported.
-                    //in IE8, node.attachEvent does not have toString()
-                    //Note the test for "[native code" with no closing brace, see:
-                    //https://github.com/jrburke/requirejs/issues/273
-                    !(node.attachEvent.toString && node.attachEvent.toString().indexOf('[native code') < 0) &&
-                    !isOpera) {
-                //Probably IE. IE (at least 6-8) do not fire
-                //script onload right after executing the script, so
-                //we cannot tie the anonymous define call to a name.
-                //However, IE reports the script as being in 'interactive'
-                //readyState at the time of the define call.
-                useInteractive = true;
-
-                node.attachEvent('onreadystatechange', context.onScriptLoad);
-                //It would be great to add an error handler here to catch
-                //404s in IE9+. However, onreadystatechange will fire before
-                //the error handler, so that does not help. If addEvenListener
-                //is used, then IE will fire error before load, but we cannot
-                //use that pathway given the connect.microsoft.com issue
-                //mentioned above about not doing the 'script execute,
-                //then fire the script load event listener before execute
-                //next script' that other browsers do.
-                //Best hope: IE10 fixes the issues,
-                //and then destroys all installs of IE 6-9.
-                //node.attachEvent('onerror', context.onScriptError);
-            } else {
-                node.addEventListener('load', context.onScriptLoad, false);
-                node.addEventListener('error', context.onScriptError, false);
-            }
-            node.src = url;
-
-            //For some cache cases in IE 6-8, the script executes before the end
-            //of the appendChild execution, so to tie an anonymous define
-            //call to the module name (which is stored on the node), hold on
-            //to a reference to this node, but clear after the DOM insertion.
-            currentlyAddingScript = node;
-            if (baseElement) {
-                head.insertBefore(node, baseElement);
-            } else {
-                head.appendChild(node);
-            }
-            currentlyAddingScript = null;
-
-            return node;
-        } else if (isWebWorker) {
-            //In a web worker, use importScripts. This is not a very
-            //efficient use of importScripts, importScripts will block until
-            //its script is downloaded and evaluated. However, if web workers
-            //are in play, the expectation that a build has been done so that
-            //only one script needs to be loaded anyway. This may need to be
-            //reevaluated if other use cases become common.
-            importScripts(url);
-
-            //Account for anonymous modules
-            context.completeLoad(moduleName);
-        }
-    };
-
-    function getInteractiveScript() {
-        if (interactiveScript && interactiveScript.readyState === 'interactive') {
-            return interactiveScript;
-        }
-
-        eachReverse(scripts(), function (script) {
-            if (script.readyState === 'interactive') {
-                return (interactiveScript = script);
-            }
-        });
-        return interactiveScript;
-    }
-
-    //Look for a data-main script attribute, which could also adjust the baseUrl.
-    if (isBrowser) {
-        //Figure out baseUrl. Get it from the script tag with require.js in it.
-        eachReverse(scripts(), function (script) {
-            //Set the 'head' where we can append children by
-            //using the script's parent.
-            if (!head) {
-                head = script.parentNode;
-            }
-
-            //Look for a data-main attribute to set main script for the page
-            //to load. If it is there, the path to data main becomes the
-            //baseUrl, if it is not already set.
-            dataMain = script.getAttribute('data-main');
-            if (dataMain) {
-                //Set final baseUrl if there is not already an explicit one.
-                if (!cfg.baseUrl) {
-                    //Pull off the directory of data-main for use as the
-                    //baseUrl.
-                    src = dataMain.split('/');
-                    mainScript = src.pop();
-                    subPath = src.length ? src.join('/')  + '/' : './';
-
-                    cfg.baseUrl = subPath;
-                    dataMain = mainScript;
-                }
-
-                //Strip off any trailing .js since dataMain is now
-                //like a module name.
-                dataMain = dataMain.replace(jsSuffixRegExp, '');
-
-                //Put the data-main script in the files to load.
-                cfg.deps = cfg.deps ? cfg.deps.concat(dataMain) : [dataMain];
-
-                return true;
-            }
-        });
-    }
-
-    /**
-     * The function that handles definitions of modules. Differs from
-     * require() in that a string for the module should be the first argument,
-     * and the function to execute after dependencies are loaded should
-     * return a value to define the module corresponding to the first argument's
-     * name.
-     */
-    define = function (name, deps, callback) {
-        var node, context;
-
-        //Allow for anonymous functions
-        if (typeof name !== 'string') {
-            //Adjust args appropriately
-            callback = deps;
-            deps = name;
-            name = null;
-        }
-
-        //This module may not have dependencies
-        if (!isArray(deps)) {
-            callback = deps;
-            deps = [];
-        }
-
-        //If no name, and callback is a function, then figure out if it a
-        //CommonJS thing with dependencies.
-        if (!deps.length && isFunction(callback)) {
-            //Remove comments from the callback string,
-            //look for require calls, and pull them into the dependencies,
-            //but only if there are function args.
-            if (callback.length) {
-                callback
-                    .toString()
-                    .replace(commentRegExp, '')
-                    .replace(cjsRequireRegExp, function (match, dep) {
-                        deps.push(dep);
-                    });
-
-                //May be a CommonJS thing even without require calls, but still
-                //could use exports, and module. Avoid doing exports and module
-                //work though if it just needs require.
-                //REQUIRES the function to expect the CommonJS variables in the
-                //order listed below.
-                deps = (callback.length === 1 ? ['require'] : ['require', 'exports', 'module']).concat(deps);
-            }
-        }
-
-        //If in IE 6-8 and hit an anonymous define() call, do the interactive
-        //work.
-        if (useInteractive) {
-            node = currentlyAddingScript || getInteractiveScript();
-            if (node) {
-                if (!name) {
-                    name = node.getAttribute('data-requiremodule');
-                }
-                context = contexts[node.getAttribute('data-requirecontext')];
-            }
-        }
-
-        //Always save off evaluating the def call until the script onload handler.
-        //This allows multiple modules to be in a file without prematurely
-        //tracing dependencies, and allows for anonymous module support,
-        //where the module name is not known until the script onload event
-        //occurs. If no context, use the global queue, and get it processed
-        //in the onscript load callback.
-        (context ? context.defQueue : globalDefQueue).push([name, deps, callback]);
-    };
-
-    define.amd = {
-        jQuery: true
-    };
-
-
-    /**
-     * Executes the text. Normally just uses eval, but can be modified
-     * to use a better, environment-specific call. Only used for transpiling
-     * loader plugins, not for plain JS modules.
-     * @param {String} text the text to execute/evaluate.
-     */
-    req.exec = function (text) {
-        /*jslint evil: true */
-        return eval(text);
-    };
-
-    //Set up with config info.
-    req(cfg);
-}(this));
 /*!
- * jQuery JavaScript Library v1.8.0
+ * jQuery JavaScript Library v1.8.1
  * http://jquery.com/
  *
  * Includes Sizzle.js
@@ -2050,7 +9,7 @@ var st_requirejs, st_require, define;
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: Thu Aug 09 2012 16:24:48 GMT-0400 (Eastern Daylight Time)
+ * Date: Thu Aug 30 2012 17:17:22 GMT-0400 (Eastern Daylight Time)
  */
 (function( window, undefined ) {
 var
@@ -2092,8 +51,8 @@ var
 	core_rnotwhite = /\S/,
 	core_rspace = /\s+/,
 
-	// IE doesn't match non-breaking spaces with \s
-	rtrim = core_rnotwhite.test("\xA0") ? (/^[\s\xA0]+|[\s\xA0]+$/g) : /^\s+|\s+$/g,
+	// Make sure we trim BOM and NBSP (here's looking at you, Safari 5.0 and IE)
+	rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,
 
 	// A simple way to check for HTML strings
 	// Prioritize #id over <tag> to avoid XSS via location.hash (#9521)
@@ -2227,7 +186,7 @@ jQuery.fn = jQuery.prototype = {
 	selector: "",
 
 	// The current version of jQuery being used
-	jquery: "1.8.0",
+	jquery: "1.8.1",
 
 	// The default length of a jQuery object is 0
 	length: 0,
@@ -2660,7 +619,7 @@ jQuery.extend({
 	},
 
 	// Use native String.trim function wherever possible
-	trim: core_trim ?
+	trim: core_trim && !core_trim.call("\uFEFF\xA0") ?
 		function( text ) {
 			return text == null ?
 				"" :
@@ -2885,9 +844,10 @@ jQuery.ready.promise = function( obj ) {
 
 		readyList = jQuery.Deferred();
 
-		// Catch cases where $(document).ready() is called after the
-		// browser event has already occurred.
-		if ( document.readyState === "complete" || ( document.readyState !== "loading" && document.addEventListener ) ) {
+		// Catch cases where $(document).ready() is called after the browser event has already occurred.
+		// we once tried to use readyState "interactive" here, but it caused issues like the one
+		// discovered by ChrisS here: http://bugs.jquery.com/ticket/12282#comment:15
+		if ( document.readyState === "complete" ) {
 			// Handle it asynchronously to allow scripts the opportunity to delay ready
 			setTimeout( jQuery.ready, 1 );
 
@@ -3038,9 +998,10 @@ jQuery.Callbacks = function( options ) {
 					var start = list.length;
 					(function add( args ) {
 						jQuery.each( args, function( _, arg ) {
-							if ( jQuery.isFunction( arg ) && ( !options.unique || !self.has( arg ) ) ) {
+							var type = jQuery.type( arg );
+							if ( type === "function" && ( !options.unique || !self.has( arg ) ) ) {
 								list.push( arg );
-							} else if ( arg && arg.length ) {
+							} else if ( arg && arg.length && type !== "string" ) {
 								// Inspect recursively
 								add( arg );
 							}
@@ -3493,10 +1454,8 @@ jQuery.support = (function() {
 		support.boxSizing = ( div.offsetWidth === 4 );
 		support.doesNotIncludeMarginInBodyOffset = ( body.offsetTop !== 1 );
 
-		// NOTE: To any future maintainer, window.getComputedStyle was used here
-		// instead of getComputedStyle because it gave a better gzip size.
-		// The difference between window.getComputedStyle and getComputedStyle is
-		// 7 bytes
+		// NOTE: To any future maintainer, we've window.getComputedStyle
+		// because jsdom on node.js will break without it.
 		if ( window.getComputedStyle ) {
 			support.pixelPosition = ( window.getComputedStyle( div, null ) || {} ).top !== "1%";
 			support.boxSizingReliable = ( window.getComputedStyle( div, null ) || { width: "4px" } ).width === "4px";
@@ -3546,7 +1505,7 @@ jQuery.support = (function() {
 
 	return support;
 })();
-var rbrace = /^(?:\{.*\}|\[.*\])$/,
+var rbrace = /(?:\{[\s\S]*\}|\[[\s\S]*\])$/,
 	rmultiDash = /([A-Z])/g;
 
 jQuery.extend({
@@ -3909,6 +1868,7 @@ jQuery.extend({
 		type = type || "fx";
 
 		var queue = jQuery.queue( elem, type ),
+			startLength = queue.length,
 			fn = queue.shift(),
 			hooks = jQuery._queueHooks( elem, type ),
 			next = function() {
@@ -3918,6 +1878,7 @@ jQuery.extend({
 		// If the fx queue is dequeued, always remove the progress sentinel
 		if ( fn === "inprogress" ) {
 			fn = queue.shift();
+			startLength--;
 		}
 
 		if ( fn ) {
@@ -3932,7 +1893,8 @@ jQuery.extend({
 			delete hooks.stop;
 			fn.call( elem, next, hooks );
 		}
-		if ( !queue.length && hooks ) {
+
+		if ( !startLength && hooks ) {
 			hooks.empty.fire();
 		}
 	},
@@ -4018,7 +1980,8 @@ jQuery.fn.extend({
 		type = type || "fx";
 
 		while( i-- ) {
-			if ( (tmp = jQuery._data( elements[ i ], type + "queueHooks" )) && tmp.empty ) {
+			tmp = jQuery._data( elements[ i ], type + "queueHooks" );
+			if ( tmp && tmp.empty ) {
 				count++;
 				tmp.empty.add( resolve );
 			}
@@ -5028,7 +2991,7 @@ jQuery.event = {
 		// Make a writable jQuery.Event from the native event object
 		event = jQuery.event.fix( event || window.event );
 
-		var i, j, cur, jqcur, ret, selMatch, matched, matches, handleObj, sel, related,
+		var i, j, cur, ret, selMatch, matched, matches, handleObj, sel, related,
 			handlers = ( (jQuery._data( this, "events" ) || {} )[ event.type ] || []),
 			delegateCount = handlers.delegateCount,
 			args = [].slice.call( arguments ),
@@ -5049,23 +3012,18 @@ jQuery.event = {
 		// Avoid non-left-click bubbling in Firefox (#3861)
 		if ( delegateCount && !(event.button && event.type === "click") ) {
 
-			// Pregenerate a single jQuery object for reuse with .is()
-			jqcur = jQuery(this);
-			jqcur.context = this;
-
 			for ( cur = event.target; cur != this; cur = cur.parentNode || this ) {
 
-				// Don't process clicks (ONLY) on disabled elements (#6911, #8165, #xxxx)
+				// Don't process clicks (ONLY) on disabled elements (#6911, #8165, #11382, #11764)
 				if ( cur.disabled !== true || event.type !== "click" ) {
 					selMatch = {};
 					matches = [];
-					jqcur[0] = cur;
 					for ( i = 0; i < delegateCount; i++ ) {
 						handleObj = handlers[ i ];
 						sel = handleObj.selector;
 
 						if ( selMatch[ sel ] === undefined ) {
-							selMatch[ sel ] = jqcur.is( sel );
+							selMatch[ sel ] = jQuery( sel, this ).index( cur ) >= 0;
 						}
 						if ( selMatch[ sel ] ) {
 							matches.push( handleObj );
@@ -5206,11 +3164,6 @@ jQuery.event = {
 	},
 
 	special: {
-		ready: {
-			// Make sure the ready event is setup
-			setup: jQuery.bindReady
-		},
-
 		load: {
 			// Prevent triggered image.load events from bubbling to window.load
 			noBubble: true
@@ -5499,7 +3452,7 @@ if ( !jQuery.support.changeBubbles ) {
 		teardown: function() {
 			jQuery.event.remove( this, "._change" );
 
-			return rformElems.test( this.nodeName );
+			return !rformElems.test( this.nodeName );
 		}
 	};
 }
@@ -5717,23 +3670,51 @@ jQuery.each( ("blur focus focusin focusout load resize scroll unload click dblcl
  */
 (function( window, undefined ) {
 
-var cachedruns,
-	dirruns,
-	sortOrder,
-	siblingCheck,
+var dirruns,
+	cachedruns,
 	assertGetIdNotName,
+	Expr,
+	getText,
+	isXML,
+	contains,
+	compile,
+	sortOrder,
+	hasDuplicate,
+
+	baseHasDuplicate = true,
+	strundefined = "undefined",
+
+	expando = ( "sizcache" + Math.random() ).replace( ".", "" ),
 
 	document = window.document,
 	docElem = document.documentElement,
-
-	strundefined = "undefined",
-	hasDuplicate = false,
-	baseHasDuplicate = true,
 	done = 0,
 	slice = [].slice,
 	push = [].push,
 
-	expando = ( "sizcache" + Math.random() ).replace( ".", "" ),
+	// Augment a function for special use by Sizzle
+	markFunction = function( fn, value ) {
+		fn[ expando ] = value || true;
+		return fn;
+	},
+
+	createCache = function() {
+		var cache = {},
+			keys = [];
+
+		return markFunction(function( key, value ) {
+			// Only keep the most recent entries
+			if ( keys.push( key ) > Expr.cacheLength ) {
+				delete cache[ keys.shift() ];
+			}
+
+			return (cache[ key ] = value);
+		}, cache );
+	},
+
+	classCache = createCache(),
+	tokenCache = createCache(),
+	compilerCache = createCache(),
 
 	// Regex
 
@@ -5751,29 +3732,28 @@ var cachedruns,
 	operators = "([*^$|!~]?=)",
 	attributes = "\\[" + whitespace + "*(" + characterEncoding + ")" + whitespace +
 		"*(?:" + operators + whitespace + "*(?:(['\"])((?:\\\\.|[^\\\\])*?)\\3|(" + identifier + ")|)|)" + whitespace + "*\\]",
-	pseudos = ":(" + characterEncoding + ")(?:\\((?:(['\"])((?:\\\\.|[^\\\\])*?)\\2|((?:[^,]|\\\\,|(?:,(?=[^\\[]*\\]))|(?:,(?=[^\\(]*\\))))*))\\)|)",
-	pos = ":(nth|eq|gt|lt|first|last|even|odd)(?:\\((\\d*)\\)|)(?=[^-]|$)",
-	combinators = whitespace + "*([\\x20\\t\\r\\n\\f>+~])" + whitespace + "*",
-	groups = "(?=[^\\x20\\t\\r\\n\\f])(?:\\\\.|" + attributes + "|" + pseudos.replace( 2, 7 ) + "|[^\\\\(),])+",
+
+	// Prefer arguments not in parens/brackets,
+	//   then attribute selectors and non-pseudos (denoted by :),
+	//   then anything else
+	// These preferences are here to reduce the number of selectors
+	//   needing tokenize in the PSEUDO preFilter
+	pseudos = ":(" + characterEncoding + ")(?:\\((?:(['\"])((?:\\\\.|[^\\\\])*?)\\2|([^()[\\]]*|(?:(?:" + attributes + ")|[^:]|\\\\.)*|.*))\\)|)",
+
+	// For matchExpr.POS and matchExpr.needsContext
+	pos = ":(nth|eq|gt|lt|first|last|even|odd)(?:\\(((?:-\\d)?\\d*)\\)|)(?=[^-]|$)",
 
 	// Leading and non-escaped trailing whitespace, capturing some non-whitespace characters preceding the latter
 	rtrim = new RegExp( "^" + whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + whitespace + "+$", "g" ),
 
-	rcombinators = new RegExp( "^" + combinators ),
-
-	// All simple (non-comma) selectors, excluding insignifant trailing whitespace
-	rgroups = new RegExp( groups + "?(?=" + whitespace + "*,|$)", "g" ),
-
-	// A selector, or everything after leading whitespace
-	// Optionally followed in either case by a ")" for terminating sub-selectors
-	rselector = new RegExp( "^(?:(?!,)(?:(?:^|,)" + whitespace + "*" + groups + ")*?|" + whitespace + "*(.*?))(\\)|$)" ),
-
-	// All combinators and selector components (attribute test, tag, pseudo, etc.), the latter appearing together when consecutive
-	rtokens = new RegExp( groups.slice( 19, -6 ) + "\\x20\\t\\r\\n\\f>+~])+|" + combinators, "g" ),
+	rcomma = new RegExp( "^" + whitespace + "*," + whitespace + "*" ),
+	rcombinators = new RegExp( "^" + whitespace + "*([\\x20\\t\\r\\n\\f>+~])" + whitespace + "*" ),
+	rpseudo = new RegExp( pseudos ),
 
 	// Easily-parseable/retrievable ID or TAG or CLASS selectors
 	rquickExpr = /^(?:#([\w\-]+)|(\w+)|\.([\w\-]+))$/,
 
+	rnot = /^:not/,
 	rsibling = /[\x20\t\r\n\f]*[+~]/,
 	rendsWithNot = /:not\($/,
 
@@ -5786,7 +3766,7 @@ var cachedruns,
 		"ID": new RegExp( "^#(" + characterEncoding + ")" ),
 		"CLASS": new RegExp( "^\\.(" + characterEncoding + ")" ),
 		"NAME": new RegExp( "^\\[name=['\"]?(" + characterEncoding + ")['\"]?\\]" ),
-		"TAG": new RegExp( "^(" + characterEncoding.replace( "[-", "[-\\*" ) + ")" ),
+		"TAG": new RegExp( "^(" + characterEncoding.replace( "w", "w*" ) + ")" ),
 		"ATTR": new RegExp( "^" + attributes ),
 		"PSEUDO": new RegExp( "^" + pseudos ),
 		"CHILD": new RegExp( "^:(only|nth|last|first)-child(?:\\(" + whitespace +
@@ -5797,44 +3777,34 @@ var cachedruns,
 		"needsContext": new RegExp( "^" + whitespace + "*[>+~]|" + pos, "i" )
 	},
 
-	classCache = {},
-	cachedClasses = [],
-	compilerCache = {},
-	cachedSelectors = [],
-
-	// Mark a function for use in filtering
-	markFunction = function( fn ) {
-		fn.sizzleFilter = true;
-		return fn;
-	},
-
-	// Returns a function to use in pseudos for input types
-	createInputFunction = function( type ) {
-		return function( elem ) {
-			// Check the input's nodeName and type
-			return elem.nodeName.toLowerCase() === "input" && elem.type === type;
-		};
-	},
-
-	// Returns a function to use in pseudos for buttons
-	createButtonFunction = function( type ) {
-		return function( elem ) {
-			var name = elem.nodeName.toLowerCase();
-			return (name === "input" || name === "button") && elem.type === type;
-		};
-	},
+	// Support
 
 	// Used for testing something on an element
 	assert = function( fn ) {
-		var pass = false,
-			div = document.createElement("div");
+		var div = document.createElement("div");
+
 		try {
-			pass = fn( div );
-		} catch (e) {}
-		// release memory in IE
-		div = null;
-		return pass;
+			return fn( div );
+		} catch (e) {
+			return false;
+		} finally {
+			// release memory in IE
+			div = null;
+		}
 	},
+
+	// Check if getElementsByTagName("*") returns only elements
+	assertTagNameNoComments = assert(function( div ) {
+		div.appendChild( document.createComment("") );
+		return !div.getElementsByTagName("*").length;
+	}),
+
+	// Check if getAttribute returns normalized href attributes
+	assertHrefNotNormalized = assert(function( div ) {
+		div.innerHTML = "<a href='#'></a>";
+		return div.firstChild && typeof div.firstChild.getAttribute !== strundefined &&
+			div.firstChild.getAttribute("href") === "#";
+	}),
 
 	// Check if attributes should be retrieved by attribute nodes
 	assertAttributes = assert(function( div ) {
@@ -5842,6 +3812,19 @@ var cachedruns,
 		var type = typeof div.lastChild.getAttribute("multiple");
 		// IE8 returns a string for some attributes even when not present
 		return type !== "boolean" && type !== "string";
+	}),
+
+	// Check if getElementsByClassName can be trusted
+	assertUsableClassName = assert(function( div ) {
+		// Opera can't find a second classname (in 9.6)
+		div.innerHTML = "<div class='hidden e'></div><div class='hidden'></div>";
+		if ( !div.getElementsByClassName || !div.getElementsByClassName("e").length ) {
+			return false;
+		}
+
+		// Safari 3.2 caches class attributes and doesn't catch changes
+		div.lastChild.className = "e";
+		return div.getElementsByClassName("e").length === 2;
 	}),
 
 	// Check if getElementById returns elements by name
@@ -5855,45 +3838,31 @@ var cachedruns,
 		// Test
 		var pass = document.getElementsByName &&
 			// buggy browsers will return fewer than the correct 2
-			document.getElementsByName( expando ).length ===
+			document.getElementsByName( expando ).length === 2 +
 			// buggy browsers will return more than the correct 0
-			2 + document.getElementsByName( expando + 0 ).length;
+			document.getElementsByName( expando + 0 ).length;
 		assertGetIdNotName = !document.getElementById( expando );
 
 		// Cleanup
 		docElem.removeChild( div );
 
 		return pass;
-	}),
-
-	// Check if the browser returns only elements
-	// when doing getElementsByTagName("*")
-	assertTagNameNoComments = assert(function( div ) {
-		div.appendChild( document.createComment("") );
-		return div.getElementsByTagName("*").length === 0;
-	}),
-
-	// Check if getAttribute returns normalized href attributes
-	assertHrefNotNormalized = assert(function( div ) {
-		div.innerHTML = "<a href='#'></a>";
-		return div.firstChild && typeof div.firstChild.getAttribute !== strundefined &&
-			div.firstChild.getAttribute("href") === "#";
-	}),
-
-	// Check if getElementsByClassName can be trusted
-	assertUsableClassName = assert(function( div ) {
-		// Opera can't find a second classname (in 9.6)
-		div.innerHTML = "<div class='hidden e'></div><div class='hidden'></div>";
-		if ( !div.getElementsByClassName || div.getElementsByClassName("e").length === 0 ) {
-			return false;
-		}
-
-		// Safari caches class attributes, doesn't catch changes (in 3.2)
-		div.lastChild.className = "e";
-		return div.getElementsByClassName("e").length !== 1;
 	});
 
-var Sizzle = function( selector, context, results, seed ) {
+// If slice is not available, provide a backup
+try {
+	slice.call( docElem.childNodes, 0 )[0].nodeType;
+} catch ( e ) {
+	slice = function( i ) {
+		var elem, results = [];
+		for ( ; (elem = this[i]); i++ ) {
+			results.push( elem );
+		}
+		return results;
+	};
+}
+
+function Sizzle( selector, context, results, seed ) {
 	results = results || [];
 	context = context || document;
 	var match, elem, xml, m,
@@ -5951,20 +3920,142 @@ var Sizzle = function( selector, context, results, seed ) {
 
 	// All others
 	return select( selector, context, results, seed, xml );
+}
+
+Sizzle.matches = function( expr, elements ) {
+	return Sizzle( expr, null, null, elements );
 };
 
-var Expr = Sizzle.selectors = {
+Sizzle.matchesSelector = function( elem, expr ) {
+	return Sizzle( expr, null, null, [ elem ] ).length > 0;
+};
+
+// Returns a function to use in pseudos for input types
+function createInputPseudo( type ) {
+	return function( elem ) {
+		var name = elem.nodeName.toLowerCase();
+		return name === "input" && elem.type === type;
+	};
+}
+
+// Returns a function to use in pseudos for buttons
+function createButtonPseudo( type ) {
+	return function( elem ) {
+		var name = elem.nodeName.toLowerCase();
+		return (name === "input" || name === "button") && elem.type === type;
+	};
+}
+
+/**
+ * Utility function for retrieving the text value of an array of DOM nodes
+ * @param {Array|Element} elem
+ */
+getText = Sizzle.getText = function( elem ) {
+	var node,
+		ret = "",
+		i = 0,
+		nodeType = elem.nodeType;
+
+	if ( nodeType ) {
+		if ( nodeType === 1 || nodeType === 9 || nodeType === 11 ) {
+			// Use textContent for elements
+			// innerText usage removed for consistency of new lines (see #11153)
+			if ( typeof elem.textContent === "string" ) {
+				return elem.textContent;
+			} else {
+				// Traverse its children
+				for ( elem = elem.firstChild; elem; elem = elem.nextSibling ) {
+					ret += getText( elem );
+				}
+			}
+		} else if ( nodeType === 3 || nodeType === 4 ) {
+			return elem.nodeValue;
+		}
+		// Do not include comment or processing instruction nodes
+	} else {
+
+		// If no nodeType, this is expected to be an array
+		for ( ; (node = elem[i]); i++ ) {
+			// Do not traverse comment nodes
+			ret += getText( node );
+		}
+	}
+	return ret;
+};
+
+isXML = Sizzle.isXML = function isXML( elem ) {
+	// documentElement is verified for cases where it doesn't yet exist
+	// (such as loading iframes in IE - #4833)
+	var documentElement = elem && (elem.ownerDocument || elem).documentElement;
+	return documentElement ? documentElement.nodeName !== "HTML" : false;
+};
+
+// Element contains another
+contains = Sizzle.contains = docElem.contains ?
+	function( a, b ) {
+		var adown = a.nodeType === 9 ? a.documentElement : a,
+			bup = b && b.parentNode;
+		return a === bup || !!( bup && bup.nodeType === 1 && adown.contains && adown.contains(bup) );
+	} :
+	docElem.compareDocumentPosition ?
+	function( a, b ) {
+		return b && !!( a.compareDocumentPosition( b ) & 16 );
+	} :
+	function( a, b ) {
+		while ( (b = b.parentNode) ) {
+			if ( b === a ) {
+				return true;
+			}
+		}
+		return false;
+	};
+
+Sizzle.attr = function( elem, name ) {
+	var attr,
+		xml = isXML( elem );
+
+	if ( !xml ) {
+		name = name.toLowerCase();
+	}
+	if ( Expr.attrHandle[ name ] ) {
+		return Expr.attrHandle[ name ]( elem );
+	}
+	if ( assertAttributes || xml ) {
+		return elem.getAttribute( name );
+	}
+	attr = elem.getAttributeNode( name );
+	return attr ?
+		typeof elem[ name ] === "boolean" ?
+			elem[ name ] ? name : null :
+			attr.specified ? attr.value : null :
+		null;
+};
+
+Expr = Sizzle.selectors = {
 
 	// Can be adjusted by the user
 	cacheLength: 50,
 
+	createPseudo: markFunction,
+
 	match: matchExpr,
 
-	order: [ "ID", "TAG" ],
+	order: new RegExp( "ID|TAG" +
+		(assertUsableName ? "|NAME" : "") +
+		(assertUsableClassName ? "|CLASS" : "")
+	),
 
-	attrHandle: {},
-
-	createPseudo: markFunction,
+	// IE6/7 return a modified href
+	attrHandle: assertHrefNotNormalized ?
+		{} :
+		{
+			"href": function( elem ) {
+				return elem.getAttribute( "href", 2 );
+			},
+			"type": function( elem ) {
+				return elem.getAttribute("type");
+			}
+		},
 
 	find: {
 		"ID": assertGetIdNotName ?
@@ -6012,7 +4103,19 @@ var Expr = Sizzle.selectors = {
 					return tmp;
 				}
 				return results;
+			},
+
+		"NAME": function( tag, context ) {
+			if ( typeof context.getElementsByName !== strundefined ) {
+				return context.getElementsByName( name );
 			}
+		},
+
+		"CLASS": function( className, context, xml ) {
+			if ( typeof context.getElementsByClassName !== strundefined && !xml ) {
+				return context.getElementsByClassName( className );
+			}
+		}
 	},
 
 	relative: {
@@ -6067,25 +4170,31 @@ var Expr = Sizzle.selectors = {
 			return match;
 		},
 
-		"PSEUDO": function( match ) {
-			var argument,
-				unquoted = match[4];
-
+		"PSEUDO": function( match, context, xml ) {
+			var unquoted, excess;
 			if ( matchExpr["CHILD"].test( match[0] ) ) {
 				return null;
 			}
 
-			// Relinquish our claim on characters in `unquoted` from a closing parenthesis on
-			if ( unquoted && (argument = rselector.exec( unquoted )) && argument.pop() ) {
+			if ( match[3] ) {
+				match[2] = match[3];
+			} else if ( (unquoted = match[4]) ) {
+				// Only check arguments that contain a pseudo
+				if ( rpseudo.test(unquoted) &&
+					// Get excess from tokenize (recursively)
+					(excess = tokenize( unquoted, context, xml, true )) &&
+					// advance to the next closing parenthesis
+					(excess = unquoted.indexOf( ")", unquoted.length - excess ) - unquoted.length) ) {
 
-				match[0] = match[0].slice( 0, argument[0].length - unquoted.length - 1 );
-				unquoted = argument[0].slice( 0, -1 );
+					// excess is a negative index
+					unquoted = unquoted.slice( 0, excess );
+					match[0] = match[0].slice( 0, excess );
+				}
+				match[2] = unquoted;
 			}
 
-			// Quoted or unquoted, we have the full argument
 			// Return only captures needed by the pseudo filter method (type and argument)
-			match.splice( 2, 3, unquoted || match[3] );
-			return match;
+			return match.slice( 0, 3 );
 		}
 	},
 
@@ -6117,14 +4226,9 @@ var Expr = Sizzle.selectors = {
 		},
 
 		"CLASS": function( className ) {
-			var pattern = classCache[ className ];
+			var pattern = classCache[ expando ][ className ];
 			if ( !pattern ) {
-				pattern = classCache[ className ] = new RegExp( "(^|" + whitespace + ")" + className + "(" + whitespace + "|$)" );
-				cachedClasses.push( className );
-				// Avoid too large of a cache
-				if ( cachedClasses.length > Expr.cacheLength ) {
-					delete classCache[ cachedClasses.shift() ];
-				}
+				pattern = classCache( className, new RegExp("(^|" + whitespace + ")" + className + "(" + whitespace + "|$)") );
 			}
 			return function( elem ) {
 				return pattern.test( elem.className || (typeof elem.getAttribute !== strundefined && elem.getAttribute("class")) || "" );
@@ -6240,16 +4344,23 @@ var Expr = Sizzle.selectors = {
 			// pseudo-class names are case-insensitive
 			// http://www.w3.org/TR/selectors/#pseudo-classes
 			// Prioritize by case sensitivity in case custom pseudos are added with uppercase letters
-			var fn = Expr.pseudos[ pseudo ] || Expr.pseudos[ pseudo.toLowerCase() ];
+			var args,
+				fn = Expr.pseudos[ pseudo ] || Expr.pseudos[ pseudo.toLowerCase() ];
 
 			if ( !fn ) {
 				Sizzle.error( "unsupported pseudo: " + pseudo );
 			}
 
-			// The user may set fn.sizzleFilter to indicate
-			// that arguments are needed to create the filter function
+			// The user may use createPseudo to indicate that
+			// arguments are needed to create the filter function
 			// just as Sizzle does
-			if ( !fn.sizzleFilter ) {
+			if ( !fn[ expando ] ) {
+				if ( fn.length > 1 ) {
+					args = [ pseudo, pseudo, "", argument ];
+					return function( elem ) {
+						return fn( elem, 0, args );
+					};
+				}
 				return fn;
 			}
 
@@ -6340,14 +4451,14 @@ var Expr = Sizzle.selectors = {
 		},
 
 		// Input types
-		"radio": createInputFunction("radio"),
-		"checkbox": createInputFunction("checkbox"),
-		"file": createInputFunction("file"),
-		"password": createInputFunction("password"),
-		"image": createInputFunction("image"),
+		"radio": createInputPseudo("radio"),
+		"checkbox": createInputPseudo("checkbox"),
+		"file": createInputPseudo("file"),
+		"password": createInputPseudo("password"),
+		"image": createInputPseudo("image"),
 
-		"submit": createButtonFunction("submit"),
-		"reset": createButtonFunction("reset"),
+		"submit": createButtonPseudo("submit"),
+		"reset": createButtonPseudo("reset"),
 
 		"button": function( elem ) {
 			var name = elem.nodeName.toLowerCase();
@@ -6413,157 +4524,26 @@ var Expr = Sizzle.selectors = {
 	}
 };
 
-// Deprecated
-Expr.setFilters["nth"] = Expr.setFilters["eq"];
+function siblingCheck( a, b, ret ) {
+	if ( a === b ) {
+		return ret;
+	}
 
-// Back-compat
-Expr.filters = Expr.pseudos;
+	var cur = a.nextSibling;
 
-// IE6/7 return a modified href
-if ( !assertHrefNotNormalized ) {
-	Expr.attrHandle = {
-		"href": function( elem ) {
-			return elem.getAttribute( "href", 2 );
-		},
-		"type": function( elem ) {
-			return elem.getAttribute("type");
+	while ( cur ) {
+		if ( cur === b ) {
+			return -1;
 		}
-	};
+
+		cur = cur.nextSibling;
+	}
+
+	return 1;
 }
 
-// Add getElementsByName if usable
-if ( assertUsableName ) {
-	Expr.order.push("NAME");
-	Expr.find["NAME"] = function( name, context ) {
-		if ( typeof context.getElementsByName !== strundefined ) {
-			return context.getElementsByName( name );
-		}
-	};
-}
-
-// Add getElementsByClassName if usable
-if ( assertUsableClassName ) {
-	Expr.order.splice( 1, 0, "CLASS" );
-	Expr.find["CLASS"] = function( className, context, xml ) {
-		if ( typeof context.getElementsByClassName !== strundefined && !xml ) {
-			return context.getElementsByClassName( className );
-		}
-	};
-}
-
-// If slice is not available, provide a backup
-try {
-	slice.call( docElem.childNodes, 0 )[0].nodeType;
-} catch ( e ) {
-	slice = function( i ) {
-		var elem, results = [];
-		for ( ; (elem = this[i]); i++ ) {
-			results.push( elem );
-		}
-		return results;
-	};
-}
-
-var isXML = Sizzle.isXML = function( elem ) {
-	// documentElement is verified for cases where it doesn't yet exist
-	// (such as loading iframes in IE - #4833)
-	var documentElement = elem && (elem.ownerDocument || elem).documentElement;
-	return documentElement ? documentElement.nodeName !== "HTML" : false;
-};
-
-// Element contains another
-var contains = Sizzle.contains = docElem.compareDocumentPosition ?
+sortOrder = docElem.compareDocumentPosition ?
 	function( a, b ) {
-		return !!( a.compareDocumentPosition( b ) & 16 );
-	} :
-	docElem.contains ?
-	function( a, b ) {
-		var adown = a.nodeType === 9 ? a.documentElement : a,
-			bup = b.parentNode;
-		return a === bup || !!( bup && bup.nodeType === 1 && adown.contains && adown.contains(bup) );
-	} :
-	function( a, b ) {
-		while ( (b = b.parentNode) ) {
-			if ( b === a ) {
-				return true;
-			}
-		}
-		return false;
-	};
-
-/**
- * Utility function for retrieving the text value of an array of DOM nodes
- * @param {Array|Element} elem
- */
-var getText = Sizzle.getText = function( elem ) {
-	var node,
-		ret = "",
-		i = 0,
-		nodeType = elem.nodeType;
-
-	if ( nodeType ) {
-		if ( nodeType === 1 || nodeType === 9 || nodeType === 11 ) {
-			// Use textContent for elements
-			// innerText usage removed for consistency of new lines (see #11153)
-			if ( typeof elem.textContent === "string" ) {
-				return elem.textContent;
-			} else {
-				// Traverse its children
-				for ( elem = elem.firstChild; elem; elem = elem.nextSibling ) {
-					ret += getText( elem );
-				}
-			}
-		} else if ( nodeType === 3 || nodeType === 4 ) {
-			return elem.nodeValue;
-		}
-		// Do not include comment or processing instruction nodes
-	} else {
-
-		// If no nodeType, this is expected to be an array
-		for ( ; (node = elem[i]); i++ ) {
-			// Do not traverse comment nodes
-			ret += getText( node );
-		}
-	}
-	return ret;
-};
-
-Sizzle.attr = function( elem, name ) {
-	var attr,
-		xml = isXML( elem );
-
-	if ( !xml ) {
-		name = name.toLowerCase();
-	}
-	if ( Expr.attrHandle[ name ] ) {
-		return Expr.attrHandle[ name ]( elem );
-	}
-	if ( assertAttributes || xml ) {
-		return elem.getAttribute( name );
-	}
-	attr = elem.getAttributeNode( name );
-	return attr ?
-		typeof elem[ name ] === "boolean" ?
-			elem[ name ] ? name : null :
-			attr.specified ? attr.value : null :
-		null;
-};
-
-Sizzle.error = function( msg ) {
-	throw new Error( "Syntax error, unrecognized expression: " + msg );
-};
-
-// Check if the JavaScript engine is using some sort of
-// optimization where it does not always call our comparision
-// function. If that is the case, discard the hasDuplicate value.
-//   Thus far that includes Google Chrome.
-[0, 0].sort(function() {
-	return (baseHasDuplicate = 0);
-});
-
-
-if ( docElem.compareDocumentPosition ) {
-	sortOrder = function( a, b ) {
 		if ( a === b ) {
 			hasDuplicate = true;
 			return 0;
@@ -6573,10 +4553,8 @@ if ( docElem.compareDocumentPosition ) {
 			a.compareDocumentPosition :
 			a.compareDocumentPosition(b) & 4
 		) ? -1 : 1;
-	};
-
-} else {
-	sortOrder = function( a, b ) {
+	} :
+	function( a, b ) {
 		// The nodes are identical, we can exit early
 		if ( a === b ) {
 			hasDuplicate = true;
@@ -6636,44 +4614,233 @@ if ( docElem.compareDocumentPosition ) {
 			siblingCheck( ap[i], b, 1 );
 	};
 
-	siblingCheck = function( a, b, ret ) {
-		if ( a === b ) {
-			return ret;
-		}
-
-		var cur = a.nextSibling;
-
-		while ( cur ) {
-			if ( cur === b ) {
-				return -1;
-			}
-
-			cur = cur.nextSibling;
-		}
-
-		return 1;
-	};
-}
+// Always assume the presence of duplicates if sort doesn't
+// pass them to our comparison function (as in Google Chrome).
+[0, 0].sort( sortOrder );
+baseHasDuplicate = !hasDuplicate;
 
 // Document sorting and removing duplicates
 Sizzle.uniqueSort = function( results ) {
 	var elem,
 		i = 1;
 
-	if ( sortOrder ) {
-		hasDuplicate = baseHasDuplicate;
-		results.sort( sortOrder );
+	hasDuplicate = baseHasDuplicate;
+	results.sort( sortOrder );
 
-		if ( hasDuplicate ) {
-			for ( ; (elem = results[i]); i++ ) {
-				if ( elem === results[ i - 1 ] ) {
-					results.splice( i--, 1 );
-				}
+	if ( hasDuplicate ) {
+		for ( ; (elem = results[i]); i++ ) {
+			if ( elem === results[ i - 1 ] ) {
+				results.splice( i--, 1 );
 			}
 		}
 	}
 
 	return results;
+};
+
+Sizzle.error = function( msg ) {
+	throw new Error( "Syntax error, unrecognized expression: " + msg );
+};
+
+function tokenize( selector, context, xml, parseOnly ) {
+	var matched, match, tokens, type,
+		soFar, groups, group, i,
+		preFilters, filters,
+		checkContext = !xml && context !== document,
+		// Token cache should maintain spaces
+		key = ( checkContext ? "<s>" : "" ) + selector.replace( rtrim, "$1<s>" ),
+		cached = tokenCache[ expando ][ key ];
+
+	if ( cached ) {
+		return parseOnly ? 0 : slice.call( cached, 0 );
+	}
+
+	soFar = selector;
+	groups = [];
+	i = 0;
+	preFilters = Expr.preFilter;
+	filters = Expr.filter;
+
+	while ( soFar ) {
+
+		// Comma and first run
+		if ( !matched || (match = rcomma.exec( soFar )) ) {
+			if ( match ) {
+				soFar = soFar.slice( match[0].length );
+				tokens.selector = group;
+			}
+			groups.push( tokens = [] );
+			group = "";
+
+			// Need to make sure we're within a narrower context if necessary
+			// Adding a descendant combinator will generate what is needed
+			if ( checkContext ) {
+				soFar = " " + soFar;
+			}
+		}
+
+		matched = false;
+
+		// Combinators
+		if ( (match = rcombinators.exec( soFar )) ) {
+			group += match[0];
+			soFar = soFar.slice( match[0].length );
+
+			// Cast descendant combinators to space
+			matched = tokens.push({
+				part: match.pop().replace( rtrim, " " ),
+				string: match[0],
+				captures: match
+			});
+		}
+
+		// Filters
+		for ( type in filters ) {
+			if ( (match = matchExpr[ type ].exec( soFar )) && (!preFilters[ type ] ||
+				( match = preFilters[ type ](match, context, xml) )) ) {
+
+				group += match[0];
+				soFar = soFar.slice( match[0].length );
+				matched = tokens.push({
+					part: type,
+					string: match.shift(),
+					captures: match
+				});
+			}
+		}
+
+		if ( !matched ) {
+			break;
+		}
+	}
+
+	// Attach the full group as a selector
+	if ( group ) {
+		tokens.selector = group;
+	}
+
+	// Return the length of the invalid excess
+	// if we're just parsing
+	// Otherwise, throw an error or return tokens
+	return parseOnly ?
+		soFar.length :
+		soFar ?
+			Sizzle.error( selector ) :
+			// Cache the tokens
+			slice.call( tokenCache(key, groups), 0 );
+}
+
+function addCombinator( matcher, combinator, context, xml ) {
+	var dir = combinator.dir,
+		doneName = done++;
+
+	if ( !matcher ) {
+		// If there is no matcher to check, check against the context
+		matcher = function( elem ) {
+			return elem === context;
+		};
+	}
+	return combinator.first ?
+		function( elem ) {
+			while ( (elem = elem[ dir ]) ) {
+				if ( elem.nodeType === 1 ) {
+					return matcher( elem ) && elem;
+				}
+			}
+		} :
+		xml ?
+			function( elem ) {
+				while ( (elem = elem[ dir ]) ) {
+					if ( elem.nodeType === 1 ) {
+						if ( matcher( elem ) ) {
+							return elem;
+						}
+					}
+				}
+			} :
+			function( elem ) {
+				var cache,
+					dirkey = doneName + "." + dirruns,
+					cachedkey = dirkey + "." + cachedruns;
+				while ( (elem = elem[ dir ]) ) {
+					if ( elem.nodeType === 1 ) {
+						if ( (cache = elem[ expando ]) === cachedkey ) {
+							return elem.sizset;
+						} else if ( typeof cache === "string" && cache.indexOf(dirkey) === 0 ) {
+							if ( elem.sizset ) {
+								return elem;
+							}
+						} else {
+							elem[ expando ] = cachedkey;
+							if ( matcher( elem ) ) {
+								elem.sizset = true;
+								return elem;
+							}
+							elem.sizset = false;
+						}
+					}
+				}
+			};
+}
+
+function addMatcher( higher, deeper ) {
+	return higher ?
+		function( elem ) {
+			var result = deeper( elem );
+			return result && higher( result === true ? elem : result );
+		} :
+		deeper;
+}
+
+// ["TAG", ">", "ID", " ", "CLASS"]
+function matcherFromTokens( tokens, context, xml ) {
+	var token, matcher,
+		i = 0;
+
+	for ( ; (token = tokens[i]); i++ ) {
+		if ( Expr.relative[ token.part ] ) {
+			matcher = addCombinator( matcher, Expr.relative[ token.part ], context, xml );
+		} else {
+			matcher = addMatcher( matcher, Expr.filter[ token.part ].apply(null, token.captures.concat( context, xml )) );
+		}
+	}
+
+	return matcher;
+}
+
+function matcherFromGroupMatchers( matchers ) {
+	return function( elem ) {
+		var matcher,
+			j = 0;
+		for ( ; (matcher = matchers[j]); j++ ) {
+			if ( matcher(elem) ) {
+				return true;
+			}
+		}
+		return false;
+	};
+}
+
+compile = Sizzle.compile = function( selector, context, xml ) {
+	var group, i, len,
+		cached = compilerCache[ expando ][ selector ];
+
+	// Return a cached group function if already generated (context dependent)
+	if ( cached && cached.context === context ) {
+		return cached;
+	}
+
+	// Generate a function of recursive functions that can be used to check each element
+	group = tokenize( selector, context, xml );
+	for ( i = 0, len = group.length; i < len; i++ ) {
+		group[i] = matcherFromTokens(group[i], context, xml);
+	}
+
+	// Cache the compiled function
+	cached = compilerCache( selector, matcherFromGroupMatchers(group) );
+	cached.context = context;
+	cached.runs = cached.dirruns = 0;
+	return cached;
 };
 
 function multipleContexts( selector, contexts, results, seed ) {
@@ -6699,8 +4866,10 @@ function handlePOSGroup( selector, posfilter, argument, contexts, seed, not ) {
 	return results.length > 0 ? fn( results, argument, not ) : [];
 }
 
-function handlePOS( selector, context, results, seed, groups ) {
-	var match, not, anchor, ret, elements, currentContexts, part, lastIndex,
+function handlePOS( groups, context, results, seed ) {
+	var group, part, j, groupLen, token, selector,
+		anchor, elements, match, matched,
+		lastIndex, currentContexts, not,
 		i = 0,
 		len = groups.length,
 		rpos = matchExpr["POS"],
@@ -6719,51 +4888,60 @@ function handlePOS( selector, context, results, seed, groups ) {
 		};
 
 	for ( ; i < len; i++ ) {
-		// Reset regex index to 0
-		rpos.exec("");
-		selector = groups[i];
-		ret = [];
-		anchor = 0;
+		group = groups[i];
+		part = "";
 		elements = seed;
-		while ( (match = rpos.exec( selector )) ) {
-			lastIndex = rpos.lastIndex = match.index + match[0].length;
-			if ( lastIndex > anchor ) {
-				part = selector.slice( anchor, match.index );
-				anchor = lastIndex;
-				currentContexts = [ context ];
+		for ( j = 0, groupLen = group.length; j < groupLen; j++ ) {
+			token = group[j];
+			selector = token.string;
+			if ( token.part === "PSEUDO" ) {
+				// Reset regex index to 0
+				rpos.exec("");
+				anchor = 0;
+				while ( (match = rpos.exec( selector )) ) {
+					matched = true;
+					lastIndex = rpos.lastIndex = match.index + match[0].length;
+					if ( lastIndex > anchor ) {
+						part += selector.slice( anchor, match.index );
+						anchor = lastIndex;
+						currentContexts = [ context ];
 
-				if ( rcombinators.test(part) ) {
-					if ( elements ) {
-						currentContexts = elements;
+						if ( rcombinators.test(part) ) {
+							if ( elements ) {
+								currentContexts = elements;
+							}
+							elements = seed;
+						}
+
+						if ( (not = rendsWithNot.test( part )) ) {
+							part = part.slice( 0, -5 ).replace( rcombinators, "$&*" );
+							anchor++;
+						}
+
+						if ( match.length > 1 ) {
+							match[0].replace( rposgroups, setUndefined );
+						}
+						elements = handlePOSGroup( part, match[1], match[2], currentContexts, elements, not );
 					}
-					elements = seed;
+					part = "";
 				}
 
-				if ( (not = rendsWithNot.test( part )) ) {
-					part = part.slice( 0, -5 ).replace( rcombinators, "$&*" );
-				}
-
-				if ( match.length > 1 ) {
-					match[0].replace( rposgroups, setUndefined );
-				}
-				elements = handlePOSGroup( part, match[1], match[2], currentContexts, elements, not );
 			}
+
+			if ( !matched ) {
+				part += selector;
+			}
+			matched = false;
 		}
 
-		if ( elements ) {
-			ret = ret.concat( elements );
-
-			if ( (part = selector.slice( anchor )) && part !== ")" ) {
-				if ( rcombinators.test(part) ) {
-					multipleContexts( part, ret, results, seed );
-				} else {
-					Sizzle( part, context, results, seed ? seed.concat(elements) : elements );
-				}
+		if ( part ) {
+			if ( rcombinators.test(part) ) {
+				multipleContexts( part, elements || [ context ], results, seed );
 			} else {
-				push.apply( results, ret );
+				Sizzle( part, context, results, seed ? seed.concat(elements) : elements );
 			}
 		} else {
-			Sizzle( selector, context, results, seed );
+			push.apply( results, elements );
 		}
 	}
 
@@ -6771,193 +4949,17 @@ function handlePOS( selector, context, results, seed, groups ) {
 	return len === 1 ? results : Sizzle.uniqueSort( results );
 }
 
-function tokenize( selector, context, xml ) {
-	var tokens, soFar, type,
-		groups = [],
-		i = 0,
-
-		// Catch obvious selector issues: terminal ")"; nonempty fallback match
-		// rselector never fails to match *something*
-		match = rselector.exec( selector ),
-		matched = !match.pop() && !match.pop(),
-		selectorGroups = matched && selector.match( rgroups ) || [""],
-
-		preFilters = Expr.preFilter,
-		filters = Expr.filter,
-		checkContext = !xml && context !== document;
-
-	for ( ; (soFar = selectorGroups[i]) != null && matched; i++ ) {
-		groups.push( tokens = [] );
-
-		// Need to make sure we're within a narrower context if necessary
-		// Adding a descendant combinator will generate what is needed
-		if ( checkContext ) {
-			soFar = " " + soFar;
-		}
-
-		while ( soFar ) {
-			matched = false;
-
-			// Combinators
-			if ( (match = rcombinators.exec( soFar )) ) {
-				soFar = soFar.slice( match[0].length );
-
-				// Cast descendant combinators to space
-				matched = tokens.push({ part: match.pop().replace( rtrim, " " ), captures: match });
-			}
-
-			// Filters
-			for ( type in filters ) {
-				if ( (match = matchExpr[ type ].exec( soFar )) && (!preFilters[ type ] ||
-					(match = preFilters[ type ]( match, context, xml )) ) ) {
-
-					soFar = soFar.slice( match.shift().length );
-					matched = tokens.push({ part: type, captures: match });
-				}
-			}
-
-			if ( !matched ) {
-				break;
-			}
-		}
-	}
-
-	if ( !matched ) {
-		Sizzle.error( selector );
-	}
-
-	return groups;
-}
-
-function addCombinator( matcher, combinator, context ) {
-	var dir = combinator.dir,
-		doneName = done++;
-
-	if ( !matcher ) {
-		// If there is no matcher to check, check against the context
-		matcher = function( elem ) {
-			return elem === context;
-		};
-	}
-	return combinator.first ?
-		function( elem, context ) {
-			while ( (elem = elem[ dir ]) ) {
-				if ( elem.nodeType === 1 ) {
-					return matcher( elem, context ) && elem;
-				}
-			}
-		} :
-		function( elem, context ) {
-			var cache,
-				dirkey = doneName + "." + dirruns,
-				cachedkey = dirkey + "." + cachedruns;
-			while ( (elem = elem[ dir ]) ) {
-				if ( elem.nodeType === 1 ) {
-					if ( (cache = elem[ expando ]) === cachedkey ) {
-						return elem.sizset;
-					} else if ( typeof cache === "string" && cache.indexOf(dirkey) === 0 ) {
-						if ( elem.sizset ) {
-							return elem;
-						}
-					} else {
-						elem[ expando ] = cachedkey;
-						if ( matcher( elem, context ) ) {
-							elem.sizset = true;
-							return elem;
-						}
-						elem.sizset = false;
-					}
-				}
-			}
-		};
-}
-
-function addMatcher( higher, deeper ) {
-	return higher ?
-		function( elem, context ) {
-			var result = deeper( elem, context );
-			return result && higher( result === true ? elem : result, context );
-		} :
-		deeper;
-}
-
-// ["TAG", ">", "ID", " ", "CLASS"]
-function matcherFromTokens( tokens, context, xml ) {
-	var token, matcher,
-		i = 0;
-
-	for ( ; (token = tokens[i]); i++ ) {
-		if ( Expr.relative[ token.part ] ) {
-			matcher = addCombinator( matcher, Expr.relative[ token.part ], context );
-		} else {
-			token.captures.push( context, xml );
-			matcher = addMatcher( matcher, Expr.filter[ token.part ].apply( null, token.captures ) );
-		}
-	}
-
-	return matcher;
-}
-
-function matcherFromGroupMatchers( matchers ) {
-	return function( elem, context ) {
-		var matcher,
-			j = 0;
-		for ( ; (matcher = matchers[j]); j++ ) {
-			if ( matcher(elem, context) ) {
-				return true;
-			}
-		}
-		return false;
-	};
-}
-
-var compile = Sizzle.compile = function( selector, context, xml ) {
-	var tokens, group, i,
-		cached = compilerCache[ selector ];
-
-	// Return a cached group function if already generated (context dependent)
-	if ( cached && cached.context === context ) {
-		return cached;
-	}
-
-	// Generate a function of recursive functions that can be used to check each element
-	group = tokenize( selector, context, xml );
-	for ( i = 0; (tokens = group[i]); i++ ) {
-		group[i] = matcherFromTokens( tokens, context, xml );
-	}
-
-	// Cache the compiled function
-	cached = compilerCache[ selector ] = matcherFromGroupMatchers( group );
-	cached.context = context;
-	cached.runs = cached.dirruns = 0;
-	cachedSelectors.push( selector );
-	// Ensure only the most recent are cached
-	if ( cachedSelectors.length > Expr.cacheLength ) {
-		delete compilerCache[ cachedSelectors.shift() ];
-	}
-	return cached;
-};
-
-Sizzle.matches = function( expr, elements ) {
-	return Sizzle( expr, null, null, elements );
-};
-
-Sizzle.matchesSelector = function( elem, expr ) {
-	return Sizzle( expr, null, null, [ elem ] ).length > 0;
-};
-
-var select = function( selector, context, results, seed, xml ) {
+function select( selector, context, results, seed, xml ) {
 	// Remove excessive whitespace
 	selector = selector.replace( rtrim, "$1" );
-	var elements, matcher, i, len, elem, token,
-		type, findContext, notTokens,
-		match = selector.match( rgroups ),
-		tokens = selector.match( rtokens ),
+	var elements, matcher, cached, elem,
+		i, tokens, token, lastToken, findContext, type,
+		match = tokenize( selector, context, xml ),
 		contextNodeType = context.nodeType;
 
 	// POS handling
 	if ( matchExpr["POS"].test(selector) ) {
-		return handlePOS( selector, context, results, seed, match );
+		return handlePOS( match, context, results, seed );
 	}
 
 	if ( seed ) {
@@ -6965,68 +4967,69 @@ var select = function( selector, context, results, seed, xml ) {
 
 	// To maintain document order, only narrow the
 	// set if there is one group
-	} else if ( match && match.length === 1 ) {
+	} else if ( match.length === 1 ) {
 
 		// Take a shortcut and set the context if the root selector is an ID
-		if ( tokens.length > 1 && contextNodeType === 9 && !xml &&
-				(match = matchExpr["ID"].exec( tokens[0] )) ) {
+		if ( (tokens = slice.call( match[0], 0 )).length > 2 &&
+				(token = tokens[0]).part === "ID" &&
+				contextNodeType === 9 && !xml &&
+				Expr.relative[ tokens[1].part ] ) {
 
-			context = Expr.find["ID"]( match[1], context, xml )[0];
+			context = Expr.find["ID"]( token.captures[0].replace( rbackslash, "" ), context, xml )[0];
 			if ( !context ) {
 				return results;
 			}
 
-			selector = selector.slice( tokens.shift().length );
+			selector = selector.slice( tokens.shift().string.length );
 		}
 
-		findContext = ( (match = rsibling.exec( tokens[0] )) && !match.index && context.parentNode ) || context;
+		findContext = ( (match = rsibling.exec( tokens[0].string )) && !match.index && context.parentNode ) || context;
 
-		// Get the last token, excluding :not
-		notTokens = tokens.pop();
-		token = notTokens.split(":not")[0];
-
-		for ( i = 0, len = Expr.order.length; i < len; i++ ) {
-			type = Expr.order[i];
-
-			if ( (match = matchExpr[ type ].exec( token )) ) {
-				elements = Expr.find[ type ]( (match[1] || "").replace( rbackslash, "" ), findContext, xml );
-
+		// Reduce the set if possible
+		lastToken = "";
+		for ( i = tokens.length - 1; i >= 0; i-- ) {
+			token = tokens[i];
+			type = token.part;
+			lastToken = token.string + lastToken;
+			if ( Expr.relative[ type ] ) {
+				break;
+			}
+			if ( Expr.order.test(type) ) {
+				elements = Expr.find[ type ]( token.captures[0].replace( rbackslash, "" ), findContext, xml );
 				if ( elements == null ) {
 					continue;
-				}
-
-				if ( token === notTokens ) {
-					selector = selector.slice( 0, selector.length - notTokens.length ) +
-						token.replace( matchExpr[ type ], "" );
+				} else {
+					selector = selector.slice( 0, selector.length - lastToken.length ) +
+						lastToken.replace( matchExpr[ type ], "" );
 
 					if ( !selector ) {
 						push.apply( results, slice.call(elements, 0) );
 					}
+
+					break;
 				}
-				break;
 			}
 		}
 	}
 
 	// Only loop over the given elements once
-	// If selector is empty, we're already done
 	if ( selector ) {
 		matcher = compile( selector, context, xml );
 		dirruns = matcher.dirruns++;
-
 		if ( elements == null ) {
 			elements = Expr.find["TAG"]( "*", (rsibling.test( selector ) && context.parentNode) || context );
 		}
+
 		for ( i = 0; (elem = elements[i]); i++ ) {
 			cachedruns = matcher.runs++;
-			if ( matcher(elem, context) ) {
+			if ( matcher(elem) ) {
 				results.push( elem );
 			}
 		}
 	}
 
 	return results;
-};
+}
 
 if ( document.querySelectorAll ) {
 	(function() {
@@ -7048,7 +5051,12 @@ if ( document.querySelectorAll ) {
 		// Build QSA regex
 		// Regex strategy adopted from Diego Perini
 		assert(function( div ) {
-			div.innerHTML = "<select><option selected></option></select>";
+			// Select is set to empty string on purpose
+			// This is to test IE's treatment of not explictly
+			// setting a boolean content attribute,
+			// since its presence should be enough
+			// http://bugs.jquery.com/ticket/12359
+			div.innerHTML = "<select><option selected=''></option></select>";
 
 			// IE8 - Some boolean attributes are not treated correctly
 			if ( !div.querySelectorAll("[selected]").length ) {
@@ -7074,7 +5082,7 @@ if ( document.querySelectorAll ) {
 
 			// FF 3.5 - :enabled/:disabled and hidden elements (hidden elements are still enabled)
 			// IE8 throws error here (do not put tests after this one)
-			div.innerHTML = "<input type='hidden'>";
+			div.innerHTML = "<input type='hidden'/>";
 			if ( !div.querySelectorAll(":enabled").length ) {
 				rbuggyQSA.push(":enabled", ":disabled");
 			}
@@ -7097,7 +5105,8 @@ if ( document.querySelectorAll ) {
 				// and working up from there (Thanks to Andrew Dupont for the technique)
 				// IE 8 doesn't work on object elements
 				} else if ( context.nodeType === 1 && context.nodeName.toLowerCase() !== "object" ) {
-					var old = context.getAttribute("id"),
+					var groups, i, len,
+						old = context.getAttribute("id"),
 						nid = old || expando,
 						newContext = rsibling.test( selector ) && context.parentNode || context;
 
@@ -7107,9 +5116,16 @@ if ( document.querySelectorAll ) {
 						context.setAttribute( "id", nid );
 					}
 
+					groups = tokenize(selector, context, xml);
+					// Trailing space is unnecessary
+					// There is always a context check
+					nid = "[id='" + nid + "']";
+					for ( i = 0, len = groups.length; i < len; i++ ) {
+						groups[i] = nid + groups[i].selector;
+					}
 					try {
 						push.apply( results, slice.call( newContext.querySelectorAll(
-							selector.replace( rgroups, "[id='" + nid + "'] $&" )
+							groups.join(",")
 						), 0 ) );
 						return results;
 					} catch(qsaError) {
@@ -7134,7 +5150,7 @@ if ( document.querySelectorAll ) {
 				// Gecko does not error, returns false instead
 				try {
 					matches.call( div, "[test!='']:sizzle" );
-					rbuggyMatches.push( Expr.match.PSEUDO );
+					rbuggyMatches.push( matchExpr["PSEUDO"].source, matchExpr["POS"].source, "!=" );
 				} catch ( e ) {}
 			});
 
@@ -7165,6 +5181,12 @@ if ( document.querySelectorAll ) {
 		}
 	})();
 }
+
+// Deprecated
+Expr.setFilters["nth"] = Expr.setFilters["eq"];
+
+// Back-compat
+Expr.filters = Expr.pseudos;
 
 // Override sizzle attribute retrieval
 Sizzle.attr = jQuery.attr;
@@ -7964,15 +5986,11 @@ jQuery.buildFragment = function( args, context, scripts ) {
 		first = args[ 0 ];
 
 	// Set context from what may come in as undefined or a jQuery collection or a node
+	// Updated to fix #12266 where accessing context[0] could throw an exception in IE9/10 &
+	// also doubles as fix for #8950 where plain objects caused createDocumentFragment exception
 	context = context || document;
-	context = (context[0] || context).ownerDocument || context[0] || context;
-
-	// Ensure that an attr object doesn't incorrectly stand in as a document object
-	// Chrome and Firefox seem to allow this to occur and will throw exception
-	// Fixes #8950
-	if ( typeof context.createDocumentFragment === "undefined" ) {
-		context = document;
-	}
+	context = !context.nodeType && context[0] || context;
+	context = context.ownerDocument || context;
 
 	// Only cache "small" (1/2 KB) HTML strings that are associated with the main document
 	// Cloning options loses the selected state, so don't cache them
@@ -8117,8 +6135,8 @@ jQuery.extend({
 	},
 
 	clean: function( elems, context, fragment, scripts ) {
-		var j, safe, elem, tag, wrap, depth, div, hasBody, tbody, len, handleScript, jsTags,
-			i = 0,
+		var i, j, elem, tag, wrap, depth, div, hasBody, tbody, len, handleScript, jsTags,
+			safe = context === document && safeFragment,
 			ret = [];
 
 		// Ensure that context is a document
@@ -8127,7 +6145,7 @@ jQuery.extend({
 		}
 
 		// Use the already-created safe fragment if context permits
-		for ( safe = context === document && safeFragment; (elem = elems[i]) != null; i++ ) {
+		for ( i = 0; (elem = elems[i]) != null; i++ ) {
 			if ( typeof elem === "number" ) {
 				elem += "";
 			}
@@ -8143,7 +6161,8 @@ jQuery.extend({
 				} else {
 					// Ensure a safe container in which to render the html
 					safe = safe || createSafeFragment( context );
-					div = div || safe.appendChild( context.createElement("div") );
+					div = context.createElement("div");
+					safe.appendChild( div );
 
 					// Fix "XHTML"-style tags in all browsers
 					elem = elem.replace(rxhtmlTag, "<$1></$2>");
@@ -8186,21 +6205,20 @@ jQuery.extend({
 
 					elem = div.childNodes;
 
-					// Remember the top-level container for proper cleanup
-					div = safe.lastChild;
+					// Take out of fragment container (we need a fresh div each time)
+					div.parentNode.removeChild( div );
 				}
 			}
 
 			if ( elem.nodeType ) {
 				ret.push( elem );
 			} else {
-				ret = jQuery.merge( ret, elem );
+				jQuery.merge( ret, elem );
 			}
 		}
 
 		// Fix #11356: Clear elements from safeFragment
 		if ( div ) {
-			safe.removeChild( div );
 			elem = div = safe = null;
 		}
 
@@ -8335,9 +6353,10 @@ if ( matched.browser ) {
 	browser.version = matched.version;
 }
 
-// Deprecated, use jQuery.browser.webkit instead
-// Maintained for back-compat only
-if ( browser.webkit ) {
+// Chrome is Webkit, but Webkit is also Safari.
+if ( browser.chrome ) {
+	browser.webkit = true;
+} else if ( browser.webkit ) {
 	browser.safari = true;
 }
 
@@ -8363,12 +6382,15 @@ jQuery.sub = function() {
 	var rootjQuerySub = jQuerySub(document);
 	return jQuerySub;
 };
-	
+
 })();
 var curCSS, iframe, iframeDoc,
 	ralpha = /alpha\([^)]*\)/i,
 	ropacity = /opacity=([^)]*)/,
 	rposition = /^(top|right|bottom|left)$/,
+	// swappable if display is none or starts with table except "table", "table-cell", or "table-caption"
+	// see here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
+	rdisplayswap = /^(none|table(?!-c[ea]).+)/,
 	rmargin = /^margin/,
 	rnumsplit = new RegExp( "^(" + core_pnum + ")(.*)$", "i" ),
 	rnumnonpx = new RegExp( "^(" + core_pnum + ")(?!px)[a-z%]+$", "i" ),
@@ -8378,8 +6400,7 @@ var curCSS, iframe, iframeDoc,
 	cssShow = { position: "absolute", visibility: "hidden", display: "block" },
 	cssNormalTransform = {
 		letterSpacing: 0,
-		fontWeight: 400,
-		lineHeight: 1
+		fontWeight: 400
 	},
 
 	cssExpand = [ "Top", "Right", "Bottom", "Left" ],
@@ -8645,18 +6666,18 @@ jQuery.extend({
 	}
 });
 
-// NOTE: To any future maintainer, we've used both window.getComputedStyle
-// and getComputedStyle here to produce a better gzip size
+// NOTE: To any future maintainer, we've window.getComputedStyle
+// because jsdom on node.js will break without it.
 if ( window.getComputedStyle ) {
 	curCSS = function( elem, name ) {
 		var ret, width, minWidth, maxWidth,
-			computed = getComputedStyle( elem, null ),
+			computed = window.getComputedStyle( elem, null ),
 			style = elem.style;
 
 		if ( computed ) {
 
 			ret = computed[ name ];
-			if ( ret === "" && !jQuery.contains( elem.ownerDocument.documentElement, elem ) ) {
+			if ( ret === "" && !jQuery.contains( elem.ownerDocument, elem ) ) {
 				ret = jQuery.style( elem, name );
 			}
 
@@ -8779,7 +6800,10 @@ function getWidthOrHeight( elem, name, extra ) {
 		valueIsBorderBox = true,
 		isBorderBox = jQuery.support.boxSizing && jQuery.css( elem, "boxSizing" ) === "border-box";
 
-	if ( val <= 0 ) {
+	// some non-html elements return undefined for offsetWidth, so check for null/undefined
+	// svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
+	// MathML - https://bugzilla.mozilla.org/show_bug.cgi?id=491668
+	if ( val <= 0 || val == null ) {
 		// Fall back to computed then uncomputed css if necessary
 		val = curCSS( elem, name );
 		if ( val < 0 || val == null ) {
@@ -8858,12 +6882,14 @@ jQuery.each([ "height", "width" ], function( i, name ) {
 	jQuery.cssHooks[ name ] = {
 		get: function( elem, computed, extra ) {
 			if ( computed ) {
-				if ( elem.offsetWidth !== 0 || curCSS( elem, "display" ) !== "none" ) {
-					return getWidthOrHeight( elem, name, extra );
-				} else {
+				// certain elements can have dimension info if we invisibly show them
+				// however, it must have a current display style that would benefit from this
+				if ( elem.offsetWidth === 0 && rdisplayswap.test( curCSS( elem, "display" ) ) ) {
 					return jQuery.swap( elem, cssShow, function() {
 						return getWidthOrHeight( elem, name, extra );
 					});
+				} else {
+					return getWidthOrHeight( elem, name, extra );
 				}
 			}
 		},
@@ -9269,7 +7295,7 @@ jQuery.fn.load = function( url, params, callback ) {
 		params = undefined;
 
 	// Otherwise, build a param string
-	} else if ( typeof params === "object" ) {
+	} else if ( params && typeof params === "object" ) {
 		type = "POST";
 	}
 
@@ -10750,7 +8776,13 @@ Tween.prototype = {
 		var eased,
 			hooks = Tween.propHooks[ this.prop ];
 
-		this.pos = eased = jQuery.easing[ this.easing ]( percent, this.options.duration * percent, 0, 1, this.options.duration );
+		if ( this.options.duration ) {
+			this.pos = eased = jQuery.easing[ this.easing ](
+				percent, this.options.duration * percent, 0, 1, this.options.duration
+			);
+		} else {
+			this.pos = eased = percent;
+		}
 		this.now = ( this.end - this.start ) * eased + this.start;
 
 		if ( this.options.step ) {
@@ -10908,6 +8940,7 @@ function genFx( type, includeWidth ) {
 
 	// if we include width, step value is 1 to do all cssExpand values,
 	// if we don't include width, step value is 2 to skip over Left and Right
+	includeWidth = includeWidth? 1 : 0;
 	for( ; i < 4 ; i += 2 - includeWidth ) {
 		which = cssExpand[ i ];
 		attrs[ "margin" + which ] = attrs[ "padding" + which ] = type;
@@ -11242,7 +9275,7 @@ jQuery.each( { Height: "height", Width: "width" }, function( name, type ) {
 
 					// Set width or height on the element
 					jQuery.style( elem, type, value, extra );
-			}, type, chainable ? margin : undefined, chainable );
+			}, type, chainable ? margin : undefined, chainable, null );
 		};
 	});
 });

@@ -578,8 +578,8 @@
                     + '&url='
                     + encodeURI(location.href)
                     + '">'
-                    + this._squeeze(statement)
-                    + '</a>';
+                    + statement
+                    + '#</a>';
         },
 
         divide:function () {

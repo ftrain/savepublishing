@@ -1,6 +1,10 @@
 #!+TITLE: SavePublishing.com
 
 This is the code necessary for a full deploy of SavePublishing.com
+TESTS:
+- http://www.forbes.com/sites/susannahbreslin/2012/09/13/mitt-romney-porn/
+
+Site:
 
 - bookmarklet/
 - css
