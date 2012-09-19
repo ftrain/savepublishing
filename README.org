@@ -268,3 +268,16 @@ Well we're still at it over here. I've refactored a bit and spent a good deal of
 The great fear of doing it wrong.
 
 
+
+NEXT DAY
+Something about the DOM
+
+NEXT DAY
+
+Do I need to make this into CoffeeScript
+
+NEXT DAY
+
+Programming is about the interpretation of a new class of cultural artifact. The DOM is such a thing.
+Everything is a reaction.
+
