@@ -77,24 +77,32 @@ $.fn.dress = -> @.addClass("sociatext-text")
 
 
 # Treewalker
-walk = (el) ->
-
+walk = (el, textnode) ->
+    console.log(textnode)
+    textnode ?= textnode
     eltype = el?.nodeType
 
     if el.isIgnorable()
         
     else if eltype is TEXT_NODE
-        console.log(el)
-        el.nodeValue = "TEXT NODE: [[[#{el.nodeValue}]]]"
-        console.log(el)        
+        console.log(textnode)
+        if textnode?
+            textnode.nodeValue = "#{textnode.nodeValue}[[[#{el.nodeValue}]]]"
+            el.nodeValue=""
+        else
+            console.log(textnode)
+            textnode = el
+            console.log(textnode)
 
     else if eltype is ELEMENT_NODE and el.isTextual()
         txt = $(el).text()
         el.nodeValue = "TEXTUAL NODE: [[[#{txt}]]]"        
                 
     else if eltype is ELEMENT_NODE
+        console.log(textnode)
         $(el).dress()
-        walk(node) for node in el.childNodes
+
+    walk(node, textnode) for node in el.childNodes
         
 # Do it!
 $ -> 

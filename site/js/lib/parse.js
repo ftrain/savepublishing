@@ -105,28 +105,39 @@
     return this.addClass("sociatext-text");
   };
 
-  walk = function(el) {
+  walk = function(el, textnode) {
     var eltype, node, txt, _i, _len, _ref, _results;
+    console.log(textnode);
+    if (textnode == null) {
+      textnode = textnode;
+    }
     eltype = el != null ? el.nodeType : void 0;
     if (el.isIgnorable()) {
 
     } else if (eltype === TEXT_NODE) {
-      console.log(el);
-      el.nodeValue = "TEXT NODE: [[[" + el.nodeValue + "]]]";
-      return console.log(el);
+      console.log(textnode);
+      if (textnode != null) {
+        textnode.nodeValue = "" + textnode.nodeValue + "[[[" + el.nodeValue + "]]]";
+        el.nodeValue = "";
+      } else {
+        console.log(textnode);
+        textnode = el;
+        console.log(textnode);
+      }
     } else if (eltype === ELEMENT_NODE && el.isTextual()) {
       txt = $(el).text();
-      return el.nodeValue = "TEXTUAL NODE: [[[" + txt + "]]]";
+      el.nodeValue = "TEXTUAL NODE: [[[" + txt + "]]]";
     } else if (eltype === ELEMENT_NODE) {
+      console.log(textnode);
       $(el).dress();
-      _ref = el.childNodes;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        node = _ref[_i];
-        _results.push(walk(node));
-      }
-      return _results;
     }
+    _ref = el.childNodes;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      node = _ref[_i];
+      _results.push(walk(node, textnode));
+    }
+    return _results;
   };
 
   $(function() {
