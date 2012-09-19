@@ -1,0 +1,4 @@
+OUTPUT=../js/
+
+all:
+	coffee -c parse.coffee -o ${OUTPUT}

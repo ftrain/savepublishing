@@ -10,7 +10,7 @@ javascript:(function () {
 javascript:(function () {
     console.log('bookmarklet v2');
     var u = 'http://www.savepublishing.com/js/lib/';
-    var h = document.getElementsByTagName('head')[0];
+    var h = document.getElementsByTagName('body')[0];
 
     function x(jsfile) {
         var s = document.createElement('script');
@@ -20,8 +20,8 @@ javascript:(function () {
     }
 
     x(u+'jquery.js');
-    x('http://platform.twitter.com/widgets');
-    x('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min');
+    x('http://platform.twitter.com/widgets.js');
+    x('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js');
     x(u+'socialtext.js');
     x(u+'main.js');
 })();

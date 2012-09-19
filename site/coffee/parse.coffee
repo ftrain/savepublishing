@@ -32,18 +32,17 @@ String::clean = ->
 Element::display = -> $(@).css('display');
 
 blocks = ['block', 'inline-block', 'table-cell', 'table-caption', 'list-item', 'none']
-
-Element::isBlockLike = ->
-    disp = @.display()
-    blocks.indexOf(disp) != -1
-
+blockEls = ['H1','H2','H3','H4','H5','H6', 'BODY', 'BR']
 textuals = ['SPAN','A','EM','B','STRONG','I']
-Element::isTextual = ->
-    name = @.nodeName
-    textuals.indexOf(name) != -1
 
-Element::getWrapper = (text) ->
+Element::isBlockLike = -> @.display() in blocks or @.nodeName in blockEls
+
+
+
+Element::getWrapped = ->
+    text = $(@).text()
     n = @.nodeName
+    console.log n
 
     if n is 'B' or n is 'STRONG'
         "*#{text}*"
@@ -64,58 +63,62 @@ Object::isBlockLike = -> false;
 Array::concatenate = ->
     if this.length > 0
         """<span class="socialtext">[#{this.join(" ")}]</span>"""
-    
+
+Node::isTextual = -> (@.nodeType is ELEMENT_NODE and @.nodeName in textuals) or @.nodeType is TEXT_NODE
+
+Node::isIgnorable = ->
+    @.nodeType is 8 or @ is undefined or /^[\t\n\r ]+$/.test(@.data)
+
+ 
+wrap = (text) ->
+    """<span class="socialtext-text">#{text}</span>"""
+
+$.fn.dress = -> @.addClass("sociatext-text")
+
+
 # Treewalker
 walk = (el) ->
-    if el? and el.nodeType?
 
-        if el.nodeType is ELEMENT_NODE and el.isBlockLike()
-            kids = el.childNodes
-            nodes = ({type:node.nodeType, node:node} for node in kids when not node.isBlockLike())
-            prev=-1;
-            texts = []
-            
-            for n in nodes
-                do (n) ->
+    eltype = el?.nodeType
 
-                    if n.type is ELEMENT_NODE and n.node.isTextual()
-                        text = n.node.getWrapper $(n.node).text()
-                        texts.push(text)
-                        $(n.node).remove()
-
-                    else if n.type is TEXT_NODE
-                        text = n.node.nodeValue.clean()
-                        texts.push(text)
-                        $(n.node).remove()
-
-                    justChanged = prev isnt -1 and nodes[prev].type is TEXT_NODE
-                    onlyOne = prev is -1 and nodes.length is 1
-                    lastOne = prev is nodes.length - 1
-
-                    if justChanged or onlyOne or lastOne
-                        text = texts.concatenate()
-                        
-
-                            if text
-                            console.log(text)
-                        texts = []
-                prev++
-
-        walk(kid) for kid in kids when kid.isBlockLike()
-    
-
+    if el.isIgnorable()
         
+    else if eltype is TEXT_NODE
+        console.log(el)
+        el.nodeValue = "TEXT NODE: [[[#{el.nodeValue}]]]"
+        console.log(el)        
 
-
+    else if eltype is ELEMENT_NODE and el.isTextual()
+        txt = $(el).text()
+        el.nodeValue = "TEXTUAL NODE: [[[#{txt}]]]"        
+                
+    else if eltype is ELEMENT_NODE
+        $(el).dress()
+        walk(node) for node in el.childNodes
+        
 # Do it!
 $ -> 
     walk(document.body)
+    $('.socialtext-text').css({display:'block',border:'1 px dotted red'})
 
 
 
 
 
 
-# joined = texts.join(' ')
-# text = "<span class=\"socialtext\">#{joined}</span>"
-# $(text).insertBefore($(el));
+#        for node in el.childNodes
+#            walk(node)
+#           do (node) ->
+# ntype = node?.nodeType
+# if node? and node.isIgnorable()
+                # else if ntype is TEXT_NODE
+                #     text = "#{text}#{$(node).text()}"
+                #     $(node).remove()
+                # else if node? and node.isTextual()
+                #     text = "#{text}#{node.getWrapped}"
+                #     $(node).remove()
+                # else if node?
+                #     $(node).css({color:'blue'})
+                #     if text.length > 0
+                #         $(wrap text).insertBefore(node)
+                #         text=""

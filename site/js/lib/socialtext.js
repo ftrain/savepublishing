@@ -579,10 +579,10 @@
                     + encodeURI(location.href)
                     + '">'
                     + statement
-                    + '#</a>';
+                    + '*</a>';
         },
 
-        divide:function () {
+        _divide:function () {
             var $this = this;
             var tn = $this._getTextNodes();
             tn.each(function () {
