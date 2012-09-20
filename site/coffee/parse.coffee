@@ -19,6 +19,11 @@ String::entities = ->
             when '<' then '&lt;'
     @.replace(entities, (a) -> replace(a))
 
+Node::isEmpty = ->
+    if @.isText()
+        @.nodeValue.clean().length is 0
+    else
+        false
 
 String::clean = ->
     str = @.replace(/\s+/g, ' ').replace(/\n+/g, ' ')
@@ -39,11 +44,10 @@ Element::isBlockLike = -> @.display() in blocks or @.nodeName in blockEls
 
 
 
-Element::getWrapped = ->
+Element::toText = ->
     text = $(@).text()
     n = @.nodeName
-    console.log n
-
+    
     if n is 'B' or n is 'STRONG'
         "*#{text}*"
 
@@ -53,67 +57,78 @@ Element::getWrapped = ->
     text
         
 
-Text::append = (str) -> 
-    @.nodeValue = @.nodeValue + str;
-
-Text::isBlockLike = -> false;
-
 Object::isBlockLike = -> false;
 
 Array::concatenate = ->
     if this.length > 0
         """<span class="socialtext">[#{this.join(" ")}]</span>"""
 
-Node::isTextual = -> (@.nodeType is ELEMENT_NODE and @.nodeName in textuals) or @.nodeType is TEXT_NODE
-
+Node::append = (str) -> 
+    @.nodeValue = @.nodeValue + str;
+Node::isBlockLike = -> false;
+Node::isText = -> @.nodeType is TEXT_NODE
+Node::isTextual = -> (@.nodeType is ELEMENT_NODE) and (@.nodeName in textuals)
+Node::isTextish = -> @.isText or @.isTextual
+Node::isElement = -> (@.nodeType is ELEMENT_NODE) and (@.nodeName not in textuals)
 Node::isIgnorable = ->
-    @.nodeType is 8 or @ is undefined or /^[\t\n\r ]+$/.test(@.data)
+    not @ or @.nodeType is 8 or /^[\t\n\r ]+$/.test(@.data)
 
- 
+                
 wrap = (text) ->
     """<span class="socialtext-text">#{text}</span>"""
 
-$.fn.dress = -> @.addClass("sociatext-text")
+$.fn.dress = -> @.addClass("socialtext-text")
 
+textNodes = (node, array) ->
+    if node?
+        nextIsTextish = node.nextSibling?.isTextish()
+        if node.isTextish()
+            array.push($(node).text())
+        if nextIsTextish
+            textNodes(node.nextSibling, array)
+            
+        array.join("")
+    
+unwrap = (node) ->
 
-# Treewalker
-walk = (el, textnode) ->
-    console.log(textnode)
-    textnode ?= textnode
-    eltype = el?.nodeType
+    seentext = false
+    
+    if node.isElement()
+        unwrap(node) for node in node.childNodes
 
-    if el.isIgnorable()
+    else if node.isTextish()
+        prev = node.previousSibling
+        if not prev and not (prev.isText() or prev.isTextual())
+            console.log textNodes(node, [])
+        seentext = true
+            
         
-    else if eltype is TEXT_NODE
-        console.log(textnode)
-        if textnode?
-            textnode.nodeValue = "#{textnode.nodeValue}[[[#{el.nodeValue}]]]"
-            el.nodeValue=""
-        else
-            console.log(textnode)
-            textnode = el
-            console.log(textnode)
+    
 
-    else if eltype is ELEMENT_NODE and el.isTextual()
-        txt = $(el).text()
-        el.nodeValue = "TEXTUAL NODE: [[[#{txt}]]]"        
+$ -> unwrap(document.body)
                 
-    else if eltype is ELEMENT_NODE
-        console.log(textnode)
-        $(el).dress()
-
-    walk(node, textnode) for node in el.childNodes
-        
 # Do it!
-$ -> 
-    walk(document.body)
-    $('.socialtext-text').css({display:'block',border:'1 px dotted red'})
+#$ -> 
+#    walk(document.body)
+#    $('.socialtext-text').css({display:'block',border:'1 px dotted red'})
 
+#     ignore = not el or el.isIgnorable()
+#     text = el?.isText()
+#     textual = el?.isTextual()
+#     element = el?.isElement()
+#     console.log el?.nodeType, el
+    
+#     if ignore
 
+#     else if text
+#         parent?.removeChild(el)
+        
+#     else if textual
+#         parent?.removeChild(el)    
 
-
-
-
+#     else if element
+#         parent?.removeChild(el)        
+# #        $(el).css({color:'red'})
 #        for node in el.childNodes
 #            walk(node)
 #           do (node) ->
@@ -130,3 +145,23 @@ $ ->
                 #     if text.length > 0
                 #         $(wrap text).insertBefore(node)
                 #         text=""
+
+
+# # Treewalker
+# walk = (el, parent, count, lastText) ->
+
+#     if el.isText() and el.isEmpty()
+#         parent.removeChild(el)
+
+#     else if el.isText()
+#         lastText = $(el).wrap("<span class="socialtext-text"></span>")
+
+#     else if el.isTextual()
+#         text = $(el).text()
+#         if lastText
+#             parent.removeChild(el)
+#             lastText.
+        
+#     else if el.isElement()
+#         i = 0
+#         walk(node, el, i++, lastText) for node in el.childNodes
