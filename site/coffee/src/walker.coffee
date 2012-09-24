@@ -1,3 +1,25 @@
+console.log "walker.coffee"
+
+Node::concatenatedText = (array) ->
+    if @isTextish()
+        if @isUseful()            
+            array.push($(@).text())
+        @empty()
+        @nextSibling?.concatenatedText(array)
+    array.join("")
+
+
+Node::unwrap = ->
+    if @isElement()
+        @score
+        node.unwrap() for node in @childNodes
+
+    else if @isTextish()
+        unless @previousSibling?.isTextish()
+            @nodeValue = @concatenatedText([])
+            @
+
+
 unwrap = (node) ->
     textNodes = (node, array) ->
         if node?
@@ -9,6 +31,7 @@ unwrap = (node) ->
         array.join("")
 
     if node.isElement()
+        @score
         unwrap(node) for node in node.childNodes
 
     else if node.isTextish()
