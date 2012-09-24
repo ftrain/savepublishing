@@ -1,5 +1,5 @@
 Element::toText = ->
-    text = $(@).text()
+    text = ___jQuery(@).text()
     n = @.nodeName
     
     if n is 'B' or n is 'STRONG'

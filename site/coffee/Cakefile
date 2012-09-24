@@ -4,6 +4,7 @@ fs     = require 'fs'
 appFiles  = [
     # omit src/ and .coffee to make the below lines a little shorter
     'vars'
+    'window'
     'document'
     'node'
     'element'
@@ -19,12 +20,12 @@ task 'build', 'Build single application file from source files', ->
       appContents[index] = """\n\nconsole.log "Evaluating: #{file}.coffee"\n\n""" + fileContents
       process() if --remaining is 0
   process = ->
-    fs.writeFile 'parse.coffee', appContents.join("\n\n"), 'utf8', (err) ->
+    fs.writeFile 'main.coffee', appContents.join("\n\n"), 'utf8', (err) ->
       throw err if err
-      exec 'coffee --output ../js/lib/ --compile parse.coffee', (err, stdout, stderr) ->
+      exec 'coffee --output ../js/lib/ --compile main.coffee', (err, stdout, stderr) ->
         throw err if err
         console.log stdout + stderr
-        fs.unlink 'parse.coffee', (err) ->
+        fs.unlink 'main.coffee', (err) ->
           throw err if err
           console.log 'Done.'
 
