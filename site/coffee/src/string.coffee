@@ -1,3 +1,6 @@
+class SocialString extends String
+    constructor: (@length) ->
+        
 String::entities = ->
     replace = (char) -> 
         switch char
@@ -8,7 +11,7 @@ String::entities = ->
     @.replace(/[&\"><]/, (a) -> replace(a))
 
 String::clean = ->
-    @.replace(/\s+/g, ' ').replace(/\n+/g, ' ').replace(/^\s*___jQuery/,'').entities()
+    @.replace(/\s+/g, ' ').replace(/\n+/g, ' ').replace(/^\s*$/,'').entities()
 
 # Using the table of abbreviations look up an
 # abbreviation.
@@ -28,13 +31,13 @@ String::squeeze = ->
     .replace(/(with|of)\W/g, (m) -> @toFirstSlash m)
     .replace(/\s+the\s+/g, " ")
     .replace(/(without)/g, "w/out")
-    .replace(/e(r|d)(\W)/g, "___jQuery1___jQuery2")
+    .replace(/e(r|d)(\W)/g, "$1$2")
     .replace(RegExp(" has", "g"), "'s ")
     .replace(/est/g, "st")
     .replace(/\sam\b/g, "’m")
     .replace(/\b(will|shall)/g, "’ll")
     .replace(/\bnot/g, "n’t")
-    .replace(/e(r|n)(\b)/g, "___jQuery1___jQuery2")
+    .replace(/e(r|n)(\b)/g, "$1$2")
     .replace(/\sfor/g, " 4")
     .replace(RegExp(" have", "g"), "'ve")
     .replace(/(1[0-9]|20)/g, (a) -> "&#" + (parseInt(a) + 9311) + ";" )
@@ -42,7 +45,7 @@ String::squeeze = ->
 
 String::textToLink = ->
     # TK Regexp here to parcel out spaces
-    ___jQuery("""<a href="http://twitter.com#{encodeURI(@)}">#{@}#</a>""")
+    $("""<a href="http://twitter.com#{encodeURI(@)}">#{@}#</a>""")
 
 String::compareLength = (comparison) ->
     return @length < comparison
