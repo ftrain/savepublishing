@@ -1,5 +1,4 @@
 fs     = require 'fs'
-lazy   = require 'lazy'
 {exec} = require 'child_process'
 
 appFiles  = [
@@ -16,9 +15,6 @@ appFiles  = [
 task 'build', 'Build single application file from source files', ->
   appContents = new Array remaining = appFiles.length
   for file, index in appFiles then do (file, index) ->
-    lazy(fs.createReadStream("src/#{file}.coffee"))
-        .lines
-        .forEach((line)->console.log "\t" + line.toString())
     fs.readFile "src/#{file}.coffee", 'utf8', (err, fileContents) ->
       throw err if err
       appContents[index] = """\n\nconsole.log "Evaluating: #{file}.coffee"\n\n""" + fileContents
