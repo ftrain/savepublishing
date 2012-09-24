@@ -10,17 +10,17 @@ Node::isElement = -> (@nodeType is ELEMENT_NODE) and (@nodeName not in TEXTUAL_E
 
 Node::isBR = -> (@nodeType is ELEMENT_NODE) and (@nodeName is 'BR')
 
-Node::isUseful = -> not (@nodeType is 8 or /^[\t\n\r ]+___jQuery/.test(@data))
+Node::isUseful = -> not (@nodeType is 8 or /^[\t\n\r ]+$/.test(@data))
 
-Node::empty = -> if @isText() then @.nodeValue="" else ___jQuery(@).html("")
+Node::empty = -> if @isText() then @.nodeValue="" else $(@).html("")
 
-Node::isBlockLike = -> ___jQuery(@).css('display') in blocks or @nodeName in BLOCK_ELEMENTS
+Node::isBlockLike = -> $(@).css('display') in blocks or @nodeName in BLOCK_ELEMENTS
 
 Node::concatenateTextDestructively = (array) ->
     array ?= []
     if @isTextish()
         if @isUseful()
-            array.push(___jQuery(@).text())
+            array.push($(@).text())
         @empty()
         @nextSibling?.concatenateTextDestructively(array)
     String(array.join(""))
@@ -30,7 +30,7 @@ Node::getStatements = ->
     
 Node::unwrap = ->
     if @isTextish() and @isUseful() and not(@previousSibling?.isTextish())
-        ___jQuery(@).replaceWith(___jQuery('<span class="socialtext-set"/>') \
+        $(@).replaceWith($('<span class="socialtext-set"/>') \
             .append(("""<span class="socialtext">#{statement}#</span>""" \
                 for statement in @getStatements()).join("")))
 
