@@ -3,7 +3,7 @@
 This is the code necessary for a full deploy of SavePublishing.com
 TESTS:
 - http://www.forbes.com/sites/susannahbreslin/2012/09/13/mitt-romney-porn/
-
+- http://www.dnainfo.com/new-york/20120908/crown-heights/alligators-bearded-dragons-among-wild-animals-seized-brooklyn-raid
 Site:
 
 - bookmarklet/
@@ -280,4 +280,32 @@ NEXT DAY
 
 Programming is about the interpretation of a new class of cultural artifact. The DOM is such a thing.
 Everything is a reaction.
+
+
+* TODO
+Pull quotes
+Split on semicolons
+Hide empty grafs
+Add referring URL
+Clean type with al
+Add advertising space
+Colors On tweet everything logotype
+Image? With a bird?
+Fix up form borders
+On focus on invoke?
+Tweet halo or bird with sentence
+
+Tweeting used to be difficult and frustrating
+
+Curators
+Cats
+Editors
+Atlantic Cities editors
+Link bloggers
+
+Install the bookmarklet
+A bird superimposed over shit
+
+
+Paul Ford (via cell)
 
