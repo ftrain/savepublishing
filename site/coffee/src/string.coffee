@@ -45,13 +45,12 @@ String::squeeze = ->
 
 String::textToLink = ->
     # TK Regexp here to parcel out spaces
-    $("""<a href="http://twitter.com#{encodeURI(@)}">#{@}#</a>""")
+    JQ("""<a href="http://twitter.com#{encodeURI(@)}">#{@}#</a>""")
 
 String::compareLength = (comparison) ->
     return @length < comparison
     
-
-String::getStatements = ->
+String::extractStatements = ->
 
     chars = []
     current = []

@@ -19,12 +19,22 @@
 # These are "global" in the scope of the application (CoffeeScript
 # executes within a closure).
 
+if $?
+    console.log """"$" is assigned to:\n#{$}"""
+else
+    console.log "$ is not assigned"
+    
+JQ = jQuery
 TEXT_NODE = 3
 ELEMENT_NODE = 1
 BLOCKS = ['block', 'inline-block', 'table-cell', 'table-caption', 'list-item', 'none']
 BLOCK_ELEMENTS = ['H1','H2','H3','H4','H5','H6', 'BODY']
 TEXTUAL_ELEMENTS = ['SPAN','A','EM','B','STRONG','I']
-    
+IGNORABLE_ELEMENTS = ['IMG','OBJECT','EMBED','H1','H2']
+NAV_CONTAINING_ELEMENTS = ['DIV','UL','OL','LI']
+NAV_RATIO = 2
+
+
 PUNCTUATION = ['.','?','!']
 QUOTES = ['"', '“', '”'] 
 
