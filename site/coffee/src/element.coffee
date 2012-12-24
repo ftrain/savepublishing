@@ -1,3 +1,7 @@
+# Extensions to the `Element` class
+SECTION = 'element.coffee'
+
+# Convert an element to text
 Element::toText = ->
     text = JQ(@).text()
     n = @.nodeName

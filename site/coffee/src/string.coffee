@@ -1,7 +1,15 @@
-class SocialString extends String
-    constructor: (@length) ->
-        
+# ** Extensions to the `Node` class
+SECTION = "string.coffee"
+
+"""Does this look like masthead or navigation?"""
+
+String::isNavLike = ->
+    match = @match /head|breadcrumb|addthis|share|nav|mast|social|twitter|reddit|facebook|fb/i
+    debug "Match: #{match}"
+    if match then true else false
+
 String::entities = ->
+    """Tidy up entities, for when we rewrite text"""    
     replace = (char) -> 
         switch char
             when '&' then '&amp;'
@@ -11,6 +19,7 @@ String::entities = ->
     @.replace(/[&\"><]/, (a) -> replace(a))
 
 String::clean = ->
+    """Get rid of spaces"""        
     @.replace(/\s+/g, ' ').replace(/\n+/g, ' ').replace(/^\s*$/,'').entities()
 
 # Using the table of abbreviations look up an
@@ -19,7 +28,9 @@ String::clean = ->
 # @param left The left word boundary character
 # @param word The captured term
 # @param right The right word boundary
-String::toAbbreviation = (left, word, right) -> "#{left}#{SHORTENABLE_WORDS[word.toLowerCase()]}#{right}"
+
+String::toAbbreviation = (left, word, right) ->
+    "#{left}#{SHORTENABLE_WORDS[word.toLowerCase()]}#{right}"
 
 # Turns "of" into "o/", etc.
 #
@@ -42,16 +53,20 @@ String::squeeze = ->
     .replace(RegExp(" have", "g"), "'ve")
     .replace(/(1[0-9]|20)/g, (a) -> "&#" + (parseInt(a) + 9311) + ";" )
 
-
 String::textToLink = ->
     # TK Regexp here to parcel out spaces
     JQ("""<a href="http://twitter.com#{encodeURI(@)}">#{@}#</a>""")
 
 String::compareLength = (comparison) ->
-    return @length < comparison
+    @length < comparison
     
 String::extractStatements = ->
+    """
+    Parse out "statements"; i.e. sentences, from flattened text.
 
+    This is not a parser, just a fairly dull matcher that meets the
+    use case. Lots of room for more smarts.
+    """
     chars = []
     current = []
     statements = []

@@ -1,14 +1,16 @@
-console.log JQ
-JQ(window).load ->
-    console.log '- inserting CSS'
-    document.loadCSS('https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/themes/ui-lightness/jquery-ui.css');
+# ** Program execution section
+SECTION = 'run.coffee'
 
-    console.log '- unwrapping document'            
+debug """"JQ" is assigned as:\n\t#{JQ}"""
+
+JQ(document).ready ->
+    debug 'Document ready'
+    debug 'Inserting CSS'
+    document.loadCSS(JQUERY_UI_CSS);
+    
     document.body.unwrap()
 
-    console.log '- adding styles'                
-
-    JQ(".socialtext").css({cursor:'pointer'})
-    JQ(".socialtext").click () -> console.log 'clicked', this
-    JQ(".true").css({color:'black'})
-    JQ(".false").css({color:'#bbbbbb'})
+    debug 'Adding CSS styles'
+    JQ('.true').css {color:'red','text-decoration':'none', background:'white'}
+    JQ('.false').css {color:'#bbbbbb','text-decoration':'none'}
+    JQ('a').css {'text-decoration':'none'}
