@@ -114,19 +114,6 @@ Node::emptyNode = ->
         JQ(@).html("")
         true
 
-# Check for relevance of this function
-Node::concatenateTextDestructively = (array) ->
-    array ?= []
-    if @isUseful() and @isTextish()
-        array.push(JQ(@).text()) 
-        @emptyNode() # if 
-    @nextSibling?.concatenateTextDestructively(array)
- 
-    String(array.join(""))
-
-Node::getStatements = ->
-    @concatenateTextDestructively().extractStatements()
-
 # ### ``Node::unwrap()``
 # 
 # This is the main function for this bookmarklet. It is a recursive
