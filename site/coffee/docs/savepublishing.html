@@ -1,0 +1,516 @@
+<!DOCTYPE html>  <html> <head>   <title>savepublishing.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               savepublishing.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;Evaluating: init.coffee&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <h1>SavePublishing Bookmarklet</h1>
+
+<p>Version v0.4a</p>
+
+<h2>License</h2>
+
+<p>This code is released under the MIT License
+and is available on GitHub here:</p>
+
+<p><a href="https://github.com/ftrain/savepublishing">https://github.com/ftrain/savepublishing</a></p>
+
+<h2>Introduction</h2>
+
+<p>This is a simple application, invoked via bookmarklet and executed
+against the currently loaded DOM on a page, that finds many of the
+Tweetable elements on a page and turns them into tweet links.</p>
+
+<p>To accomplish this the code:</p>
+
+<ol>
+<li><p>Traverses the DOM and determines (using a very simple method)
+which elements are most likely to contain actual narrative text
+content.</p></li>
+<li><p>Extracts the text from those elements, removing certain types of
+formatting like hrefs and links, and concatenating them into single
+text nodes.</p></li>
+<li><p>Cuts that text into lengths, optionally shortening the text.</p></li>
+<li><p>Upon clicking on selected text, sends the link to Twitter via web
+intent.</p></li>
+</ol>
+
+<h2>Application Variables</h2>
+
+<p>There are a number of variables that are "global" in the scope of
+the application (CoffeeScript executes within a closure).</p>
+
+<h2>Basic initialization variables and utility functions</h2>
+
+<p><strong>SECTION</strong>—the COBOLesque <code>SECTION</code> variable appears on the top of
+each coffeescript file. When the <code>*.coffee</code> files are concatenated
+for expansion into JavaScript this eases debugging.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">SECTION = </span><span class="s">&quot;init.coffee&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p><strong>debug</strong>—utility debug function</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">DEBUG   = </span><span class="kc">true</span>
+<span class="nv">debug   = </span><span class="nf">(message) -&gt;</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;&quot;&quot;</span><span class="si">#{</span><span class="nx">SECTION</span><span class="si">}</span><span class="s">: </span><span class="si">#{</span><span class="nx">message</span><span class="si">}</span><span class="s">&quot;&quot;&quot;</span> <span class="k">if</span> <span class="nx">DEBUG</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p><strong>ELEMENT_NODE</strong>, etc.—convenience globals to ease readability of
+code as we dance around the DOM.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">ELEMENT_NODE = </span><span class="mi">1</span>
+<span class="nv">TEXT_NODE = </span><span class="mi">3</span>
+<span class="nv">COMMENT_NODE = </span><span class="mi">8</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p><strong>MIN_LINK_RATIO</strong>—describes the minimum ratio of all the text in a
+text block to the amount of text contained within links (<code>&lt;a
+href...</code>). Thus:</p>
+
+<p><code>&lt;a href="http://example.com"&gt;This&lt;/a&gt;</code></p>
+
+<p>by itself has a LINK_RATIO ratio 4/4, reducing to 1. Whereas</p>
+
+<p><code>&lt;a href="http://example.com"&gt;This&lt;/a&gt; is quite the sentence.</code></p>
+
+<p>has a LINK_RATIO ratio 27/4, or 6.75.</p>
+
+<p>We can use this ratio to make smarter guesses about whether a piece
+of content contains narrative content, or if it contains only links.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">MIN_LINK_RATIO = </span><span class="mi">2</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p><strong>JQUERY_UI_CSS</strong>—The source for the CSS for jQuery UI</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">JQUERY_UI_CSS = </span><span class="s">&#39;https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/themes/ui-lightness/jquery-ui.css&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>This code runs all over the place, on top of already propagated,
+live DOMs, and everywhere it runs the <code>$</code> variable has already been
+defined.</p>
+
+<p>After much futzing (there was much futzing) it seems that the least
+painful, calmest, most obvious approach is to load a fresh jQuery
+when the bookmarklet is invoked then pass it into the SavePublishing
+function as the variable JQ.</p>
+
+<p>This also serves as a sort of anti-mnemonic--it reminds you that you
+are messing around in someone else's DOM, and should keep that in
+mind because who knows what in God's green earth they've gone and
+got up to.</p>             </td>             <td class="code">               <div class="highlight"><pre> 
+<span class="nv">JQ = </span><span class="nb">window</span><span class="p">.</span><span class="nx">JQ</span>
+
+<span class="k">if</span> <span class="nx">$</span><span class="o">?</span>
+    <span class="nx">debug</span> <span class="s">&quot;&quot;&quot;&quot;$&quot; is assigned as:\n</span><span class="si">#{</span><span class="nx">$</span><span class="si">}</span><span class="s">&quot;&quot;&quot;</span>
+<span class="k">else</span>
+    <span class="nx">debug</span> <span class="s">&quot;&quot;&quot;&quot;$&quot; is not assigned&quot;&quot;&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <h2>Document types</h2>
+
+<p>Various classes of documents that we wish to ignore (or not) based on style, name, etc.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">BLOCKS                   = </span><span class="p">[</span><span class="s">&#39;block&#39;</span><span class="p">,</span> <span class="s">&#39;inline-block&#39;</span><span class="p">,</span> <span class="s">&#39;table-cell&#39;</span><span class="p">,</span> <span class="s">&#39;table-caption&#39;</span><span class="p">,</span> <span class="s">&#39;list-item&#39;</span><span class="p">,</span> <span class="s">&#39;none&#39;</span><span class="p">]</span>
+<span class="nv">BLOCK_ELEMENTS           = </span><span class="p">[</span><span class="s">&#39;H1&#39;</span><span class="p">,</span><span class="s">&#39;H2&#39;</span><span class="p">,</span><span class="s">&#39;H3&#39;</span><span class="p">,</span><span class="s">&#39;H4&#39;</span><span class="p">,</span><span class="s">&#39;H5&#39;</span><span class="p">,</span><span class="s">&#39;H6&#39;</span><span class="p">,</span> <span class="s">&#39;BODY&#39;</span><span class="p">]</span>
+<span class="nv">TEXTISH_ELEMENTS         = </span><span class="p">[</span><span class="s">&#39;SPAN&#39;</span><span class="p">,</span><span class="s">&#39;A&#39;</span><span class="p">,</span><span class="s">&#39;EM&#39;</span><span class="p">,</span><span class="s">&#39;B&#39;</span><span class="p">,</span><span class="s">&#39;STRONG&#39;</span><span class="p">,</span><span class="s">&#39;I&#39;</span><span class="p">,</span><span class="s">&#39;TT&#39;</span><span class="p">,</span><span class="s">&#39;ABBR&#39;</span><span class="p">,</span><span class="s">&#39;ACRONYM&#39;</span><span class="p">,</span><span class="s">&#39;BIG&#39;</span><span class="p">,</span><span class="s">&#39;CITE&#39;</span><span class="p">,</span><span class="s">&#39;CODE&#39;</span><span class="p">,</span><span class="s">&#39;DFN&#39;</span><span class="p">,</span><span class="s">&#39;LABEL&#39;</span><span class="p">,</span><span class="s">&#39;Q&#39;</span><span class="p">,</span><span class="s">&#39;SAMP&#39;</span><span class="p">,</span><span class="s">&#39;SMALL&#39;</span><span class="p">,</span><span class="s">&#39;SUB&#39;</span><span class="p">,</span><span class="s">&#39;SUP&#39;</span><span class="p">,</span><span class="s">&#39;VAR&#39;</span><span class="p">,</span><span class="s">&#39;DEL&#39;</span><span class="p">,</span><span class="s">&#39;INS&#39;</span><span class="p">,</span> <span class="s">&#39;BR&#39;</span><span class="p">]</span>
+<span class="nv">IRRELEVANT_ELEMENTS      = </span><span class="p">[</span><span class="s">&#39;IMG&#39;</span><span class="p">,</span><span class="s">&#39;OBJECT&#39;</span><span class="p">,</span><span class="s">&#39;EMBED&#39;</span><span class="p">,</span><span class="s">&#39;IFRAME&#39;</span><span class="p">,</span><span class="s">&#39;SCRIPT&#39;</span><span class="p">,</span><span class="s">&#39;INPUT&#39;</span><span class="p">,</span><span class="s">&#39;FORM&#39;</span><span class="p">,</span><span class="s">&#39;HEAD&#39;</span><span class="p">,</span><span class="s">&#39;H1&#39;</span><span class="p">,</span><span class="s">&#39;H2&#39;</span><span class="p">,</span><span class="s">&#39;STYLE&#39;</span><span class="p">,</span><span class="s">&#39;LINK&#39;</span><span class="p">]</span>
+<span class="nv">NAV_CONTAINING_ELEMENTS  = </span><span class="p">[</span><span class="s">&#39;DIV&#39;</span><span class="p">,</span><span class="s">&#39;UL&#39;</span><span class="p">,</span><span class="s">&#39;OL&#39;</span><span class="p">,</span><span class="s">&#39;LI&#39;</span><span class="p">,</span><span class="s">&#39;P&#39;</span><span class="p">]</span>
+<span class="nv">PUNCTUATION              = </span><span class="p">[</span><span class="s">&#39;.&#39;</span><span class="p">,</span><span class="s">&#39;?&#39;</span><span class="p">,</span><span class="s">&#39;!&#39;</span><span class="p">]</span>
+<span class="nv">QUOTES                   = </span><span class="p">[</span><span class="s">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s">&#39;“&#39;</span><span class="p">,</span> <span class="s">&#39;”&#39;</span><span class="p">]</span> </pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p><strong>SHORTENABLE_WORDS</strong>—a list of words that can be abbreviated,
+should we go that route.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">SHORTENABLE_WORDS        =</span>
+    <span class="s">&#39;one&#39;</span><span class="o">:</span> <span class="mi">1</span>
+    <span class="s">&#39;first&#39;</span><span class="o">:</span> <span class="s">&quot;1st&quot;</span>
+    <span class="s">&#39;two&#39;</span><span class="o">:</span> <span class="mi">2</span>
+    <span class="s">&#39;second&#39;</span><span class="o">:</span> <span class="s">&quot;2nd&quot;</span>
+    <span class="s">&#39;three&#39;</span><span class="o">:</span> <span class="mi">3</span>
+    <span class="s">&#39;third&#39;</span><span class="o">:</span> <span class="s">&quot;3rd&quot;</span>
+    <span class="s">&#39;four&#39;</span><span class="o">:</span> <span class="mi">4</span>
+    <span class="s">&#39;fourth&#39;</span><span class="o">:</span> <span class="s">&quot;4th&quot;</span>
+    <span class="s">&#39;five&#39;</span><span class="o">:</span> <span class="mi">5</span>
+    <span class="s">&#39;fifth&#39;</span><span class="o">:</span> <span class="s">&quot;5th&quot;</span>
+    <span class="s">&#39;six&#39;</span><span class="o">:</span> <span class="mi">6</span>
+    <span class="s">&#39;sixth&#39;</span><span class="o">:</span> <span class="s">&quot;6th&quot;</span>
+    <span class="s">&#39;seven&#39;</span><span class="o">:</span> <span class="mi">7</span>
+    <span class="s">&#39;seventh&#39;</span><span class="o">:</span> <span class="s">&quot;7th&quot;</span>
+    <span class="s">&#39;eight&#39;</span><span class="o">:</span> <span class="mi">8</span>
+    <span class="s">&#39;eighth&#39;</span><span class="o">:</span> <span class="s">&quot;8th&quot;</span>
+    <span class="s">&#39;nine&#39;</span><span class="o">:</span> <span class="mi">9</span>
+    <span class="s">&#39;ninth&#39;</span><span class="o">:</span> <span class="s">&quot;9th&quot;</span>
+    <span class="s">&#39;ten&#39;</span><span class="o">:</span> <span class="mi">10</span>
+    <span class="s">&#39;tenth&#39;</span><span class="o">:</span> <span class="s">&quot;10th&quot;</span>
+    <span class="s">&#39;eleven&#39;</span><span class="o">:</span> <span class="mi">11</span>
+    <span class="s">&#39;twelve&#39;</span><span class="o">:</span> <span class="mi">12</span>
+    <span class="s">&#39;thirteen&#39;</span><span class="o">:</span> <span class="mi">13</span>
+    <span class="s">&#39;fourteen&#39;</span><span class="o">:</span> <span class="mi">14</span>
+    <span class="s">&#39;fifteen&#39;</span><span class="o">:</span> <span class="mi">15</span>
+    <span class="s">&#39;sixteen&#39;</span><span class="o">:</span> <span class="mi">16</span>
+    <span class="s">&#39;seventeen&#39;</span><span class="o">:</span> <span class="mi">17</span>
+    <span class="s">&#39;eighteen&#39;</span><span class="o">:</span> <span class="mi">18</span>
+    <span class="s">&#39;nineteen&#39;</span><span class="o">:</span> <span class="mi">19</span>
+    <span class="s">&#39;twenty&#39;</span><span class="o">:</span> <span class="mi">20</span>
+    <span class="s">&#39;thirty&#39;</span><span class="o">:</span> <span class="mi">30</span>
+    <span class="s">&#39;forty&#39;</span><span class="o">:</span> <span class="mi">40</span>
+    <span class="s">&#39;fifty&#39;</span><span class="o">:</span> <span class="mi">50</span>
+    <span class="s">&#39;sixty&#39;</span><span class="o">:</span> <span class="mi">60</span>
+    <span class="s">&#39;seventy&#39;</span><span class="o">:</span> <span class="mi">70</span>
+    <span class="s">&#39;eighty&#39;</span><span class="o">:</span> <span class="mi">80</span>
+    <span class="s">&#39;ninety&#39;</span><span class="o">:</span> <span class="mi">90</span>
+    <span class="s">&#39;hundred&#39;</span><span class="o">:</span> <span class="mi">100</span>
+    <span class="s">&#39;thousand&#39;</span><span class="o">:</span> <span class="s">&quot;1k&quot;</span>
+    <span class="s">&#39;million&#39;</span><span class="o">:</span> <span class="s">&quot;mm&quot;</span>
+    <span class="s">&#39;billion&#39;</span><span class="o">:</span> <span class="s">&quot;bn&quot;</span>
+    <span class="s">&#39;trillion&#39;</span><span class="o">:</span> <span class="s">&quot;trln&quot;</span>
+    <span class="s">&#39;monday&#39;</span><span class="o">:</span> <span class="s">&quot;Mon&quot;</span>
+    <span class="s">&#39;tuesday&#39;</span><span class="o">:</span> <span class="s">&quot;Tue&quot;</span>
+    <span class="s">&#39;wednesday&#39;</span><span class="o">:</span> <span class="s">&quot;Wed&quot;</span>
+    <span class="s">&#39;thursday&#39;</span><span class="o">:</span> <span class="s">&quot;Thu&quot;</span>
+    <span class="s">&#39;friday&#39;</span><span class="o">:</span> <span class="s">&quot;Fri&quot;</span>
+    <span class="s">&#39;saturday&#39;</span><span class="o">:</span> <span class="s">&quot;Sat&quot;</span>
+    <span class="s">&#39;sunday&#39;</span><span class="o">:</span> <span class="s">&quot;Sun&quot;</span>
+    <span class="s">&#39;january&#39;</span><span class="o">:</span> <span class="s">&quot;Jan&quot;</span>
+    <span class="s">&#39;february&#39;</span><span class="o">:</span> <span class="s">&quot;Feb&quot;</span>
+    <span class="s">&#39;march&#39;</span><span class="o">:</span> <span class="s">&quot;Mar&quot;</span>
+    <span class="s">&#39;april&#39;</span><span class="o">:</span> <span class="s">&quot;Apr&quot;</span>
+    <span class="s">&#39;may&#39;</span><span class="o">:</span> <span class="s">&quot;May&quot;</span>
+    <span class="s">&#39;june&#39;</span><span class="o">:</span> <span class="s">&quot;Jun&quot;</span>
+    <span class="s">&#39;july&#39;</span><span class="o">:</span> <span class="s">&quot;Jul&quot;</span>
+    <span class="s">&#39;august&#39;</span><span class="o">:</span> <span class="s">&quot;Aug&quot;</span>
+    <span class="s">&#39;september&#39;</span><span class="o">:</span> <span class="s">&quot;Sep&quot;</span>
+    <span class="s">&#39;october&#39;</span><span class="o">:</span> <span class="s">&quot;Oct&quot;</span>
+    <span class="s">&#39;november&#39;</span><span class="o">:</span> <span class="s">&quot;Nov&quot;</span>
+    <span class="s">&#39;december&#39;</span><span class="o">:</span> <span class="s">&quot;Dec&quot;</span>
+    <span class="s">&#39;every&#39;</span><span class="o">:</span> <span class="s">&quot;vry&quot;</span>
+    <span class="s">&#39;see&#39;</span><span class="o">:</span> <span class="s">&quot;C&quot;</span>
+    <span class="s">&#39;cool&#39;</span><span class="o">:</span> <span class="s">&quot;k&quot;</span>
+    <span class="s">&#39;overheard&#39;</span><span class="o">:</span> <span class="s">&quot;OH&quot;</span>
+    <span class="s">&#39;whatever&#39;</span><span class="o">:</span> <span class="s">&quot;wtv&quot;</span>
+    <span class="s">&#39;your&#39;</span><span class="o">:</span> <span class="s">&quot;Ur&quot;</span>
+    <span class="s">&#39;you&#39;</span><span class="o">:</span> <span class="s">&quot;U&quot;</span>
+    <span class="s">&#39;about&#39;</span><span class="o">:</span> <span class="s">&quot;abt&quot;</span>
+    <span class="s">&#39;because&#39;</span><span class="o">:</span> <span class="s">&quot;b/c&quot;</span>
+    <span class="s">&#39;before&#39;</span><span class="o">:</span> <span class="s">&quot;b4&quot;</span>
+    <span class="s">&#39;chk&#39;</span><span class="o">:</span> <span class="s">&quot;chk&quot;</span>
+    <span class="s">&#39;to&#39;</span><span class="o">:</span> <span class="s">&quot;2&quot;</span>
+    <span class="s">&#39;and&#39;</span><span class="o">:</span> <span class="s">&quot;&amp;&quot;</span>
+    <span class="s">&#39;their&#39;</span><span class="o">:</span> <span class="s">&quot;thr&quot;</span>
+    <span class="s">&#39;from&#39;</span><span class="o">:</span> <span class="s">&quot;frm&quot;</span>
+    <span class="s">&#39;them&#39;</span><span class="o">:</span> <span class="s">&quot;thm&quot;</span>
+    <span class="s">&#39;be&#39;</span><span class="o">:</span> <span class="s">&quot;B&quot;</span>
+    <span class="s">&#39;large&#39;</span><span class="o">:</span> <span class="s">&quot;lrg&quot;</span>
+    <span class="s">&#39;absolute&#39;</span><span class="o">:</span> <span class="s">&quot;abs.&quot;</span>
+    <span class="s">&#39;becomes&#39;</span><span class="o">:</span> <span class="s">&quot;bcms&quot;</span>
+    <span class="s">&#39;equal&#39;</span><span class="o">:</span> <span class="s">&quot;=&quot;</span>
+    <span class="s">&#39;which&#39;</span><span class="o">:</span> <span class="s">&quot;whch&quot;</span>
+    <span class="s">&#39;for&#39;</span><span class="o">:</span> <span class="s">&quot;4&quot;</span>
+    <span class="s">&#39;are&#39;</span><span class="o">:</span> <span class="s">&quot;R&quot;</span>
+    <span class="s">&#39;great&#39;</span><span class="o">:</span> <span class="s">&quot;gr8&quot;</span>
+    <span class="s">&#39;at&#39;</span><span class="o">:</span> <span class="s">&quot;@&quot;</span>
+    <span class="s">&#39;that&#39;</span><span class="o">:</span> <span class="s">&quot;th@&quot;</span>
+    <span class="s">&#39;quarter&#39;</span><span class="o">:</span> <span class="s">&quot;1/4&quot;</span>
+    <span class="s">&#39;half&#39;</span><span class="o">:</span> <span class="s">&quot;1/2&quot;</span>
+    <span class="s">&#39;Alabama&#39;</span><span class="o">:</span> <span class="s">&quot;AL&quot;</span>
+    <span class="s">&#39;Alaska&#39;</span><span class="o">:</span> <span class="s">&quot;AK&quot;</span>
+    <span class="s">&#39;Arizona&#39;</span><span class="o">:</span> <span class="s">&quot;AZ&quot;</span>
+    <span class="s">&#39;Arkansas&#39;</span><span class="o">:</span> <span class="s">&quot;AR&quot;</span>
+    <span class="s">&#39;California&#39;</span><span class="o">:</span> <span class="s">&quot;CA&quot;</span>
+    <span class="s">&#39;Colorado&#39;</span><span class="o">:</span> <span class="s">&quot;CO&quot;</span>
+    <span class="s">&#39;Connecticut&#39;</span><span class="o">:</span> <span class="s">&quot;CT&quot;</span>
+    <span class="s">&#39;Delaware&#39;</span><span class="o">:</span> <span class="s">&quot;DE&quot;</span>
+    <span class="s">&#39;District of Columbia&#39;</span><span class="o">:</span> <span class="s">&quot;DC&quot;</span>
+    <span class="s">&#39;Florida&#39;</span><span class="o">:</span> <span class="s">&quot;FL&quot;</span>
+    <span class="s">&#39;Georgia&#39;</span><span class="o">:</span> <span class="s">&quot;GA&quot;</span>
+    <span class="s">&#39;Hawaii&#39;</span><span class="o">:</span> <span class="s">&quot;HI&quot;</span>
+    <span class="s">&#39;Idaho&#39;</span><span class="o">:</span> <span class="s">&quot;ID&quot;</span>
+    <span class="s">&#39;Illinois&#39;</span><span class="o">:</span> <span class="s">&quot;IL&quot;</span>
+    <span class="s">&#39;Indiana&#39;</span><span class="o">:</span> <span class="s">&quot;IN&quot;</span>
+    <span class="s">&#39;Iowa&#39;</span><span class="o">:</span> <span class="s">&quot;IA&quot;</span>
+    <span class="s">&#39;Kansas&#39;</span><span class="o">:</span> <span class="s">&quot;KS&quot;</span>
+    <span class="s">&#39;Kentucky&#39;</span><span class="o">:</span> <span class="s">&quot;KY&quot;</span>
+    <span class="s">&#39;Louisiana&#39;</span><span class="o">:</span> <span class="s">&quot;LA&quot;</span>
+    <span class="s">&#39;Maine&#39;</span><span class="o">:</span> <span class="s">&quot;ME&quot;</span>
+    <span class="s">&#39;Maryland&#39;</span><span class="o">:</span> <span class="s">&quot;MD&quot;</span>
+    <span class="s">&#39;Massachusetts&#39;</span><span class="o">:</span> <span class="s">&quot;MA&quot;</span>
+    <span class="s">&#39;Michigan&#39;</span><span class="o">:</span> <span class="s">&quot;MI&quot;</span>
+    <span class="s">&#39;Minnesota&#39;</span><span class="o">:</span> <span class="s">&quot;MN&quot;</span>
+    <span class="s">&#39;Mississippi&#39;</span><span class="o">:</span> <span class="s">&quot;MS&quot;</span>
+    <span class="s">&#39;Missouri&#39;</span><span class="o">:</span> <span class="s">&quot;MO&quot;</span>
+    <span class="s">&#39;Montana&#39;</span><span class="o">:</span> <span class="s">&quot;MT&quot;</span>
+    <span class="s">&#39;Nebraska&#39;</span><span class="o">:</span> <span class="s">&quot;NE&quot;</span>
+    <span class="s">&#39;Nevada&#39;</span><span class="o">:</span> <span class="s">&quot;NV&quot;</span>
+    <span class="s">&quot;New Hampshire&quot;</span><span class="o">:</span> <span class="s">&quot;NH&quot;</span>
+    <span class="s">&quot;New Jersey&quot;</span><span class="o">:</span> <span class="s">&quot;NJ&quot;</span>
+    <span class="s">&quot;New Mexico&quot;</span><span class="o">:</span> <span class="s">&quot;NM&quot;</span>
+    <span class="s">&quot;New York&quot;</span><span class="o">:</span> <span class="s">&quot;NY&quot;</span>
+    <span class="s">&quot;North Carolina&quot;</span><span class="o">:</span> <span class="s">&quot;NC&quot;</span>
+    <span class="s">&quot;North Dakota&quot;</span><span class="o">:</span> <span class="s">&quot;ND&quot;</span>
+    <span class="s">&#39;Ohio&#39;</span><span class="o">:</span> <span class="s">&quot;OH&quot;</span>
+    <span class="s">&#39;Oklahoma&#39;</span><span class="o">:</span> <span class="s">&quot;OK&quot;</span>
+    <span class="s">&#39;Oregon&#39;</span><span class="o">:</span> <span class="s">&quot;OR&quot;</span>
+    <span class="s">&#39;Pennsylvania&#39;</span><span class="o">:</span> <span class="s">&quot;PA&quot;</span>
+    <span class="s">&quot;Rhode Island&quot;</span><span class="o">:</span> <span class="s">&quot;RI&quot;</span>
+    <span class="s">&quot;South Carolina&quot;</span><span class="o">:</span> <span class="s">&quot;SC&quot;</span>
+    <span class="s">&quot;South Dakota&quot;</span><span class="o">:</span> <span class="s">&quot;SD&quot;</span>
+    <span class="s">&#39;Tennessee&#39;</span><span class="o">:</span> <span class="s">&quot;TN&quot;</span>
+    <span class="s">&#39;Texas&#39;</span><span class="o">:</span> <span class="s">&quot;TX&quot;</span>
+    <span class="s">&#39;Utah&#39;</span><span class="o">:</span> <span class="s">&quot;UT&quot;</span>
+    <span class="s">&#39;Vermont&#39;</span><span class="o">:</span> <span class="s">&quot;VT&quot;</span>
+    <span class="s">&#39;Virginia&#39;</span><span class="o">:</span> <span class="s">&quot;VA&quot;</span>
+    <span class="s">&#39;Washington&#39;</span><span class="o">:</span> <span class="s">&quot;WA&quot;</span>
+    <span class="s">&quot;West Virginia&quot;</span><span class="o">:</span> <span class="s">&quot;WV&quot;</span>
+    <span class="s">&#39;Wisconsin&#39;</span><span class="o">:</span> <span class="s">&quot;WI&quot;</span>
+    <span class="s">&#39;Wyoming&#39;</span><span class="o">:</span> <span class="s">&quot;WY&quot;</span>
+    <span class="s">&quot;American Samoa&quot;</span><span class="o">:</span> <span class="s">&quot;AS&quot;</span>
+    <span class="s">&#39;Guam&#39;</span><span class="o">:</span> <span class="s">&quot;GU&quot;</span>
+    <span class="s">&quot;Northern Mariana Islands&quot;</span><span class="o">:</span> <span class="s">&quot;MP&quot;</span>
+    <span class="s">&quot;Puerto Rico&quot;</span><span class="o">:</span> <span class="s">&quot;PR&quot;</span>
+    <span class="s">&quot;Virgin Islands&quot;</span><span class="o">:</span> <span class="s">&quot;VI&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p><strong>WORD_REGEX</strong> is a regular expression that takes all of the
+<code>SHORTENABLE_WORDS</code> in that variable and turns them into a single
+regex that will replace the keys with their values.</p>
+
+<p>The terms are sorted by length, longest first, to improve the
+quality of the matcher.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">WORD_REGEX               = </span><span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="s">&quot;(\\b)(&quot;</span> <span class="o">+</span> <span class="o">\</span>
+    <span class="p">(</span><span class="nx">key</span> <span class="k">for</span> <span class="nx">key</span> <span class="k">of</span> <span class="nx">SHORTENABLE_WORDS</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">sort</span><span class="p">(</span><span class="nf">(a,b) -&gt;</span> <span class="k">return</span> <span class="nx">b</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="nx">a</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s">&quot;\|&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="o">\</span>
+    <span class="s">&quot;)(\\b)&quot;</span><span class="p">,</span> <span class="s">&quot;gi&quot;</span><span class="p">)</span>
+
+
+
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;Evaluating: window.coffee&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <h2>Methods added to the <code>Window</code> class</h2>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">SECTION = </span><span class="s">&quot;window.coffee&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p>There are no methods here. This is a placeholder.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;Evaluating: document.coffee&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <h2>Methods added to the <code>Document</code> class</h2>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">SECTION = </span><span class="s">&#39;document.coffee&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <p>Function to load CSS.
+TODO this may go if we don't need it. It seems that the </p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">HTMLDocument::loadCSS = </span><span class="nf">(url) -&gt;</span>
+    <span class="nv">link = </span><span class="nx">@createElement</span><span class="p">(</span><span class="s">&quot;link&quot;</span><span class="p">)</span>
+    <span class="nv">link.type = </span><span class="s">&quot;text/css&quot;</span><span class="p">;</span>
+    <span class="nv">link.rel = </span><span class="s">&quot;stylesheet&quot;</span><span class="p">;</span>
+    <span class="nx">date</span> <span class="o">=</span><span class="p">(</span><span class="k">new</span> <span class="nb">Date</span><span class="p">).</span><span class="nx">getTime</span><span class="p">()</span>
+    <span class="nv">link.href = </span><span class="s">&quot;</span><span class="si">#{</span><span class="nx">url</span><span class="si">}</span><span class="s">?bust=</span><span class="si">#{</span><span class="nx">date</span><span class="si">}</span><span class="s">&quot;</span>
+    <span class="k">if</span> <span class="nx">@createStyleSheet</span>
+       <span class="nx">@createStyleSheet</span> <span class="nx">url</span>
+    <span class="k">else</span>
+       <span class="nx">@getElementsByTagName</span><span class="p">(</span><span class="s">&quot;body&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">].</span><span class="nx">appendChild</span><span class="p">(</span><span class="nx">link</span><span class="p">)</span>
+
+
+
+
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;Evaluating: array.coffee&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <h2>Methods added to the <code>Window</code> class</h2>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">SECTION = </span><span class="s">&quot;array.coffee&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <p><strong>Array::merge()</strong></p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nb">Array</span><span class="o">::</span><span class="nv">merge = </span><span class="o">-&gt;</span>
+    <span class="p">[</span><span class="nx">first</span><span class="p">,</span> <span class="nx">rest</span><span class="p">...]</span> <span class="o">=</span> <span class="nx">@</span>
+
+    <span class="nv">strings = </span><span class="p">(</span><span class="nx">node</span><span class="p">.</span><span class="nx">toString</span><span class="p">()</span> <span class="k">for</span> <span class="nx">node</span> <span class="k">in</span> <span class="nx">@</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>Empty everything out</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">node</span><span class="p">.</span><span class="nx">emptyNode</span><span class="p">()</span> <span class="k">for</span> <span class="nx">node</span> <span class="k">in</span> <span class="nx">@</span>
+    <span class="nv">text = </span><span class="nx">strings</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)</span>
+    <span class="nv">spans = </span><span class="nx">JQ</span><span class="p">(</span><span class="s">&quot;&quot;&quot;&lt;span class=&quot;socialtext-set&quot;/&gt;&quot;&quot;&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="nx">tweet</span> <span class="k">in</span> <span class="nx">text</span><span class="p">.</span><span class="nx">getStatements</span><span class="p">()</span>
+        <span class="nx">spans</span><span class="p">.</span><span class="nx">append</span><span class="p">(</span><span class="nx">tweet</span><span class="p">.</span><span class="nx">enTweeten</span><span class="p">())</span>
+    <span class="nx">JQ</span><span class="p">(</span><span class="nx">first</span><span class="p">).</span><span class="nx">replaceWith</span><span class="p">(</span><span class="nx">spans</span><span class="p">)</span>
+    <span class="p">[]</span>
+
+
+
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;Evaluating: node.coffee&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-18">&#182;</a>               </div>               <h2>Methods added to the <code>Node</code> class</h2>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">SECTION = </span><span class="s">&#39;node.coffee&#39;</span>
+    </pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-19">&#182;</a>               </div>               <p><strong>Node::isTextish()</strong>—is this raw text or an inline element like <code>&lt;a&gt;</code> or <code>&lt;i&gt;</code>?</p>
+
+<p>Returns boolean.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Node::isTextish     = </span><span class="o">-&gt;</span> <span class="nx">@nodeType</span> <span class="o">is</span> <span class="nx">TEXT_NODE</span> <span class="o">\</span>
+    <span class="o">or</span> <span class="p">(</span><span class="nx">@nodeName</span> <span class="k">in</span> <span class="nx">TEXTISH_ELEMENTS</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-20">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-20">&#182;</a>               </div>               <p><strong>Node::isElementish()</strong>—is this an element that isn't just for formatting?</p>
+
+<p>Returns boolean.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Node::isElementish    = </span><span class="o">-&gt;</span> <span class="nx">@nodeType</span> <span class="o">is</span> <span class="nx">ELEMENT_NODE</span> <span class="o">\</span>
+    <span class="o">and</span> <span class="o">not</span><span class="p">(</span><span class="nx">@nodeName</span> <span class="k">in</span> <span class="nx">TEXTISH_ELEMENTS</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-21">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-21">&#182;</a>               </div>               <p><strong>Node::isFirstText()</strong>—is this the first text in a set of textual nodes?</p>
+
+<p>Returns boolean.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Node::isFirstText  = </span><span class="o">-&gt;</span> <span class="nx">@isTextish</span><span class="p">()</span> <span class="c1"># and not(@previousSibling?.isTextish())</span></pre></div>             </td>           </tr>                               <tr id="section-22">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-22">&#182;</a>               </div>               <p><strong>Node::isBR()</strong>—is this a <code>&lt;br&gt;</code> or <code>&lt;BR&gt;</code> or <code>&lt;br/&gt;</code> or <code>&lt;br      /&gt;</code> tag?</p>
+
+<p>Returns boolean. </p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Node::isBR         = </span><span class="o">-&gt;</span> <span class="nx">@isElementish</span><span class="p">()</span> <span class="o">and</span> <span class="nx">@nodeName</span> <span class="o">is</span> <span class="s">&#39;BR&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-23">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-23">&#182;</a>               </div>               <h3>Checking for irrelevant nodes</h3>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-24">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-24">&#182;</a>               </div>               <p><strong>Node::isIrrelevant()</strong></p>
+
+<p>Returns boolean. </p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Node::isIrrelevant = </span><span class="o">-&gt;</span> <span class="nx">@nodeName</span> <span class="k">in</span> <span class="nx">IRRELEVANT_ELEMENTS</span></pre></div>             </td>           </tr>                               <tr id="section-25">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-25">&#182;</a>               </div>               <p><strong>Node::isComment()</strong>—is this a <code>&lt;!--HTML/XML comment--&gt;</code>?</p>
+
+<p>Returns boolean. </p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Node::isComment    = </span><span class="o">-&gt;</span> <span class="nx">@nodeType</span> <span class="o">is</span> <span class="nx">COMMENT_NODE</span></pre></div>             </td>           </tr>                               <tr id="section-26">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-26">&#182;</a>               </div>               <p><strong>Node::isWhitespace()</strong>—is this node all whitespace?</p>
+
+<p>Returns boolean.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Node::isWhitespace = </span><span class="o">-&gt;</span> <span class="p">(</span><span class="nx">@nodeType</span> <span class="o">is</span> <span class="nx">TEXT_NODE</span><span class="p">)</span> <span class="o">and</span> <span class="p">(</span><span class="sr">/^[\t\n\r ]+$/</span><span class="p">.</span><span class="nx">test</span><span class="p">(</span><span class="nx">@data</span><span class="p">))</span></pre></div>             </td>           </tr>                               <tr id="section-27">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-27">&#182;</a>               </div>               <p><strong>Node::isNavLike()</strong>—now we can check to see if an element is navlike or not.</p>
+
+<p>Returns boolean. </p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Node::isNavLike    = </span><span class="o">-&gt;</span> <span class="p">(</span><span class="nx">@nodeName</span> <span class="k">in</span> <span class="nx">NAV_CONTAINING_ELEMENTS</span><span class="p">)</span> <span class="o">\</span>
+    <span class="o">and</span> <span class="p">(</span><span class="nx">@className</span><span class="p">.</span><span class="nx">isNavLike</span><span class="p">()</span> <span class="o">\</span>
+    <span class="o">or</span> <span class="nx">@id</span><span class="p">.</span><span class="nx">isNavLike</span><span class="p">())</span></pre></div>             </td>           </tr>                               <tr id="section-28">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-28">&#182;</a>               </div>               <p><strong>Node::getAllChars()</strong>—given a block of text, count the number of
+characters that appear within.</p>
+
+<p>Returns integer.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Node::getAllChars  = </span><span class="o">-&gt;</span>
+    <span class="nx">JQ</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">text</span><span class="p">().</span><span class="nx">length</span></pre></div>             </td>           </tr>                               <tr id="section-29">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-29">&#182;</a>               </div>               <p><strong>Node::getLinkChars()</strong>—given a block of text, count the number of
+characters that appear inside <code>&lt;a&gt;</code> tags.</p>
+
+<p>Note: Doesn't check if something is an href or an anchor link.</p>
+
+<p>Returns integer.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Node::getLinkChars = </span><span class="o">-&gt;</span>
+    <span class="nv">total = </span><span class="mi">0</span>
+    <span class="nv">links = </span><span class="nx">JQ</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">children</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-30">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-30">&#182;</a>               </div>               <p>Could be reduce</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">for</span> <span class="nx">link</span> <span class="k">in</span> <span class="nx">links</span>
+        <span class="nv">length = </span><span class="nx">JQ</span><span class="p">(</span><span class="nx">link</span><span class="p">).</span><span class="nx">text</span><span class="p">().</span><span class="nx">length</span>
+        <span class="nx">total</span> <span class="o">+=</span> <span class="nx">length</span>
+    <span class="nx">total</span></pre></div>             </td>           </tr>                               <tr id="section-31">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-31">&#182;</a>               </div>               <p>Check if a nav element is mostly link text or not</p>
+
+<p>Returns boolean. </p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Node::isLinkish    = </span><span class="o">-&gt;</span>
+     <span class="nx">@isNavLike</span><span class="p">()</span> <span class="o">and</span> <span class="p">(</span><span class="nx">MIN_LINK_RATIO</span> <span class="o">&gt;</span> <span class="p">(</span><span class="nx">@getAllChars</span><span class="p">()</span><span class="o">/</span><span class="nx">@getLinkChars</span><span class="p">()))</span></pre></div>             </td>           </tr>                               <tr id="section-32">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-32">&#182;</a>               </div>               <p>Block things</p>
+
+<p>Returns boolean. </p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Node::isBlockLike  = </span><span class="o">-&gt;</span> <span class="nx">JQ</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">css</span><span class="p">(</span><span class="s">&#39;display&#39;</span><span class="p">)</span><span class="o">?</span> <span class="k">in</span> <span class="nx">BLOCKS</span> <span class="o">or</span> <span class="nx">@nodeName</span> <span class="k">in</span> <span class="nx">BLOCK_ELEMENTS</span></pre></div>             </td>           </tr>                               <tr id="section-33">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-33">&#182;</a>               </div>               <p>Useful things</p>
+
+<p>Returns boolean.  </p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Node::isUseful     = </span><span class="o">-&gt;</span>
+    <span class="nx">debug</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">\tnodename:     </span><span class="si">#{</span><span class="nx">@nodeName</span><span class="si">}</span><span class="s"></span>
+<span class="s">\tnodetype:     </span><span class="si">#{</span><span class="nx">@nodeType</span><span class="si">}</span><span class="s"></span>
+<span class="s">\tisElement:    </span><span class="si">#{</span><span class="nx">@nodeType</span> <span class="o">is</span> <span class="nx">ELEMENT_NODE</span><span class="si">}</span><span class="s"></span>
+<span class="s">\tisIrrelevant: </span><span class="si">#{</span><span class="nx">@isIrrelevant</span><span class="p">()</span><span class="si">}</span><span class="s"></span>
+<span class="s">\tisNavLike:    </span><span class="si">#{</span><span class="nx">@isNavLike</span><span class="p">()</span><span class="si">}</span><span class="s"></span>
+<span class="s">\tisLinkish:    </span><span class="si">#{</span><span class="nx">@isLinkish</span><span class="p">()</span><span class="si">}</span><span class="s"></span>
+<span class="s">\tisTextish:    </span><span class="si">#{</span><span class="nx">@isTextish</span><span class="p">()</span><span class="si">}</span><span class="s"></span>
+<span class="s">\tisWhitespace: </span><span class="si">#{</span><span class="nx">@isWhitespace</span><span class="p">()</span><span class="si">}</span><span class="s"></span>
+<span class="s">\tisComment:    </span><span class="si">#{</span><span class="nx">@isComment</span><span class="p">()</span><span class="si">}</span><span class="s"></span>
+<span class="s">&quot;&quot;&quot;</span>        
+    <span class="o">not</span><span class="p">(</span><span class="nx">@isWhitespace</span><span class="p">()</span> <span class="o">or</span> <span class="nx">@isComment</span><span class="p">()</span> <span class="o">or</span> <span class="nx">@isIrrelevant</span><span class="p">()</span> <span class="o">or</span> <span class="nx">@isLinkish</span><span class="p">())</span></pre></div>             </td>           </tr>                               <tr id="section-34">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-34">&#182;</a>               </div>               <p><strong>Node::emptyNode</strong>—"empty out" the content in a node, leaving it within the DOM.</p>
+
+<p>When concatenating text nodes into single text node the issue
+remains: What to do with the remaining tags? If you simply strip
+them out, things can get weird very quickly as all sorts of
+interdependencies and code expectations, as well as stylesheet rules
+surface. It's better to leave the shell of the tag in place.</p>
+
+<p>Returns boolean</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Node::emptyNode = </span><span class="o">-&gt;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">@nodeType</span> <span class="o">is</span> <span class="nx">TEXT_NODE</span><span class="p">)</span>
+        <span class="nx">@nodeValue</span><span class="o">=</span><span class="s">&quot;&quot;</span>
+        <span class="kc">true</span>        
+    <span class="k">else</span>
+        <span class="nx">JQ</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">html</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">)</span>
+        <span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-35">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-35">&#182;</a>               </div>               <p>Check for relevance of this function</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Node::concatenateTextDestructively = </span><span class="nf">(array) -&gt;</span>
+    <span class="nx">array</span> <span class="o">?=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="nx">@isUseful</span><span class="p">()</span> <span class="o">and</span> <span class="nx">@isTextish</span><span class="p">()</span>
+        <span class="nx">array</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">JQ</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">text</span><span class="p">())</span> 
+        <span class="nx">@emptyNode</span><span class="p">()</span> <span class="c1"># if </span>
+    <span class="nx">@nextSibling</span><span class="o">?</span><span class="p">.</span><span class="nx">concatenateTextDestructively</span><span class="p">(</span><span class="nx">array</span><span class="p">)</span>
+ 
+    <span class="nb">String</span><span class="p">(</span><span class="nx">array</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">))</span>
+
+<span class="nv">Node::getStatements = </span><span class="o">-&gt;</span>
+    <span class="nx">@concatenateTextDestructively</span><span class="p">().</span><span class="nx">extractStatements</span><span class="p">()</span>
+
+
+
+<span class="nv">Node::socialize = </span><span class="nf">(statements) -&gt;</span>
+    <span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-36">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-36">&#182;</a>               </div>               <h3><code>Node::unwrap()</code></h3>
+
+<p>This is the main function for this bookmarklet. It is a recursive
+function that steps through the DOM hierarchy starting with the
+specified node object, and looks for the first "textish" child.</p>
+
+<p>What happens is </p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Node::unwrap = </span><span class="o">-&gt;</span>
+    <span class="nv">texts    = </span><span class="p">[]</span>
+    <span class="k">for</span> <span class="nx">node</span> <span class="k">in</span> <span class="nx">@childNodes</span>
+        <span class="k">if</span> <span class="nx">node</span><span class="p">.</span><span class="nx">isTextish</span><span class="p">()</span>
+            <span class="nx">texts</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">node</span><span class="p">)</span>
+        <span class="k">else</span>
+            <span class="nv">texts = </span><span class="nx">texts</span><span class="p">.</span><span class="nx">merge</span><span class="p">()</span>
+            <span class="nx">node</span><span class="p">.</span><span class="nx">unwrap</span><span class="p">()</span> <span class="k">if</span> <span class="o">not</span><span class="p">(</span><span class="nx">node</span><span class="p">.</span><span class="nx">isIrrelevant</span><span class="p">())</span>
+
+    <span class="nx">texts</span><span class="p">.</span><span class="nx">merge</span><span class="p">()</span>            
+
+        
+            
+        
+
+
+
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;Evaluating: element.coffee&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-37">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-37">&#182;</a>               </div>               <p>Methods added to the <code>Element</code> class</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">SECTION = </span><span class="s">&#39;element.coffee&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-38">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-38">&#182;</a>               </div>               <p>Convert an element to text</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Element::toString = </span><span class="o">-&gt;</span>
+    <span class="nv">text = </span><span class="nx">JQ</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">text</span><span class="p">()</span>
+    <span class="nv">n = </span><span class="nx">@nodeName</span>
+
+    <span class="nv">rtext = </span><span class="nx">text</span>
+    <span class="nv">rtext = </span><span class="s">&quot;*</span><span class="si">#{</span><span class="nx">text</span><span class="si">}</span><span class="s">*&quot;</span> <span class="k">if</span> <span class="nx">n</span> <span class="k">in</span> <span class="p">[</span><span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="s">&#39;STRONG&#39;</span><span class="p">]</span>
+    <span class="nv">rtext = </span><span class="s">&quot;_</span><span class="si">#{</span><span class="nx">text</span><span class="si">}</span><span class="s">_&quot;</span> <span class="k">if</span> <span class="nx">n</span> <span class="k">in</span> <span class="p">[</span><span class="s">&#39;EM&#39;</span><span class="p">,</span> <span class="s">&#39;I&#39;</span><span class="p">]</span>
+    <span class="nv">rtext = </span><span class="s">&quot;[</span><span class="si">#{</span><span class="nx">text</span><span class="si">}</span><span class="s">]&quot;</span> <span class="k">if</span> <span class="nx">n</span> <span class="k">in</span> <span class="p">[</span><span class="s">&#39;A&#39;</span><span class="p">]</span>
+    <span class="nv">rtext = </span><span class="s">&quot;&lt;br/&gt;&quot;</span> <span class="k">if</span> <span class="nx">n</span> <span class="o">is</span> <span class="s">&#39;BR&#39;</span>
+
+    <span class="nx">rtext</span>
+
+
+
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;Evaluating: text.coffee&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-39">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-39">&#182;</a>               </div>               <h2>Methods added to the <code>Text</code> class</h2>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">SECTION = </span><span class="s">&quot;text.coffee&quot;</span>
+
+<span class="nv">Text::toString = </span><span class="o">-&gt;</span> <span class="nx">@nodeValue</span>
+
+    
+
+
+
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;Evaluating: string.coffee&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-40">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-40">&#182;</a>               </div>               <h2>Methods added to the <code>String</code> class</h2>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">SECTION = </span><span class="s">&quot;string.coffee&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-41">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-41">&#182;</a>               </div>               <p>Does this look like masthead or navigation?</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nb">String</span><span class="o">::</span><span class="nv">isNavLike = </span><span class="o">-&gt;</span>
+    <span class="nv">match = </span><span class="nx">@match</span> <span class="sr">/head|breadcrumb|addthis|share|nav|mast|social|twitter|reddit|facebook|fb/i</span>
+    <span class="nx">debug</span> <span class="s">&quot;Match: </span><span class="si">#{</span><span class="nx">match</span><span class="si">}</span><span class="s">&quot;</span>
+    <span class="k">if</span> <span class="nx">match</span> <span class="k">then</span> <span class="kc">true</span> <span class="k">else</span> <span class="kc">false</span></pre></div>             </td>           </tr>                               <tr id="section-42">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-42">&#182;</a>               </div>               <p>Tidy up entities, for when we rewrite text</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nb">String</span><span class="o">::</span><span class="nv">entities = </span><span class="o">-&gt;</span>
+    <span class="nv">replace = </span><span class="nf">(char) -&gt;</span> 
+        <span class="k">switch</span> <span class="nx">char</span>
+            <span class="k">when</span> <span class="s">&#39;&amp;&#39;</span> <span class="k">then</span> <span class="s">&#39;&amp;amp;&#39;</span>
+            <span class="k">when</span> <span class="s">&#39;&quot;&#39;</span> <span class="k">then</span> <span class="s">&#39;&amp;quot;&#39;</span>
+            <span class="k">when</span> <span class="s">&#39;&gt;&#39;</span> <span class="k">then</span> <span class="s">&#39;&amp;gt;&#39;</span>
+            <span class="k">when</span> <span class="s">&#39;&lt;&#39;</span> <span class="k">then</span> <span class="s">&#39;&amp;lt;&#39;</span>
+    <span class="nx">@</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/[&amp;\&quot;&gt;&lt;]/</span><span class="p">,</span> <span class="nf">(a) -&gt;</span> <span class="nx">replace</span><span class="p">(</span><span class="nx">a</span><span class="p">))</span></pre></div>             </td>           </tr>                               <tr id="section-43">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-43">&#182;</a>               </div>               <p>Get rid of spaces</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nb">String</span><span class="o">::</span><span class="nv">clean = </span><span class="o">-&gt;</span>
+    <span class="nx">@</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\s+/g</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">).</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\n+/g</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">).</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/^\s*$/</span><span class="p">,</span><span class="s">&#39;&#39;</span><span class="p">).</span><span class="nx">entities</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-44">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-44">&#182;</a>               </div>               <p><strong>String::toAbbreviation</strong>—using the table of abbreviations look up an
+abbreviation.</p>
+
+<ul>
+<li><code>left</code>—the left word boundary character.</li>
+<li><code>word</code>—the captured term.</li>
+<li><code>right</code>—the right word boundary.</li>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre><span class="nb">String</span><span class="o">::</span><span class="nv">toAbbreviation = </span><span class="nf">(left, word, right) -&gt;</span>
+    <span class="s">&quot;</span><span class="si">#{</span><span class="nx">left</span><span class="si">}#{</span><span class="nx">SHORTENABLE_WORDS</span><span class="p">[</span><span class="nx">word</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">()]</span><span class="si">}#{</span><span class="nx">right</span><span class="si">}</span><span class="s">&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-45">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-45">&#182;</a>               </div>               <p>Turns "of" into "o/", etc.</p>
+
+<p>@param str The string to enslash</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nb">String</span><span class="o">::</span><span class="nv">toFirstSlash = </span><span class="nf">(str) -&gt;</span> <span class="s">&quot;</span><span class="si">#{</span><span class="nx">str</span><span class="p">.</span><span class="nx">charAt</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="si">}</span><span class="s">/&quot;</span>
+
+<span class="nb">String</span><span class="o">::</span><span class="nv">squeeze = </span><span class="o">-&gt;</span>
+    <span class="nx">@</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="nx">word_regex</span><span class="p">,</span> <span class="nf">(a, b, c, d) -&gt;</span> <span class="nx">@toAbbreviation</span> <span class="nx">b</span><span class="p">,</span> <span class="nx">c</span><span class="p">,</span> <span class="nx">d</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/(with|of)\W/g</span><span class="p">,</span> <span class="nf">(m) -&gt;</span> <span class="nx">@toFirstSlash</span> <span class="nx">m</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\s+the\s+/g</span><span class="p">,</span> <span class="s">&quot; &quot;</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/(without)/g</span><span class="p">,</span> <span class="s">&quot;w/out&quot;</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/e(r|d)(\W)/g</span><span class="p">,</span> <span class="s">&quot;$1$2&quot;</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="nb">RegExp</span><span class="p">(</span><span class="s">&quot; has&quot;</span><span class="p">,</span> <span class="s">&quot;g&quot;</span><span class="p">),</span> <span class="s">&quot;&#39;s &quot;</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/est/g</span><span class="p">,</span> <span class="s">&quot;st&quot;</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\sam\b/g</span><span class="p">,</span> <span class="s">&quot;’m&quot;</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\b(will|shall)/g</span><span class="p">,</span> <span class="s">&quot;’ll&quot;</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\bnot/g</span><span class="p">,</span> <span class="s">&quot;n’t&quot;</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/e(r|n)(\b)/g</span><span class="p">,</span> <span class="s">&quot;$1$2&quot;</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\sfor/g</span><span class="p">,</span> <span class="s">&quot; 4&quot;</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="nb">RegExp</span><span class="p">(</span><span class="s">&quot; have&quot;</span><span class="p">,</span> <span class="s">&quot;g&quot;</span><span class="p">),</span> <span class="s">&quot;&#39;ve&quot;</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/(1[0-9]|20)/g</span><span class="p">,</span> <span class="nf">(a) -&gt;</span> <span class="s">&quot;&amp;</span><span class="err">#</span><span class="s">&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="nb">parseInt</span><span class="p">(</span><span class="nx">a</span><span class="p">)</span> <span class="o">+</span> <span class="mi">9311</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;;&quot;</span> <span class="p">)</span>
+
+<span class="nb">String</span><span class="o">::</span><span class="nv">textToLink = </span><span class="o">-&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-46">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-46">&#182;</a>               </div>               <p>TK Regexp here to parcel out spaces</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">JQ</span><span class="p">(</span><span class="s">&quot;&quot;&quot;&lt;a href=&quot;http://twitter.com</span><span class="si">#{</span><span class="nb">encodeURI</span><span class="p">(</span><span class="nx">@</span><span class="p">)</span><span class="si">}</span><span class="s">&quot;&gt;</span><span class="si">#{</span><span class="nx">@</span><span class="si">}</span><span class="err">#</span><span class="s">&lt;/a&gt;&quot;&quot;&quot;</span><span class="p">)</span>
+
+<span class="nb">String</span><span class="o">::</span><span class="nv">compareLength = </span><span class="nf">(comparison) -&gt;</span>
+    <span class="nx">@length</span> <span class="o">&lt;</span> <span class="nx">comparison</span></pre></div>             </td>           </tr>                               <tr id="section-47">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-47">&#182;</a>               </div>               <p><strong>String::enTweeten()</strong></p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nb">String</span><span class="o">::</span><span class="nv">enTweeten = </span><span class="o">-&gt;</span>
+    <span class="nv">length = </span><span class="nx">@length</span>
+    <span class="nv">short = </span><span class="nx">length</span> <span class="o">&lt;</span> <span class="mi">120</span>
+    <span class="nv">span = </span><span class="nx">JQ</span><span class="p">(</span><span class="s">&quot;&quot;&quot;&lt;span class=&quot;socialtext </span><span class="si">#{</span><span class="nx">short</span><span class="si">}</span><span class="s">&quot;&gt;&lt;/span&gt;&quot;&quot;&quot;</span><span class="p">)</span>
+    <span class="nx">span</span><span class="p">.</span><span class="nx">data</span><span class="p">(</span><span class="s">&#39;length&#39;</span><span class="p">,</span> <span class="nx">length</span><span class="p">)</span>
+    <span class="nx">span</span><span class="p">.</span><span class="nx">html</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span><span class="si">#{</span><span class="nx">@</span><span class="si">}</span><span class="s">&quot;&quot;&quot;</span><span class="p">)</span>
+    <span class="nx">span</span><span class="p">.</span><span class="nx">attr</span><span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">,</span><span class="nx">@</span><span class="p">)</span>
+    <span class="nx">span</span></pre></div>             </td>           </tr>                               <tr id="section-48">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-48">&#182;</a>               </div>               <p><strong>String::getStatements()</strong>—Parse out "statements"; i.e. sentences,
+from flattened text. This is not a parser, just a fairly dull
+matcher that meets the use case. Lots of room for more smarts.</p>             </td>             <td class="code">               <div class="highlight"><pre>            
+<span class="nb">String</span><span class="o">::</span><span class="nv">getStatements = </span><span class="o">-&gt;</span>
+    <span class="nv">chars = </span><span class="p">[]</span>
+    <span class="nv">current = </span><span class="p">[]</span>
+    <span class="nv">statements = </span><span class="p">[]</span>
+    <span class="nv">closing = </span><span class="s">&quot;.&quot;</span>
+    <span class="nv">lastCap = </span><span class="kc">null</span>
+    <span class="nv">chars = </span><span class="nx">@</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">while</span> <span class="nx">chars</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="nv">char = </span><span class="nx">chars</span><span class="p">.</span><span class="nx">shift</span><span class="p">()</span>
+        <span class="nx">current</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">char</span><span class="p">)</span>                    
+        <span class="nv">currentLast = </span><span class="nx">current</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="nv">lastCap = </span><span class="nx">currentLast</span> <span class="k">if</span> <span class="sr">/[A-Z]/</span><span class="p">.</span><span class="nx">test</span><span class="p">(</span><span class="nx">char</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="nx">char</span> <span class="k">in</span> <span class="nx">QUOTES</span> <span class="o">and</span> <span class="nx">closing</span> <span class="k">in</span> <span class="nx">QUOTES</span><span class="p">)</span> <span class="o">or</span>
+           <span class="p">(</span><span class="nx">char</span> <span class="k">in</span> <span class="nx">PUNCTUATION</span> <span class="o">and</span> <span class="nx">closing</span> <span class="k">in</span> <span class="nx">PUNCTUATION</span><span class="p">)</span> <span class="o">or</span>
+           <span class="p">(</span><span class="nx">chars</span><span class="p">.</span><span class="nx">length</span> <span class="o">is</span> <span class="mi">0</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-49">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-49">&#182;</a>               </div>               <p>"Great news," he said.</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nv">isContinuation = </span><span class="p">(</span><span class="sr">/\s/</span><span class="p">.</span><span class="nx">test</span><span class="p">(</span><span class="nx">chars</span><span class="o">?</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">and</span> <span class="sr">/[a-z]/</span><span class="p">.</span><span class="nx">test</span><span class="p">(</span><span class="nx">chars</span><span class="o">?</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="nv">lastCapDelta = </span><span class="k">if</span> <span class="nx">lastCap</span> <span class="k">then</span> <span class="nx">currentLast</span> <span class="o">-</span> <span class="nx">lastCap</span> <span class="k">else</span> <span class="kc">null</span>
+            <span class="nv">isCloseToCap = </span><span class="p">(</span><span class="nx">lastCapDelta</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">)</span>
+            <span class="nv">isVeryShort = </span><span class="p">(</span><span class="nx">currentLast</span> <span class="o">&lt;</span> <span class="mi">15</span><span class="p">)</span>
+            <span class="nv">doBreak = </span><span class="o">not</span><span class="p">(</span><span class="nx">isContinuation</span> <span class="o">or</span> <span class="nx">isVeryShort</span> <span class="o">or</span> <span class="nx">isCloseToCap</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="nx">chars</span><span class="p">.</span><span class="nx">length</span> <span class="o">is</span> <span class="mi">0</span> <span class="o">or</span> <span class="nx">doBreak</span>
+                <span class="k">if</span> <span class="nx">current</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                    <span class="nx">statements</span><span class="p">.</span><span class="nx">push</span> <span class="nx">current</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">)</span>
+                    <span class="nv">current = </span><span class="p">[]</span>
+                    <span class="nv">closing = </span><span class="s">&quot;.&quot;</span>
+                    <span class="nv">lastCap = </span><span class="kc">null</span>
+            <span class="k">else</span>
+                <span class="nv">closing = </span><span class="s">&quot;.&quot;</span>
+                
+        
+                
+        <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">char</span> <span class="k">in</span> <span class="nx">QUOTES</span><span class="p">)</span>
+            <span class="nv">closing = </span><span class="nx">char</span>
+
+        
+    <span class="nx">statements</span>
+    
+
+
+
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;Evaluating: run.coffee&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-50">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-50">&#182;</a>               </div>               <h2>Program execution</h2>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">SECTION = </span><span class="s">&#39;run.coffee&#39;</span>
+
+<span class="nx">debug</span> <span class="s">&quot;&quot;&quot;&quot;JQ&quot; is assigned as:\n\t</span><span class="si">#{</span><span class="nx">JQ</span><span class="si">}</span><span class="s">&quot;&quot;&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-51">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-51">&#182;</a>               </div>               <p>We're finally back in jQuery-land.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">JQ</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span> <span class="o">-&gt;</span>
+    <span class="nx">debug</span> <span class="s">&#39;Document ready&#39;</span>
+    <span class="nx">debug</span> <span class="s">&#39;Inserting CSS&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-52">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-52">&#182;</a>               </div>               <ul>
+<li>Load the CSS.</li>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nb">document</span><span class="p">.</span><span class="nx">loadCSS</span><span class="p">(</span><span class="nx">JQUERY_UI_CSS</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-53">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-53">&#182;</a>               </div>               <ul>
+<li>Call the main "unwrap" function.</li>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">unwrap</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-54">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-54">&#182;</a>               </div>               <ul>
+<li>After the DOM has been traversed and modified, update some styles.</li>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">debug</span> <span class="s">&#39;Adding CSS styles&#39;</span>
+    <span class="nx">JQ</span><span class="p">(</span><span class="s">&#39;.true&#39;</span><span class="p">).</span><span class="nx">css</span> <span class="p">{</span><span class="nx">color</span><span class="o">:</span><span class="s">&#39;red&#39;</span><span class="p">,</span><span class="s">&#39;text-decoration&#39;</span><span class="o">:</span><span class="s">&#39;none&#39;</span><span class="p">,</span> <span class="nx">background</span><span class="o">:</span><span class="s">&#39;white&#39;</span><span class="p">}</span>
+    <span class="nx">JQ</span><span class="p">(</span><span class="s">&#39;.false&#39;</span><span class="p">).</span><span class="nx">css</span> <span class="p">{</span><span class="nx">color</span><span class="o">:</span><span class="s">&#39;#bbbbbb&#39;</span><span class="p">,</span><span class="s">&#39;text-decoration&#39;</span><span class="o">:</span><span class="s">&#39;none&#39;</span><span class="p">}</span>
+    <span class="nx">JQ</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">).</span><span class="nx">css</span> <span class="p">{</span><span class="s">&#39;text-decoration&#39;</span><span class="o">:</span><span class="s">&#39;none&#39;</span><span class="p">}</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

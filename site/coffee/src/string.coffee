@@ -1,15 +1,14 @@
-# ** Extensions to the `Node` class
+# ## Methods added to the `String` class
 SECTION = "string.coffee"
 
-"""Does this look like masthead or navigation?"""
-
+# Does this look like masthead or navigation?
 String::isNavLike = ->
     match = @match /head|breadcrumb|addthis|share|nav|mast|social|twitter|reddit|facebook|fb/i
     debug "Match: #{match}"
     if match then true else false
 
+# Tidy up entities, for when we rewrite text
 String::entities = ->
-    """Tidy up entities, for when we rewrite text"""    
     replace = (char) -> 
         switch char
             when '&' then '&amp;'
@@ -18,17 +17,16 @@ String::entities = ->
             when '<' then '&lt;'
     @.replace(/[&\"><]/, (a) -> replace(a))
 
+# Get rid of spaces
 String::clean = ->
-    """Get rid of spaces"""        
     @.replace(/\s+/g, ' ').replace(/\n+/g, ' ').replace(/^\s*$/,'').entities()
 
-# Using the table of abbreviations look up an
+# **String::toAbbreviation**—using the table of abbreviations look up an
 # abbreviation.
 #
-# @param left The left word boundary character
-# @param word The captured term
-# @param right The right word boundary
-
+# - `left`—the left word boundary character.
+# - `word`—the captured term.
+# - `right`—the right word boundary.
 String::toAbbreviation = (left, word, right) ->
     "#{left}#{SHORTENABLE_WORDS[word.toLowerCase()]}#{right}"
 
@@ -59,21 +57,31 @@ String::textToLink = ->
 
 String::compareLength = (comparison) ->
     @length < comparison
-    
-String::extractStatements = ->
-    """
-    Parse out "statements"; i.e. sentences, from flattened text.
 
-    This is not a parser, just a fairly dull matcher that meets the
-    use case. Lots of room for more smarts.
-    """
+
+# **String::enTweeten()**
+# 
+String::enTweeten = ->
+    length = @length
+    short = length < 120
+    span = JQ("""<span class="socialtext #{short}"></span>""")
+    span.data('length', length)
+    span.html("""#{@}""")
+    span.attr('title',@)
+    span
+
+
+# **String::getStatements()**—Parse out "statements"; i.e. sentences,
+# from flattened text. This is not a parser, just a fairly dull
+# matcher that meets the use case. Lots of room for more smarts.
+            
+String::getStatements = ->
     chars = []
     current = []
     statements = []
     closing = "."
     lastCap = null
-    
-    chars = @split("")
+    chars = @.split("")
     while chars.length > 0
         char = chars.shift()
         current.push(char)                    
@@ -105,6 +113,5 @@ String::extractStatements = ->
             closing = char
 
         
-
     statements
     

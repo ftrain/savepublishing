@@ -1,42 +1,76 @@
-# * SavePublishing
+# # SavePublishing Bookmarklet
+# Version v0.4a
+# 
+# ## License
+# This code is released under the MIT License
+# and is available on GitHub here:
+# 
+# [https://github.com/ftrain/savepublishing](https://github.com/ftrain/savepublishing)
 #
+# ## Introduction
+# 
 # This is a simple application, invoked via bookmarklet and executed
-# against the currently loaded DOM on a page, that does the following:
+# against the currently loaded DOM on a page, that finds many of the
+# Tweetable elements on a page and turns them into tweet links.
 #
-# 1. Traverses the DOM and determines which elements are most likely
-# to contain actual narrative text content.
+# To accomplish this the code:
 #
-# 2. Extracts the text from those elements, removing formatting, and
-# concatenating them into single text nodes.
+# 1. Traverses the DOM and determines (using a very simple method)
+# which elements are most likely to contain actual narrative text
+# content.
+#
+# 2. Extracts the text from those elements, removing certain types of
+# formatting like hrefs and links, and concatenating them into single
+# text nodes.
 #
 # 3. Cuts that text into lengths, optionally shortening the text.
 #
-# 4. Upon clicking, pops up a window to Tweet that text.
+# 4. Upon clicking on selected text, sends the link to Twitter via web
+# intent.
 # 
-# ** Application Variables
+# ## Application Variables
 # 
-# These are "global" in the scope of the application (CoffeeScript
-# executes within a closure).
-
-# This COBOLesque SECTION variable appears on the top of each file to
-# ease debugging post-transform.
+# There are a number of variables that are "global" in the scope of
+# the application (CoffeeScript executes within a closure).
+#
+# ## Basic initialization variables and utility functions
 # 
-# ** Basic initialization and utility functions
+# **SECTION**—the COBOLesque `SECTION` variable appears on the top of
+# each coffeescript file. When the `*.coffee` files are concatenated
+# for expansion into JavaScript this eases debugging.
+# 
 SECTION = "init.coffee"
 
-# Utility debug function
+# **debug**—utility debug function
 DEBUG   = true
 debug   = (message) ->
     console.log """#{SECTION}: #{message}""" if DEBUG
 
-# Convenience globals to ease readability of code as we dance around
-# the DOM.
+# **ELEMENT_NODE**, etc.—convenience globals to ease readability of
+# code as we dance around the DOM.
+# 
 ELEMENT_NODE = 1
 TEXT_NODE = 3
 COMMENT_NODE = 8
-NAV_RATIO = 2
 
-# The source for the CSS for jQuery UI
+# **MIN\_LINK\_RATIO**—describes the minimum ratio of all the text in a
+# text block to the amount of text contained within links (`<a
+# href...`). Thus:
+#
+# `<a href="http://example.com">This</a>`
+#
+# by itself has a LINK_RATIO ratio 4/4, reducing to 1. Whereas
+#
+# `<a href="http://example.com">This</a> is quite the sentence.`
+#
+# has a LINK_RATIO ratio 27/4, or 6.75.
+#
+# We can use this ratio to make smarter guesses about whether a piece
+# of content contains narrative content, or if it contains only links.
+# 
+MIN_LINK_RATIO = 2
+
+# **JQUERY\_UI\_CSS**—The source for the CSS for jQuery UI
 JQUERY_UI_CSS = 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/themes/ui-lightness/jquery-ui.css'
 
 # This code runs all over the place, on top of already propagated,
@@ -44,14 +78,14 @@ JQUERY_UI_CSS = 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/themes/ui
 # defined.
 #
 # After much futzing (there was much futzing) it seems that the least
-# painful approach is to load a fresh jQuery when the bookmarklet is
-# invoked then pass it into the SavePublishing function as the
-# variable JQ.
+# painful, calmest, most obvious approach is to load a fresh jQuery
+# when the bookmarklet is invoked then pass it into the SavePublishing
+# function as the variable JQ.
 #
-# For whatever it's worth, this also serves as a sort of
-# anti-mnemonic--it reminds you that you are messing around in someone
-# else's DOM, and should keep that in mind because who knows what in
-# God's green earth they've gone and got up to.
+# This also serves as a sort of anti-mnemonic--it reminds you that you
+# are messing around in someone else's DOM, and should keep that in
+# mind because who knows what in God's green earth they've gone and
+# got up to.
  
 JQ = window.JQ
 
@@ -61,16 +95,18 @@ else
     debug """"$" is not assigned"""
 
 
+# ## Document types
+#
 # Various classes of documents that we wish to ignore (or not) based on style, name, etc.
 BLOCKS                   = ['block', 'inline-block', 'table-cell', 'table-caption', 'list-item', 'none']
 BLOCK_ELEMENTS           = ['H1','H2','H3','H4','H5','H6', 'BODY']
-TEXTUAL_ELEMENTS         = ['SPAN','A','EM','B','STRONG','I']
-IRRELEVANT_ELEMENTS      = ['IMG','OBJECT','EMBED','IFRAME','SCRIPT','INPUT','FORM','HEAD','H1','H2']
+TEXTISH_ELEMENTS         = ['SPAN','A','EM','B','STRONG','I','TT','ABBR','ACRONYM','BIG','CITE','CODE','DFN','LABEL','Q','SAMP','SMALL','SUB','SUP','VAR','DEL','INS', 'BR']
+IRRELEVANT_ELEMENTS      = ['IMG','OBJECT','EMBED','IFRAME','SCRIPT','INPUT','FORM','HEAD','H1','H2','STYLE','LINK']
 NAV_CONTAINING_ELEMENTS  = ['DIV','UL','OL','LI','P']
 PUNCTUATION              = ['.','?','!']
 QUOTES                   = ['"', '“', '”'] 
 
-# **SHORTENABLE_WORDS** is A list of words that can be abbreviated,
+# **SHORTENABLE_WORDS**—a list of words that can be abbreviated,
 # should we go that route.
 # 
 SHORTENABLE_WORDS        =
@@ -221,8 +257,12 @@ SHORTENABLE_WORDS        =
     "Puerto Rico": "PR"
     "Virgin Islands": "VI"
 
-# **WORD_REGEX** takes all the `SHORTENABLE_WORDS` and turns them into
-# a regex
+# **WORD_REGEX** is a regular expression that takes all of the
+# `SHORTENABLE_WORDS` in that variable and turns them into a single
+# regex that will replace the keys with their values.
+#
+# The terms are sorted by length, longest first, to improve the
+# quality of the matcher.
 # 
 WORD_REGEX               = new RegExp("(\\b)(" + \
     (key for key of SHORTENABLE_WORDS)

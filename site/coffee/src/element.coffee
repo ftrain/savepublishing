@@ -1,15 +1,15 @@
-# Extensions to the `Element` class
+# Methods added to the `Element` class
 SECTION = 'element.coffee'
 
 # Convert an element to text
-Element::toText = ->
+Element::toString = ->
     text = JQ(@).text()
-    n = @.nodeName
-    
-    if n is 'B' or n is 'STRONG'
-        "*#{text}*"
+    n = @nodeName
 
-    else if n is 'EM' or n is 'I'
-        "_#{text}_"
+    rtext = text
+    rtext = "*#{text}*" if n in ['B', 'STRONG']
+    rtext = "_#{text}_" if n in ['EM', 'I']
+    rtext = "[#{text}]" if n in ['A']
+    rtext = "<br/>" if n is 'BR'
 
-    text
+    rtext
