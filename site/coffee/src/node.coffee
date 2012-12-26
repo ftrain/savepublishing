@@ -80,6 +80,33 @@ Node::isLinkish    = ->
 # Returns boolean. 
 Node::isBlockLike  = -> JQ(@).css('display')? in BLOCKS or @nodeName in BLOCK_ELEMENTS
 
+# Convert an element to text
+Node::toText = ->
+    debug "#{@nodeType}::#{@nodeName}"
+    if @nodeType is ELEMENT_NODE
+        debug "- ELEMENT_NODE"        
+        text = JQ(@).text()
+        n = @nodeName
+
+        rtext = text
+        if n is 'A'
+            rtext = "[A#{text}]" 
+        else if n in ['B', 'STRONG']
+            rtext = "*#{text}*"
+        else if n in ['EM', 'I']        
+            rtext = "_#{text}_" 
+        else if n is 'BR'
+            rtext = "<br/>"
+        
+        return '[Element: '+rtext+']'            
+
+    else
+        debug "- OTHER"        
+        return '[Text: '+@nodeValue+']'    
+
+    
+
+
 # Useful things
 # 
 # Returns boolean.  
@@ -97,7 +124,8 @@ Node::isUseful     = ->
 """        
     not(@isWhitespace() or @isComment() or @isIrrelevant() or @isLinkish())
 
-# **Node::emptyNode**—"empty out" the content in a node, leaving it within the DOM.
+# **Node::emptyNode**—"empty out" the content in a node, leaving it
+# within the DOM.
 #
 # When concatenating text nodes into single text node the issue
 # remains: What to do with the remaining tags? If you simply strip
