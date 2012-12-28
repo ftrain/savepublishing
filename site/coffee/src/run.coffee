@@ -23,7 +23,7 @@ JQ(document).ready ->
         .mouseleave(-> JQ(@).css {background:'white'})
         
 
-    JQ('.false').css {color:'#bbbbbb','border-bottom':'none','text-decoration':'none'}
+    JQ('.false').css {color:'#aaaaaa','border-bottom':'none','text-decoration':'none'}
 
     JQ('a').css {'text-decoration':'none'}
 
@@ -37,13 +37,13 @@ JQ(document).ready ->
     boxStyles =
 # Positioning
         'width':'600px'
-        'height':'75px'
+        'height':'55px'
         'margin-left':'auto'
         'margin-right':'auto'
         'padding':'10px 0px 0px 10px'
         'text-align':'left'
-        'font-size':'12pt'
-        'line-height':'1.25em'        
+        'font-size':'14px'
+        'line-height':'20px'        
         
 # Color
         'color':'#6AC'
@@ -62,13 +62,13 @@ JQ(document).ready ->
         '-moz-box-shadow':'3px 3px 9px #888888'
         '-webkit-box-shadow':'1px 0px 15px rgba(0, 0, 0, 0.2)'
         'box-shadow':'3px 3px 9px #888888'
-        '-ms-filter':"progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#aaaaaa')"
-        'filter': "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#aaaaaa')"
+        '-ms-filter':"progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#888888')"
+        'filter': "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#888888')"
 
-    spTitle = JQ("""<div class="sp-title"><a href="http://savepublishing.com">SavePublishing.com</a> v.&alpha;</div>""") \
+    spTitle = JQ("""<div class="sp-title"><a href="http://savepublishing.com">SavePublishing.com</a> version 0&alpha;</div>""") \
         .css({'font-size':'18px'})
         
-    spSubTitle = JQ("""<div class="sp-subtitle">A bookmarklet by <a href="https://twitter.com/intent/user?screen_name=ftrain" style="color:red">@ftrain</a> &middot; <a href="https://twitter.com/intent/user?screen_name=ftrain" style="color:red">follow me</a> &middot; <a href="http://github.com/ftrain/savepublishing">get the source</a> &middot; <a href="mailto:ford+savepublishing@ftrain.com">report bugs</a></div>""") \
+    spSubTitle = JQ("""<div class="sp-subtitle">A bookmarklet by <a href="https://twitter.com/intent/user?screen_name=ftrain" style="color:red">@ftrain</a> &middot; <a href="https://twitter.com/intent/user?screen_name=ftrain" style="color:red">follow on Twitter</a> &middot; <a href="http://github.com/ftrain/savepublishing">get the source</a> &middot; <a href="mailto:ford+savepublishing@ftrain.com">report bugs</a> &middot; <a href="http://savepublishing.com/credits.html">credits</a></div>""") \
         .css({'font-size':'14px'})
 
     
@@ -89,5 +89,5 @@ JQ(document).ready ->
         
     JQ('body')                         \
         .append(savePublishingWrapper) \
-        .css({'padding-top':'100px'})
+        .css({'margin-top':'100px'})
 

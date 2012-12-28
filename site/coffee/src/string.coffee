@@ -68,8 +68,10 @@ String::enTweeten = ->
     [orig, before, after] = @match(/^([\s\n\r]*)(.+)/)
     length = after.length
     short = length < 120
-    href = encodeURI """text=“#{after}”&url=#{location.href}"""
-    span = JQ("""<span class="socialtext">#{before}<a href="https://twitter.com/intent/tweet?#{href}" class="socialtext #{short}">#{@}</a></span>""")
+    afterNoBR = after.replace(/__BR__/g,'')
+    afterWithBR = after.replace(/__BR__/g,'<br/>')    
+    href = encodeURI """text=“#{afterNoBR}”&url=#{location.href}"""
+    span = JQ("""<span class="socialtext">#{before}<a href="https://twitter.com/intent/tweet?#{href}" class="socialtext #{short}">#{afterWithBR}</a></span>""")
     span.data('length', length)
     span.attr('title', length)
     span
@@ -112,7 +114,7 @@ String::getStatements = ->
             # "“I have to be very honest,” he said."
             prevIsComma = /,/.test(current[current.length - 2])
 
-            console.log(char, current.join(""), isContinuation, isVeryShort, isCloseToCap, lastCapDelta, lastCap, currentLast, nextIsText, prevIsComma)
+#            console.log(char, current.join(""), isContinuation, isVeryShort, isCloseToCap, lastCapDelta, lastCap, currentLast, nextIsText, prevIsComma)
 
             doBreak = not(isContinuation or isVeryShort or isCloseToCap or nextIsText or prevIsComma)
             if chars.length is 0 or doBreak

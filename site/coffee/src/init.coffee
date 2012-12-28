@@ -101,9 +101,9 @@ else
 BLOCKS                   = ['block', 'inline-block', 'table-cell', 'table-caption', 'list-item', 'none']
 BLOCK_ELEMENTS           = ['H1','H2','H3','H4','H5','H6', 'BODY']
 TEXTISH_ELEMENTS         = ['SPAN','EM','B','STRONG','I','TT','ABBR','ACRONYM','BIG','CITE','CODE','DFN','LABEL','Q','SAMP','SMALL','SUB','SUP','VAR','DEL','INS', 'BR']
-IRRELEVANT_ELEMENTS      = ['IMG','OBJECT','EMBED','IFRAME','SCRIPT','INPUT','FORM','HEAD','H1','H2','STYLE','LINK']
+IRRELEVANT_ELEMENTS      = ['IMG','OBJECT','EMBED','IFRAME','SCRIPT','INPUT','FORM','HEAD','H1','H2','H3','H4','H5','H6','STYLE','LINK']
 NAV_CONTAINING_ELEMENTS  = ['DIV','UL','OL','LI','P']
-PUNCTUATION              = ['.','?','!']
+PUNCTUATION              = ['.','?','!','(',')','[',']','{','}']
 QUOTES                   = ['"', '“', '”'] 
 
 # **SHORTENABLE_WORDS**—a list of words that can be abbreviated,

@@ -1,15 +1,23 @@
 # ## Methods added to the `Node` class
 SECTION = 'node.coffee'
-    
-# **Node::isTextish()**—is this raw text or an inline element like `<a>` or `<i>`?
+
+# **Node::containsElements()**—checks if a given node contains elements
+#
+#  Returns boolean.    
+Node::containsElements = -> true in (node.nodeType is ELEMENT_NODE for node in @childNodes)
+
+# **Node::isGoodLink()**—TKTK
 #
 #  Returns boolean.
 Node::isGoodLink    = ->
     (@nodeType is ELEMENT_NODE) \
     and (@nodeName is 'A')      \
     and (@isNavLike() is false) \
-    and not true in (node.nodeType is ELEMENT_NODE for node in @childNodes)
-    
+    and (@containsElements() is false)
+
+# **Node::isTextish()**—is this raw text or an inline element like `<a>` or `<i>`?
+#
+#  Returns boolean.        
 Node::isTextish     = -> @nodeType is TEXT_NODE \
     or (@nodeName in TEXTISH_ELEMENTS) \
     or @isGoodLink()
@@ -20,18 +28,12 @@ Node::isTextish     = -> @nodeType is TEXT_NODE \
 Node::isElementish    = -> @nodeType is ELEMENT_NODE \
     and not(@nodeName in TEXTISH_ELEMENTS)
 
-# **Node::isFirstText()**—is this the first text in a set of textual nodes?
-# 
-# Returns boolean.
-Node::isFirstText  = -> @isTextish() # and not(@previousSibling?.isTextish())
-
 # **Node::isBR()**—is this a `<br>` or `<BR>` or `<br/>` or `<br      />` tag?
 # 
 # Returns boolean. 
 Node::isBR         = -> @isElementish() and @nodeName is 'BR'
 
 # ### Checking for irrelevant nodes
-
 # **Node::isIrrelevant()**
 # 
 # Returns boolean. 
@@ -50,9 +52,9 @@ Node::isWhitespace = -> (@nodeType is TEXT_NODE) and (/^[\t\n\r ]+$/.test(@data)
 # **Node::isNavLike()**—now we can check to see if an element is navlike or not.
 # 
 # Returns boolean. 
-Node::isNavLike    = -> (@nodeName in NAV_CONTAINING_ELEMENTS) \
-    and (@className.isNavLike() \
-    or @id.isNavLike())
+Node::isNavLike    = ->
+    (@nodeName in NAV_CONTAINING_ELEMENTS) \
+    and (@className.isNavLike() or @id.isNavLike())
 
 # **Node::getAllChars()**—given a block of text, count the number of
 # characters that appear within.
@@ -86,8 +88,8 @@ Node::getLinkRatio    = ->
         all/link
     
 Node::isLinkish    = ->
-    rat = @getLinkRatio()
-    @isNavLike() and (MIN_LINK_RATIO > rat)
+    ratio = @getLinkRatio()
+    MIN_LINK_RATIO > ratio
     
 # Block things
 # 
@@ -109,7 +111,7 @@ Node::toText = ->
             rtext = "_#{text}_" 
 
         else if n is 'BR'
-            rtext = "<br/>"
+            rtext = "__BR__"
 
         rtext = rtext.clean()
         rtext = null if rtext.isWhitespace()
@@ -122,18 +124,21 @@ Node::toText = ->
 # 
 # Returns boolean.  
 Node::isUseful     = ->
-#     debug """
-# \tnodename:     #{@nodeName}
-# \tnodetype:     #{@nodeType}
-# \tisElement:    #{@nodeType is ELEMENT_NODE}
-# \tisIrrelevant: #{@isIrrelevant()}
-# \tisNavLike:    #{@isNavLike()}
-# \tisLinkish:    #{@isLinkish()}
-# \tisTextish:    #{@isTextish()}
-# \tisWhitespace: #{@isWhitespace()}
-# \tisComment:    #{@isComment()}
-# """        
-    not(@isWhitespace() or @isComment() or @isIrrelevant() or @isLinkish() or @isNavLike())
+    debug """
+
+\tnodename......#{@nodeName}
+\tclassName.....#{@className}
+\tid............#{@id}
+\tnodetype......#{@nodeType}
+\tisElement.....#{@nodeType is ELEMENT_NODE}
+\tisIrrelevant..#{@isIrrelevant()}
+\tisNavLike.....#{@isNavLike()}
+\tisLinkish.....#{@isLinkish()}
+\tisTextish.....#{@isTextish()}
+\tisWhitespace..#{@isWhitespace()}
+\tisComment.....#{@isComment()}
+"""
+    not(@isWhitespace() or @isComment() or @isIrrelevant() or @isLinkish() or @isGoodLink())
     
 
 # **Node::emptyNode**—"empty out" the content in a node, leaving it
@@ -168,17 +173,8 @@ Node::unwrap = ->
         if node.isTextish()
             texts.push(node)
         else
-            JQ(texts[0]).append(texts.merge())
-            texts = []            
+            JQ(texts[0]).replaceWith(texts.merge())
+            texts = []
             node.unwrap() if node.isUseful()
-
+                
     JQ(texts[0]).replaceWith(texts.merge())
-
-
-    
-
-
-
-        
-            
-        

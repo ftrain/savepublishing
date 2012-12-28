@@ -39,11 +39,11 @@
 
   TEXTISH_ELEMENTS = ['SPAN', 'EM', 'B', 'STRONG', 'I', 'TT', 'ABBR', 'ACRONYM', 'BIG', 'CITE', 'CODE', 'DFN', 'LABEL', 'Q', 'SAMP', 'SMALL', 'SUB', 'SUP', 'VAR', 'DEL', 'INS', 'BR'];
 
-  IRRELEVANT_ELEMENTS = ['IMG', 'OBJECT', 'EMBED', 'IFRAME', 'SCRIPT', 'INPUT', 'FORM', 'HEAD', 'H1', 'H2', 'STYLE', 'LINK'];
+  IRRELEVANT_ELEMENTS = ['IMG', 'OBJECT', 'EMBED', 'IFRAME', 'SCRIPT', 'INPUT', 'FORM', 'HEAD', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'STYLE', 'LINK'];
 
   NAV_CONTAINING_ELEMENTS = ['DIV', 'UL', 'OL', 'LI', 'P'];
 
-  PUNCTUATION = ['.', '?', '!'];
+  PUNCTUATION = ['.', '?', '!', '(', ')', '[', ']', '{', '}'];
 
   QUOTES = ['"', '“', '”'];
 
@@ -259,18 +259,22 @@
 
   SECTION = 'node.coffee';
 
-  Node.prototype.isGoodLink = function() {
-    var node, _ref;
-    return (this.nodeType === ELEMENT_NODE) && (this.nodeName === 'A') && (this.isNavLike() === false) && (_ref = !true, __indexOf.call((function() {
-      var _i, _len, _ref1, _results;
-      _ref1 = this.childNodes;
+  Node.prototype.containsElements = function() {
+    var node;
+    return __indexOf.call((function() {
+      var _i, _len, _ref, _results;
+      _ref = this.childNodes;
       _results = [];
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        node = _ref1[_i];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        node = _ref[_i];
         _results.push(node.nodeType === ELEMENT_NODE);
       }
       return _results;
-    }).call(this), _ref) >= 0);
+    }).call(this), true) >= 0;
+  };
+
+  Node.prototype.isGoodLink = function() {
+    return (this.nodeType === ELEMENT_NODE) && (this.nodeName === 'A') && (this.isNavLike() === false) && (this.containsElements() === false);
   };
 
   Node.prototype.isTextish = function() {
@@ -281,10 +285,6 @@
   Node.prototype.isElementish = function() {
     var _ref;
     return this.nodeType === ELEMENT_NODE && !(_ref = this.nodeName, __indexOf.call(TEXTISH_ELEMENTS, _ref) >= 0);
-  };
-
-  Node.prototype.isFirstText = function() {
-    return this.isTextish();
   };
 
   Node.prototype.isBR = function() {
@@ -335,9 +335,9 @@
   };
 
   Node.prototype.isLinkish = function() {
-    var rat;
-    rat = this.getLinkRatio();
-    return this.isNavLike() && (MIN_LINK_RATIO > rat);
+    var ratio;
+    ratio = this.getLinkRatio();
+    return MIN_LINK_RATIO > ratio;
   };
 
   Node.prototype.isBlockLike = function() {
@@ -358,7 +358,7 @@
       } else if (n === 'EM' || n === 'I') {
         rtext = "_" + text + "_";
       } else if (n === 'BR') {
-        rtext = "<br/>";
+        rtext = "__BR__";
       }
       rtext = rtext.clean();
       if (rtext.isWhitespace()) {
@@ -371,7 +371,8 @@
   };
 
   Node.prototype.isUseful = function() {
-    return !(this.isWhitespace() || this.isComment() || this.isIrrelevant() || this.isLinkish() || this.isNavLike());
+    debug("\n\tnodename......" + this.nodeName + "\n\tclassName....." + this.className + "\n\tid............" + this.id + "\n\tnodetype......" + this.nodeType + "\n\tisElement....." + (this.nodeType === ELEMENT_NODE) + "\n\tisIrrelevant.." + (this.isIrrelevant()) + "\n\tisNavLike....." + (this.isNavLike()) + "\n\tisLinkish....." + (this.isLinkish()) + "\n\tisTextish....." + (this.isTextish()) + "\n\tisWhitespace.." + (this.isWhitespace()) + "\n\tisComment....." + (this.isComment()));
+    return !(this.isWhitespace() || this.isComment() || this.isIrrelevant() || this.isLinkish() || this.isGoodLink());
   };
 
   Node.prototype.emptyNode = function() {
@@ -393,7 +394,7 @@
       if (node.isTextish()) {
         texts.push(node);
       } else {
-        JQ(texts[0]).append(texts.merge());
+        JQ(texts[0]).replaceWith(texts.merge());
         texts = [];
         if (node.isUseful()) {
           node.unwrap();
@@ -479,12 +480,14 @@
   };
 
   String.prototype.enTweeten = function() {
-    var after, before, href, length, orig, short, span, _ref;
+    var after, afterNoBR, afterWithBR, before, href, length, orig, short, span, _ref;
     _ref = this.match(/^([\s\n\r]*)(.+)/), orig = _ref[0], before = _ref[1], after = _ref[2];
     length = after.length;
     short = length < 120;
-    href = encodeURI("text=“" + after + "”&url=" + location.href);
-    span = JQ("<span class=\"socialtext\">" + before + "<a href=\"https://twitter.com/intent/tweet?" + href + "\" class=\"socialtext " + short + "\">" + this + "</a></span>");
+    afterNoBR = after.replace(/__BR__/g, '');
+    afterWithBR = after.replace(/__BR__/g, '<br/>');
+    href = encodeURI("text=“" + afterNoBR + "”&url=" + location.href);
+    span = JQ("<span class=\"socialtext\">" + before + "<a href=\"https://twitter.com/intent/tweet?" + href + "\" class=\"socialtext " + short + "\">" + afterWithBR + "</a></span>");
     span.data('length', length);
     span.attr('title', length);
     return span;
@@ -512,7 +515,6 @@
         isVeryShort = currentLast < 15;
         nextIsText = /\w/.test(chars != null ? chars[0] : void 0);
         prevIsComma = /,/.test(current[current.length - 2]);
-        console.log(char, current.join(""), isContinuation, isVeryShort, isCloseToCap, lastCapDelta, lastCap, currentLast, nextIsText, prevIsComma);
         doBreak = !(isContinuation || isVeryShort || isCloseToCap || nextIsText || prevIsComma);
         if (chars.length === 0 || doBreak) {
           if (current.length > 0) {
@@ -563,7 +565,7 @@
       });
     });
     JQ('.false').css({
-      color: '#bbbbbb',
+      color: '#aaaaaa',
       'border-bottom': 'none',
       'text-decoration': 'none'
     });
@@ -578,13 +580,13 @@
     };
     boxStyles = {
       'width': '600px',
-      'height': '75px',
+      'height': '55px',
       'margin-left': 'auto',
       'margin-right': 'auto',
       'padding': '10px 0px 0px 10px',
       'text-align': 'left',
-      'font-size': '12pt',
-      'line-height': '1.25em',
+      'font-size': '14px',
+      'line-height': '20px',
       'color': '#6AC',
       'background-color': 'white',
       'font-family': '"Gill Sans","Helvetica Neue","Arial",sans-serif',
@@ -598,19 +600,19 @@
       '-moz-box-shadow': '3px 3px 9px #888888',
       '-webkit-box-shadow': '1px 0px 15px rgba(0, 0, 0, 0.2)',
       'box-shadow': '3px 3px 9px #888888',
-      '-ms-filter': "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#aaaaaa')",
-      'filter': "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#aaaaaa')"
+      '-ms-filter': "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#888888')",
+      'filter': "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#888888')"
     };
-    spTitle = JQ("<div class=\"sp-title\"><a href=\"http://savepublishing.com\">SavePublishing.com</a> v.&alpha;</div>").css({
+    spTitle = JQ("<div class=\"sp-title\"><a href=\"http://savepublishing.com\">SavePublishing.com</a> version 0&alpha;</div>").css({
       'font-size': '18px'
     });
-    spSubTitle = JQ("<div class=\"sp-subtitle\">A bookmarklet by <a href=\"https://twitter.com/intent/user?screen_name=ftrain\" style=\"color:red\">@ftrain</a> &middot; <a href=\"https://twitter.com/intent/user?screen_name=ftrain\" style=\"color:red\">follow me</a> &middot; <a href=\"http://github.com/ftrain/savepublishing\">get the source</a> &middot; <a href=\"mailto:ford+savepublishing@ftrain.com\">report bugs</a></div>").css({
+    spSubTitle = JQ("<div class=\"sp-subtitle\">A bookmarklet by <a href=\"https://twitter.com/intent/user?screen_name=ftrain\" style=\"color:red\">@ftrain</a> &middot; <a href=\"https://twitter.com/intent/user?screen_name=ftrain\" style=\"color:red\">follow on Twitter</a> &middot; <a href=\"http://github.com/ftrain/savepublishing\">get the source</a> &middot; <a href=\"mailto:ford+savepublishing@ftrain.com\">report bugs</a> &middot; <a href=\"http://savepublishing.com/credits.html\">credits</a></div>").css({
       'font-size': '14px'
     });
     savePublishingDiv = JQ("<div id=\"savepublishing\"/>").append(spTitle).append(spSubTitle).css(boxStyles);
     savePublishingWrapper = JQ("<div id=\"savepublishing-wrapper\"/>").append(savePublishingDiv).css(wrapperStyles);
     return JQ('body').append(savePublishingWrapper).css({
-      'padding-top': '100px'
+      'margin-top': '100px'
     });
   });
 
