@@ -2,4 +2,4 @@
 .DS_Store
 .#*
 logs/*
-site/coffee/node_modules
+htdocs/coffee/node_modules
