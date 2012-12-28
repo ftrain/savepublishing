@@ -1,17 +1,15 @@
 # ## Methods added to the `Window` class
 SECTION = "array.coffee"
 
-# **Array::merge()**
+# **Array::merge()**—an array of `node`s.
 # 
 Array::merge = ->
-    [first, rest...] = @
-
-    strings = (node.toString() for node in @)
+    strings = (node.toText() for node in @)
     # Empty everything out
     node.emptyNode() for node in @
-    text = strings.join(" ")
-    spans = JQ("""<span class="socialtext-set"/>""")
+    text = strings.join("")
+    spans = JQ("""<span class="socialtext-set"></span>""")
     for tweet in text.getStatements()
-        spans.append(tweet.enTweeten())
-    JQ(first).replaceWith(spans)
-    []
+        t = tweet.enTweeten()
+        spans.append(t)
+    spans

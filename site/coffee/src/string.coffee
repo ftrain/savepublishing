@@ -4,22 +4,28 @@ SECTION = "string.coffee"
 # Does this look like masthead or navigation?
 String::isNavLike = ->
     match = @match /head|breadcrumb|addthis|share|nav|mast|social|twitter|reddit|facebook|fb/i
-    debug "Match: #{match}"
     if match then true else false
 
 # Tidy up entities, for when we rewrite text
-String::entities = ->
+String::addXMLEntities = ->
     replace = (char) -> 
         switch char
             when '&' then '&amp;'
             when '"' then '&quot;'
             when '>' then '&gt;'
             when '<' then '&lt;'
-    @.replace(/[&\"><]/, (a) -> replace(a))
+    @replace(/[&\"><]/g, (a) -> replace(a))
 
+String::shrinkSpaces = -> @replace(/\s\s+/g, ' ')
+
+String::stripNewlines = -> @replace(/[\n\r]+/g, ' ')
+
+String::emptyWhitespace = -> @replace(/^[\s\r]*$/,'')
+        
 # Get rid of spaces
-String::clean = ->
-    @.replace(/\s+/g, ' ').replace(/\n+/g, ' ').replace(/^\s*$/,'').entities()
+String::clean = -> @stripNewlines().emptyWhitespace().shrinkSpaces().addXMLEntities()
+
+String::isWhitespace = -> /^[\t\n\r ]+$/.test(@)
 
 # **String::toAbbreviation**—using the table of abbreviations look up an
 # abbreviation.
@@ -51,25 +57,22 @@ String::squeeze = ->
     .replace(RegExp(" have", "g"), "'ve")
     .replace(/(1[0-9]|20)/g, (a) -> "&#" + (parseInt(a) + 9311) + ";" )
 
-String::textToLink = ->
-    # TK Regexp here to parcel out spaces
-    JQ("""<a href="http://twitter.com#{encodeURI(@)}">#{@}#</a>""")
-
 String::compareLength = (comparison) ->
     @length < comparison
 
-
+    
 # **String::enTweeten()**
-# 
+#
+# Returns node
 String::enTweeten = ->
     length = @length
     short = length < 120
-    span = JQ("""<span class="socialtext #{short}"></span>""")
+    href = encodeURI """text=“#{(@)}”&url=#{location.href}"""
+    span = JQ("""<a href="https://twitter.com/intent/tweet?#{href}" class="socialtext #{short}"/>""")
     span.data('length', length)
     span.html("""#{@}""")
     span.attr('title',@)
     span
-
 
 # **String::getStatements()**—Parse out "statements"; i.e. sentences,
 # from flattened text. This is not a parser, just a fairly dull
@@ -88,30 +91,40 @@ String::getStatements = ->
         currentLast = current.length - 1
         lastCap = currentLast if /[A-Z]/.test(char)
 
-        if (char in QUOTES and closing in QUOTES) or
-           (char in PUNCTUATION and closing in PUNCTUATION) or
-           (chars.length is 0)
-            # "Great news," he said.
+        # This needs to be much smarter
+        if (char in QUOTES and closing in QUOTES) \
+        or (char in PUNCTUATION and closing in PUNCTUATION) \
+        or (chars.length is 0)
+
             isContinuation = (/\s/.test(chars?[0]) and /[a-z]/.test(chars?[1]))
+
             lastCapDelta = if lastCap then currentLast - lastCap else null
-            isCloseToCap = (lastCapDelta < 5)
+
+            # "I am calling you from the U.S.A."
+            isCloseToCap = (lastCapDelta < 4)
+
+            # "I cried."            
             isVeryShort = (currentLast < 15)
-            doBreak = not(isContinuation or isVeryShort or isCloseToCap)
-            
+
+            # "The time is 10 p.m., so there are two hours to go."
+            nextIsText = /\w/.test(chars?[0])
+
+            # "“I have to be very honest,” he said."
+            prevIsComma = /,/.test(current[current.length - 2])
+
+            doBreak = not(isContinuation or isVeryShort or isCloseToCap or nextIsText or prevIsComma)
             if chars.length is 0 or doBreak
                 if current.length > 0
-                    statements.push current.join("")
+                    text = current.join("")
+                    if not(text.isWhitespace())
+                        statements.push(current.join(""))
                     current = []
                     closing = "."
                     lastCap = null
             else
                 closing = "."
                 
-        
-                
         else if (char in QUOTES)
             closing = char
-
-        
     statements
     

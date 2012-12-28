@@ -4,8 +4,15 @@ SECTION = 'node.coffee'
 # **Node::isTextish()**—is this raw text or an inline element like `<a>` or `<i>`?
 #
 #  Returns boolean.
+Node::isGoodLink    = ->
+    (@nodeType is ELEMENT_NODE) \
+    and (@nodeName is 'A')      \
+    and (@isNavLike() is false) \
+    and not true in (node.nodeType is ELEMENT_NODE for node in @childNodes)
+    
 Node::isTextish     = -> @nodeType is TEXT_NODE \
-    or (@nodeName in TEXTISH_ELEMENTS)
+    or (@nodeName in TEXTISH_ELEMENTS) \
+    or @isGoodLink()
 
 # **Node::isElementish()**—is this an element that isn't just for formatting?
 # 
@@ -72,9 +79,16 @@ Node::getLinkChars = ->
 # Check if a nav element is mostly link text or not
 # 
 # Returns boolean. 
+Node::getLinkRatio    = ->
+    link = @getLinkChars()
+    if link > 0
+        all  = @getAllChars()
+        all/link
+    
 Node::isLinkish    = ->
-     @isNavLike() and (MIN_LINK_RATIO > (@getAllChars()/@getLinkChars()))
-
+    rat = @getLinkRatio()
+    @isNavLike() and (MIN_LINK_RATIO > rat)
+    
 # Block things
 # 
 # Returns boolean. 
@@ -82,47 +96,45 @@ Node::isBlockLike  = -> JQ(@).css('display')? in BLOCKS or @nodeName in BLOCK_EL
 
 # Convert an element to text
 Node::toText = ->
-    debug "#{@nodeType}::#{@nodeName}"
     if @nodeType is ELEMENT_NODE
-        debug "- ELEMENT_NODE"        
         text = JQ(@).text()
         n = @nodeName
 
         rtext = text
         if n is 'A'
-            rtext = "[A#{text}]" 
+            rtext = "#{text}" 
         else if n in ['B', 'STRONG']
             rtext = "*#{text}*"
         else if n in ['EM', 'I']        
             rtext = "_#{text}_" 
+
         else if n is 'BR'
             rtext = "<br/>"
-        
-        return '[Element: '+rtext+']'            
+
+        rtext = rtext.clean()
+        rtext = null if rtext.isWhitespace()
+        rtext
 
     else
-        debug "- OTHER"        
-        return '[Text: '+@nodeValue+']'    
+        @nodeValue
 
-    
-
-
-# Useful things
+# **Node::isUseful()**—TKTK
 # 
 # Returns boolean.  
 Node::isUseful     = ->
-    debug """
-\tnodename:     #{@nodeName}
-\tnodetype:     #{@nodeType}
-\tisElement:    #{@nodeType is ELEMENT_NODE}
-\tisIrrelevant: #{@isIrrelevant()}
-\tisNavLike:    #{@isNavLike()}
-\tisLinkish:    #{@isLinkish()}
-\tisTextish:    #{@isTextish()}
-\tisWhitespace: #{@isWhitespace()}
-\tisComment:    #{@isComment()}
-"""        
-    not(@isWhitespace() or @isComment() or @isIrrelevant() or @isLinkish())
+#     debug """
+# \tnodename:     #{@nodeName}
+# \tnodetype:     #{@nodeType}
+# \tisElement:    #{@nodeType is ELEMENT_NODE}
+# \tisIrrelevant: #{@isIrrelevant()}
+# \tisNavLike:    #{@isNavLike()}
+# \tisLinkish:    #{@isLinkish()}
+# \tisTextish:    #{@isTextish()}
+# \tisWhitespace: #{@isWhitespace()}
+# \tisComment:    #{@isComment()}
+# """        
+    not(@isWhitespace() or @isComment() or @isIrrelevant() or @isLinkish() or @isNavLike())
+    
 
 # **Node::emptyNode**—"empty out" the content in a node, leaving it
 # within the DOM.
@@ -156,10 +168,18 @@ Node::unwrap = ->
         if node.isTextish()
             texts.push(node)
         else
-            texts = texts.merge()
-            node.unwrap() if not(node.isIrrelevant())
+            JQ(texts[0]).append(texts.merge())
+            texts = []            
+            if node.isUseful()
+                node.unwrap()
 
-    texts.merge()            
+
+    JQ(texts[0]).replaceWith(texts.merge())
+
+
+    
+
+
 
         
             

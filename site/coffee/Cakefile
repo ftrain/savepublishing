@@ -4,12 +4,12 @@ fs     = require 'fs'
 appFiles  = [
     # omit src/ and .coffee to make the below lines a little shorter
     'init'
-    'window'
+#   'window'
     'document'
     'array'    
     'node'
-    'element'
-    'text'    
+#   'element'
+#   'text'    
     'string'
     'run'
 ]
