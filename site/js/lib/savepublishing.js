@@ -479,14 +479,14 @@
   };
 
   String.prototype.enTweeten = function() {
-    var href, length, short, span;
-    length = this.length;
+    var after, before, href, length, orig, short, span, _ref;
+    _ref = this.match(/^([\s\n\r]*)(.+)/), orig = _ref[0], before = _ref[1], after = _ref[2];
+    length = after.length;
     short = length < 120;
-    href = encodeURI("text=“" + this + "”&url=" + location.href);
-    span = JQ("<a href=\"https://twitter.com/intent/tweet?" + href + "\" class=\"socialtext " + short + "\"/>");
+    href = encodeURI("text=“" + after + "”&url=" + location.href);
+    span = JQ("<span class=\"socialtext\">" + before + "<a href=\"https://twitter.com/intent/tweet?" + href + "\" class=\"socialtext " + short + "\">" + this + "</a></span>");
     span.data('length', length);
-    span.html("" + this);
-    span.attr('title', this);
+    span.attr('title', length);
     return span;
   };
 
@@ -507,11 +507,12 @@
       }
       if ((__indexOf.call(QUOTES, char) >= 0 && __indexOf.call(QUOTES, closing) >= 0) || (__indexOf.call(PUNCTUATION, char) >= 0 && __indexOf.call(PUNCTUATION, closing) >= 0) || (chars.length === 0)) {
         isContinuation = /\s/.test(chars != null ? chars[0] : void 0) && /[a-z]/.test(chars != null ? chars[1] : void 0);
-        lastCapDelta = lastCap ? currentLast - lastCap : null;
+        lastCapDelta = lastCap > -1 ? currentLast - lastCap : null;
         isCloseToCap = lastCapDelta < 4;
         isVeryShort = currentLast < 15;
         nextIsText = /\w/.test(chars != null ? chars[0] : void 0);
         prevIsComma = /,/.test(current[current.length - 2]);
+        console.log(char, current.join(""), isContinuation, isVeryShort, isCloseToCap, lastCapDelta, lastCap, currentLast, nextIsText, prevIsComma);
         doBreak = !(isContinuation || isVeryShort || isCloseToCap || nextIsText || prevIsComma);
         if (chars.length === 0 || doBreak) {
           if (current.length > 0) {
@@ -540,7 +541,7 @@
   debug("\"JQ\" is assigned as:\n\t" + JQ);
 
   JQ(document).ready(function() {
-    var savePublishingDiv, savePublishingWrapper, spSubTitle, spTitle, styles;
+    var boxStyles, savePublishingDiv, savePublishingWrapper, spSubTitle, spTitle, wrapperStyles;
     debug('Document ready');
     debug('Inserting CSS');
     document.loadCSS(JQUERY_UI_CSS);
@@ -569,16 +570,21 @@
     JQ('a').css({
       'text-decoration': 'none'
     });
-    styles = {
+    wrapperStyles = {
       'z-index': 9999999,
       'position': 'fixed',
       'top': '10px',
-      'height': '120px',
-      'line-height': '200%',
+      'width': '100%'
+    };
+    boxStyles = {
       'width': '600px',
-      'margin': '0px',
+      'height': '75px',
+      'margin-left': 'auto',
+      'margin-right': 'auto',
       'padding': '10px 0px 0px 10px',
       'text-align': 'left',
+      'font-size': '12pt',
+      'line-height': '1.25em',
       'color': '#6AC',
       'background-color': 'white',
       'font-family': '"Gill Sans","Helvetica Neue","Arial",sans-serif',
@@ -595,21 +601,16 @@
       '-ms-filter': "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#aaaaaa')",
       'filter': "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#aaaaaa')"
     };
-    spTitle = JQ("<div class=\"sp-title\">SAVE PUBLISHING v.&alpha;</div>").css({
+    spTitle = JQ("<div class=\"sp-title\"><a href=\"http://savepublishing.com\">SavePublishing.com</a> v.&alpha;</div>").css({
       'font-size': '18px'
     });
-    spSubTitle = JQ("<div class=\"sp-subtitle\">A JAVASCRIPT BOOKMARKLET<br/>BY <a href=\"\">@FTRAIN</a></div>").css({
+    spSubTitle = JQ("<div class=\"sp-subtitle\">A bookmarklet by <a href=\"https://twitter.com/intent/user?screen_name=ftrain\" style=\"color:red\">@ftrain</a> &middot; <a href=\"https://twitter.com/intent/user?screen_name=ftrain\" style=\"color:red\">follow me</a> &middot; <a href=\"http://github.com/ftrain/savepublishing\">get the source</a> &middot; <a href=\"mailto:ford+savepublishing@ftrain.com\">report bugs</a></div>").css({
       'font-size': '14px'
     });
-    savePublishingDiv = JQ("<div id=\"savepublishing\"/>").append(spTitle).append(spSubTitle).css(styles);
-    savePublishingWrapper = JQ("<div id=\"savepublishing-wrapper\"/>").append(savePublishingDiv).css({
-      'margin-left': 'auto',
-      'margin-right': 'auto',
-      'width': '100%',
-      'text-align': 'center'
-    });
+    savePublishingDiv = JQ("<div id=\"savepublishing\"/>").append(spTitle).append(spSubTitle).css(boxStyles);
+    savePublishingWrapper = JQ("<div id=\"savepublishing-wrapper\"/>").append(savePublishingDiv).css(wrapperStyles);
     return JQ('body').append(savePublishingWrapper).css({
-      'padding-top': '200px'
+      'padding-top': '100px'
     });
   });
 

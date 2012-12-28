@@ -65,13 +65,13 @@ String::compareLength = (comparison) ->
 #
 # Returns node
 String::enTweeten = ->
-    length = @length
+    [orig, before, after] = @match(/^([\s\n\r]*)(.+)/)
+    length = after.length
     short = length < 120
-    href = encodeURI """text=“#{(@)}”&url=#{location.href}"""
-    span = JQ("""<a href="https://twitter.com/intent/tweet?#{href}" class="socialtext #{short}"/>""")
+    href = encodeURI """text=“#{after}”&url=#{location.href}"""
+    span = JQ("""<span class="socialtext">#{before}<a href="https://twitter.com/intent/tweet?#{href}" class="socialtext #{short}">#{@}</a></span>""")
     span.data('length', length)
-    span.html("""#{@}""")
-    span.attr('title',@)
+    span.attr('title', length)
     span
 
 # **String::getStatements()**—Parse out "statements"; i.e. sentences,
@@ -98,7 +98,7 @@ String::getStatements = ->
 
             isContinuation = (/\s/.test(chars?[0]) and /[a-z]/.test(chars?[1]))
 
-            lastCapDelta = if lastCap then currentLast - lastCap else null
+            lastCapDelta = if (lastCap > -1) then (currentLast - lastCap) else null
 
             # "I am calling you from the U.S.A."
             isCloseToCap = (lastCapDelta < 4)
@@ -111,6 +111,8 @@ String::getStatements = ->
 
             # "“I have to be very honest,” he said."
             prevIsComma = /,/.test(current[current.length - 2])
+
+            console.log(char, current.join(""), isContinuation, isVeryShort, isCloseToCap, lastCapDelta, lastCap, currentLast, nextIsText, prevIsComma)
 
             doBreak = not(isContinuation or isVeryShort or isCloseToCap or nextIsText or prevIsComma)
             if chars.length is 0 or doBreak

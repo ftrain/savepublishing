@@ -170,9 +170,7 @@ Node::unwrap = ->
         else
             JQ(texts[0]).append(texts.merge())
             texts = []            
-            if node.isUseful()
-                node.unwrap()
-
+            node.unwrap() if node.isUseful()
 
     JQ(texts[0]).replaceWith(texts.merge())
 
