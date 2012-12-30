@@ -1,0 +1,13 @@
+Simplistic Chrome extension for SavePublishing: right now just
+calls into the bookmarklet. Requires a copy of savepublishing.js
+to be copied into this directory before building it, alas, and
+bg.js butchers the regular bookmarklet.js file some.
+
+The way to improve this would be to split up the credits into
+something that would be a menu item from the extension, and use
+Chrome's tab.executeScript() functionality to inject the
+functionality rather than just do the bookmarklet thing.
+
+All that said, this works.
+
+-- edumbill
