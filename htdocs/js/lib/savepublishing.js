@@ -486,7 +486,7 @@
     short = length < 120;
     afterNoBR = after.replace(/__BR__/g, '');
     afterWithBR = after.replace(/__BR__/g, '<br/>');
-    href = encodeURI("text=&ldquo;" + afterNoBR + "&rdquo;&url=" + location.href);
+    href = encodeURI("text=“" + afterNoBR + "”&url=" + location.href);
     span = JQ("<span class=\"socialtext\">" + before + "<a href=\"https://twitter.com/intent/tweet?" + href + "\" class=\"socialtext " + short + "\">" + afterWithBR + "</a></span>");
     span.data('length', length);
     span.attr('title', length);
