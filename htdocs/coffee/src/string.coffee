@@ -70,7 +70,7 @@ String::enTweeten = ->
     short = length < 120
     afterNoBR = after.replace(/__BR__/g,'')
     afterWithBR = after.replace(/__BR__/g,'<br/>')    
-    href = encodeURI """text=“#{afterNoBR}”&url=#{location.href}"""
+    href = """text=%E2%80%9C#{encodeURI afterNoBR}%E2%80%9D&url=#{encodeURI location.href}"""
     span = JQ("""<span class="socialtext">#{before}<a href="https://twitter.com/intent/tweet?#{href}" class="socialtext #{short}">#{afterWithBR}</a></span>""")
     span.data('length', length)
     span.attr('title', length)
