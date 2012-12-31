@@ -72,7 +72,7 @@ JQ(document).ready ->
         &middot; <a href="https://twitter.com/intent/user?screen_name=ftrain" style="color:red">follow on Twitter</a>
         &middot; <a href="http://github.com/ftrain/savepublishing" style="color:red">get the source</a> &middot;
     <br/>
-        <a href="https://github.com/ftrain/savepublishing/issues/new?title=#{encodeURI 'Parse error: '+ location.href}" style="color:red">Report parse error on github</a>
+        <a href="https://github.com/ftrain/savepublishing/issues/new?title=#{encodeURI 'Parse error: '+ location.href}" style="color:red">Report parse problems on github</a>
         or <a href="mailto:ford+savepublishing@ftrain.com" style="color:red">email bugs</a>
         &middot; <a href="http://savepublishing.com/credits.html" style="color:red">Credits</a></div>""") \
         .css({'font-size':'14px'})
