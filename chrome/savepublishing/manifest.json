@@ -1,0 +1,27 @@
+{
+    "manifest_version": 2,
+    "name": "Save Publishing",
+    "version": "0.1",
+    "description": "Tweet the tweetable",
+    "icons": { "128": "icon.png" },
+    "browser_action": {
+	"default_icon": {
+	    "19": "icon-19.png", 
+	    "38": "icon-38.png"
+	},
+	"default_title": "Save Publishing"
+    },
+    "homepage_url": "http://www.savepublishing.com/",
+    "background": {
+	"persistent": false,
+	"scripts": ["bg.js"]
+    },
+    "permissions": [
+	"tabs",
+	"http://*/*",
+	"https://*/*"	
+    ],
+    "web_accessible_resources": [
+	"savepublishing.js"
+    ]
+}
