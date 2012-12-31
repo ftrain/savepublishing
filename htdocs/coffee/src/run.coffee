@@ -68,7 +68,7 @@ JQ(document).ready ->
     spTitle = JQ("""<div class="sp-title"><a href="http://savepublishing.com">SavePublishing.com</a> version 0&alpha;</div>""") \
         .css({'font-size':'18px'})
         
-    spSubTitle = JQ("""<div class="sp-subtitle">A bookmarklet by <a href="https://twitter.com/intent/user?screen_name=ftrain" style="color:red">@ftrain</a> &middot; <a href="https://twitter.com/intent/user?screen_name=ftrain" style="color:red">follow on Twitter</a> &middot; <a href="http://github.com/ftrain/savepublishing">get the source</a> &middot; <a href="mailto:ford+savepublishing@ftrain.com">report bugs</a> &middot; <a href="http://savepublishing.com/credits.html">credits</a></div>""") \
+    spSubTitle = JQ("""<div class="sp-subtitle">A bookmarklet by <a href="https://twitter.com/intent/user?screen_name=ftrain" style="color:red">@ftrain</a> &middot; <a href="https://twitter.com/intent/user?screen_name=ftrain" style="color:red">follow on Twitter</a> &middot; <a href="http://github.com/ftrain/savepublishing">get the source</a> &middot; <a href="mailto:ford+savepublishing@ftrain.com">report bugs</a> &middot; <a href="https://github.com/ftrain/savepublishing/issues/new?title=#{encodeURI location.href}">report parse error on github</a><a href="http://savepublishing.com/credits.html">credits</a></div>""") \
         .css({'font-size':'14px'})
 
     
