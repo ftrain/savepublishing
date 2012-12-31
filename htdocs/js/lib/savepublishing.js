@@ -486,7 +486,7 @@
     short = length < 120;
     afterNoBR = after.replace(/__BR__/g, '');
     afterWithBR = after.replace(/__BR__/g, '<br/>');
-    href = "text=%E2%80%9C" + (encodeURI(afterNoBR)) + "%E2%80%9D&url=" + (encodeURI(location.href));
+    href = "text=“" + (encodeURI(afterNoBR)) + "”&url=" + (encodeURI(location.href));
     span = JQ("<span class=\"socialtext\">" + before + "<a href=\"https://twitter.com/intent/tweet?" + href + "\" class=\"socialtext " + short + "\">" + afterWithBR + "</a></span>");
     span.data('length', length);
     span.attr('title', length);
@@ -580,7 +580,7 @@
     };
     boxStyles = {
       'width': '600px',
-      'height': '55px',
+      'height': '85px',
       'margin-left': 'auto',
       'margin-right': 'auto',
       'padding': '10px 0px 0px 10px',
@@ -606,7 +606,7 @@
     spTitle = JQ("<div class=\"sp-title\"><a href=\"http://savepublishing.com\">SavePublishing.com</a> version 0&alpha;</div>").css({
       'font-size': '18px'
     });
-    spSubTitle = JQ("<div class=\"sp-subtitle\">A bookmarklet by <a href=\"https://twitter.com/intent/user?screen_name=ftrain\" style=\"color:red\">@ftrain</a> &middot; <a href=\"https://twitter.com/intent/user?screen_name=ftrain\" style=\"color:red\">follow on Twitter</a> &middot; <a href=\"http://github.com/ftrain/savepublishing\">get the source</a> &middot; <a href=\"mailto:ford+savepublishing@ftrain.com\">report bugs</a> &middot; <a href=\"http://savepublishing.com/credits.html\">credits</a></div>").css({
+    spSubTitle = JQ("<div class=\"sp-subtitle\">A bookmarklet by <a href=\"https://twitter.com/intent/user?screen_name=ftrain\" style=\"color:red\">@ftrain</a>\n    &middot; <a href=\"https://twitter.com/intent/user?screen_name=ftrain\" style=\"color:red\">follow on Twitter</a>\n    &middot; <a href=\"http://github.com/ftrain/savepublishing\" style=\"color:red\">get the source</a> &middot;\n<br/>\n    <a href=\"https://github.com/ftrain/savepublishing/issues/new?title=" + (encodeURI('Parse error: ' + location.href)) + "\" style=\"color:red\">Report parse problems on github</a>\n    or <a href=\"mailto:ford+savepublishing@ftrain.com\" style=\"color:red\">email bugs</a>\n    &middot; <a href=\"http://savepublishing.com/credits.html\" style=\"color:red\">Credits</a></div>").css({
       'font-size': '14px'
     });
     savePublishingDiv = JQ("<div id=\"savepublishing\"/>").append(spTitle).append(spSubTitle).css(boxStyles);
