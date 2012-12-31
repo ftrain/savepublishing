@@ -74,7 +74,7 @@ JQ(document).ready ->
     <br/>
         <a href="https://github.com/ftrain/savepublishing/issues/new?title=#{encodeURI 'Parse error: '+ location.href}" style="color:red">Report parse error on github</a>
         &middot; or <a href="mailto:ford+savepublishing@ftrain.com" style="color:red">email bugs</a>
-        &middot; <a href="http://savepublishing.com/credits.html">Cedits</a></div>""") \
+        &middot; <a href="http://savepublishing.com/credits.html" style="color:red">Credits</a></div>""") \
         .css({'font-size':'14px'})
 
     
