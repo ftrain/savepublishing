@@ -277,10 +277,11 @@ WORD_REGEX               = new RegExp("(\\b)(" + \
 # 
 getBestURL = ->
     url = location.href
+    console.log url
     canonical = JQ('link[rel="canonical"]')
     if canonical
-        url = canonical.attr('href')
-        
+        url = canonical.attr('href') if canonical.attr('href')
+    console.log url        
     url
 
 BEST_URL = getBestURL()
