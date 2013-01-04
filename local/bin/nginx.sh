@@ -3,7 +3,7 @@
 # Archlinux
 
 DIR=`pwd`
-NGINX_CONFIG=$DIR"/../etc/nginx/nginx.conf"
+NGINX_CONFIG=$DIR"/../etc/nginx/nginx.local.conf"
 NGINX_BIN=""
 
 function check_config {
