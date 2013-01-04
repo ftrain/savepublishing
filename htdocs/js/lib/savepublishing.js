@@ -481,10 +481,10 @@
 
   String.prototype.enTweeten = function() {
     var after, afterNoBR, afterWithBR, before, href, length, orig, short, span, _ref;
-    _ref = this.match(/^([\s\n\r]*)(.+)/), orig = _ref[0], before = _ref[1], after = _ref[2];
+    _ref = this.match(/^([\s\r\n]*)([\s\S]+)/), orig = _ref[0], before = _ref[1], after = _ref[2];
     length = after.length;
     short = length < 120;
-    afterNoBR = after.replace(/__BR__/g, '').addXMLEntities();
+    afterNoBR = after.replace(/__BR__/g, ' ');
     afterWithBR = after.replace(/__BR__/g, '<br/>');
     href = "text=%E2%80%9C" + (encodeURI(afterNoBR)) + "%E2%80%9D&url=" + (encodeURI(location.href));
     span = JQ("<span class=\"socialtext\">" + before + "<a href=\"https://twitter.com/intent/tweet?" + href + "\" class=\"socialtext " + short + "\">" + afterWithBR + "</a></span>");
