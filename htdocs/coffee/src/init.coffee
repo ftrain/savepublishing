@@ -276,10 +276,11 @@ WORD_REGEX               = new RegExp("(\\b)(" + \
 # TODO Move this into window.coffee?
 # 
 getBestURL = ->
-    url = window.location.href
+    url = location.href
     canonical = JQ('link[rel="canonical"]')
     if canonical
         url = canonical.attr('href')
+        
     url
 
 BEST_URL = getBestURL()
