@@ -163,9 +163,19 @@ Node::emptyNode = ->
 # 
 # This is the main function for this bookmarklet. It is a recursive
 # function that steps through the DOM hierarchy starting with the
-# specified node object, and looks for the first "textish" child.
+# specified node object, and looks for the first "textish" child node.
 #
-# What happens is 
+# If it finds such a node it
+# - pushes it into the array of `texts`.
+# 
+# But if it finds another kind of node it:
+# - "merges" the `texts` (i.e. calls `Array::merge()`, a custom function)
+# - empties the `texts` array
+# - and if the next node is "useful," it calls unwrap against /that/ node
+#
+# The interaction between the `texts` array and the recursive
+# unwrapping is a bit unholy. It doesn't make sense but it's short.
+# 
 
 Node::unwrap = ->
     texts    = []
@@ -174,7 +184,8 @@ Node::unwrap = ->
             texts.push(node)
         else
             JQ(texts[0]).replaceWith(texts.merge())
-            texts = []
+            texts = [] # Wait, is this necessary? 
             node.unwrap() if node.isUseful()
-                
+
+    # Trailing to catch anything that accrued in `texts`
     JQ(texts[0]).replaceWith(texts.merge())
