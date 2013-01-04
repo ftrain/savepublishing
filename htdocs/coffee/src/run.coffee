@@ -9,7 +9,7 @@ JQ(document).ready ->
     debug 'Inserting CSS'
 
 # - Load the CSS.
-    document.loadCSS(JQUERY_UI_CSS);
+    document.loadCSS(JQUERY_UI_CSS)
 
 # - Call the main "unwrap" function.
     document.body.unwrap()
@@ -78,12 +78,6 @@ JQ(document).ready ->
         .css({'font-size':'14px'})
 
     
-    #sliderWrapper = JQ("""<div id="savepublishing-wrapper"/>""") \
-    #    .css({'padding:20px 0 0 20%','width':'60%'})
-    #sliderDiv = JQ("""<div id="savepublishing-slider"/>""").slider();
-    #sliderWrapper.append(sliderDiv)
-    #    .append(sliderWrapper)  \    
-
     savePublishingDiv = JQ("""<div id="savepublishing"/>""") \
         .append(spTitle)    \
         .append(spSubTitle) \
