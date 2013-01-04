@@ -65,10 +65,12 @@ String::compareLength = (comparison) ->
 #
 # Returns node
 String::enTweeten = ->
-    [orig, before, after] = @match(/^([\s\n\r]*)(.+)/)
+    # Funtime weeping-nights discovery: [\s\S] is how JavaScript says "."
+    [orig, before, after] = @match(/^([\s\r\n]*)([\s\S]+)/)
+
     length = after.length
     short = length < 120
-    afterNoBR = after.replace(/__BR__/g,'')
+    afterNoBR = after.replace(/__BR__/g,' ')
     afterWithBR = after.replace(/__BR__/g,'<br/>')
     href = """text=%E2%80%9C#{encodeURI afterNoBR}%E2%80%9D&url=#{encodeURI location.href}"""
     span = JQ("""<span class="socialtext">#{before}<a href="https://twitter.com/intent/tweet?#{href}" class="socialtext #{short}">#{afterWithBR}</a></span>""")
