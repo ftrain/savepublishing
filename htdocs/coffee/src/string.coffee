@@ -72,10 +72,22 @@ String::enTweeten = ->
     short = length < 120
     afterNoBR = after.replace(/__BR__/g,' ')
     afterWithBR = after.replace(/__BR__/g,'<br/>')
-    href = """text=%E2%80%9C#{encodeURI afterNoBR}%E2%80%9D&url=#{encodeURI location.href}"""
+
+
+    #
+    # Character encoding when you're installing your JavaScript in
+    # other clients is a problem, so even though we'll host UTF-8 we
+    # use %E2%80%9C for “ and %E2%80%9D for ”. On the NewYorker.com,
+    # for example, properly encoded UTF-8 quotes go fine into the
+    # system and appear in source, but when calling the Tweet window
+    # via intent they turn into mess.
+    # 
+    href = """text=%E2%80%9C#{encodeURIComponent afterNoBR}%E2%80%9D&url=#{encodeURIComponent BEST_URL}"""
     span = JQ("""<span class="socialtext">#{before}<a href="https://twitter.com/intent/tweet?#{href}" class="socialtext #{short}">#{afterWithBR}</a></span>""")
-    span.data('length', length)
-    span.attr('title', length)
+
+    span.data('length', length) # Not necessary now; can go
+    span.attr('title', length)  # Mostly for reference at this pt
+    
     span
 
 # **String::getStatements()**—Parse out "statements"; i.e. sentences,
