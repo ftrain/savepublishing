@@ -269,3 +269,18 @@ WORD_REGEX               = new RegExp("(\\b)(" + \
     .sort((a,b) -> return b.length - a.length)
     .join("\|") + \
     ")(\\b)", "gi")
+
+# `getBestURL()`—Set URL, and then replace it with canonical URL if one is
+# available
+
+# TODO Move this into window.coffee?
+# 
+getBestURL = ->
+    url = window.location.href
+    canonical = JQ('link[rel="canonical"]')
+    if canonical
+        url = canonical.attr('href')
+    url
+
+BEST_URL = getBestURL()
+
