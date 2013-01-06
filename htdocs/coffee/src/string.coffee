@@ -65,7 +65,10 @@ String::compareLength = (comparison) ->
 #
 # Returns node
 String::enTweeten = ->
-    # Funtime weeping-nights discovery: [\s\S] is how JavaScript says "."
+    #
+    # Funtime up-all-night discovery: `[\s\S]` is how JavaScript says
+    # `.` (Oh! JavaScript! Vexing rogue.)
+    # 
     [orig, before, after] = @match(/^([\s\r\n]*)([\s\S]+)/)
 
     length = after.length
@@ -82,8 +85,8 @@ String::enTweeten = ->
     # system and appear in source, but when calling the Tweet window
     # via intent they turn into mess.
     # 
-    href = """text=%E2%80%9C#{encodeURIComponent afterNoBR}%E2%80%9D&url=#{encodeURIComponent BEST_URL}"""
-    span = JQ("""<span class="socialtext">#{before}<a href="https://twitter.com/intent/tweet?#{href}" class="socialtext #{short}">#{afterWithBR}</a></span>""")
+    params = """text=%E2%80%9C#{encodeURIComponent afterNoBR}%E2%80%9D&url=#{encodeURIComponent BEST_URL}"""
+    span = JQ("""<span class="socialtext">#{before}<a href="https://twitter.com/intent/tweet?#{params}" class="socialtext #{short}">#{afterWithBR}</a></span>""")
 
     span.data('length', length) # Not necessary now; can go
     span.attr('title', length)  # Mostly for reference at this pt
