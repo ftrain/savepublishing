@@ -216,7 +216,7 @@
         url = canonical.attr('href');
       }
       if (!url.match(/^http/)) {
-        url = "" + location.protocol + "//" + host + "/" + url;
+        url = "" + location.protocol + "//" + location.host + "/" + url;
       }
     }
     debug("The best URL for this page is: " + url);
