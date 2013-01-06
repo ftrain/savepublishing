@@ -7,7 +7,7 @@
 
   SECTION = "init.coffee";
 
-  DEBUG = true;
+  DEBUG = false;
 
   debug = function(message) {
     if (DEBUG) {
@@ -515,7 +515,7 @@
     _ref = this.match(/^([\s\r\n]*)([\s\S]+)/), orig = _ref[0], before = _ref[1], after = _ref[2];
     length = after.length;
     short = length < 119;
-    afterNoBR = after.replace(/__BR__/g, ' ');
+    afterNoBR = after.replace(/__BR__/g, '');
     afterWithBR = after.replace(/__BR__/g, '<br/>');
     final = afterNoBR.fixQuotes();
     params = "text=%E2%80%9C" + (encodeURIComponent(final)) + "%E2%80%9D&url=" + (encodeURIComponent(BEST_URL));
