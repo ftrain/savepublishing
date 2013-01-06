@@ -7,7 +7,7 @@
 
   SECTION = "init.coffee";
 
-  DEBUG = false;
+  DEBUG = true;
 
   debug = function(message) {
     if (DEBUG) {
@@ -210,14 +210,16 @@
   getBestURL = function() {
     var canonical, url;
     url = location.href;
-    console.log(url);
     canonical = JQ('link[rel="canonical"]');
     if (canonical) {
       if (canonical.attr('href')) {
         url = canonical.attr('href');
       }
+      if (!url.match(/^http/)) {
+        url = "" + location.protocol + "//" + host + "/" + url;
+      }
     }
-    console.log(url);
+    debug("The best URL for this page is: " + url);
     return url;
   };
 
@@ -496,14 +498,17 @@
   };
 
   String.prototype.enTweeten = function() {
-    var after, afterNoBR, afterWithBR, before, href, length, orig, short, span, _ref;
+    var after, afterNoBR, afterWithBR, before, length, orig, params, short, span, _ref;
     _ref = this.match(/^([\s\r\n]*)([\s\S]+)/), orig = _ref[0], before = _ref[1], after = _ref[2];
     length = after.length;
     short = length < 120;
     afterNoBR = after.replace(/__BR__/g, ' ');
     afterWithBR = after.replace(/__BR__/g, '<br/>');
-    href = "text=%E2%80%9C" + (encodeURIComponent(afterNoBR)) + "%E2%80%9D&url=" + (encodeURIComponent(BEST_URL));
-    span = JQ("<span class=\"socialtext\">" + before + "<a href=\"https://twitter.com/intent/tweet?" + href + "\" class=\"socialtext " + short + "\">" + afterWithBR + "</a></span>");
+    if (afterNoBR.match(/“/)) {
+      afterNoBR = afterNoBR.replace(/“/, '‘').replace(/”/, '’');
+    }
+    params = "text=%E2%80%9C" + (encodeURIComponent(afterNoBR)) + "%E2%80%9D&url=" + (encodeURIComponent(BEST_URL));
+    span = JQ("<span class=\"socialtext\">" + before + "<a href=\"https://twitter.com/intent/tweet?" + params + "\" class=\"socialtext " + short + "\">" + afterWithBR + "</a></span>");
     span.data('length', length);
     span.attr('title', length);
     return span;
