@@ -75,8 +75,8 @@ String::enTweeten = ->
     short = length < 120
     afterNoBR = after.replace(/__BR__/g,' ')
     afterWithBR = after.replace(/__BR__/g,'<br/>')
-
-
+    if afterNoBR.match(/“/)    
+        afterNoBR = afterNoBR.replace(/“/,'‘').replace(/”/,'’') 
     #
     # Character encoding when you're installing your JavaScript in
     # other clients is a problem, so even though we'll host UTF-8 we
