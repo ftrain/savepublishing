@@ -86,7 +86,7 @@ String::enTweeten = ->
 
     length = after.length
     short = length < 119 # Leaving room for extras
-    afterNoBR = after.replace(/__BR__/g,' ')
+    afterNoBR = after.replace(/__BR__/g,'')
     afterWithBR = after.replace(/__BR__/g,'<br/>')
     final = afterNoBR.fixQuotes()
     #
