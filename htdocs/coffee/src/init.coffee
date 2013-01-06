@@ -42,7 +42,7 @@
 SECTION = "init.coffee"
 
 # **debug**—utility debug function
-DEBUG   = false
+DEBUG   = true
 debug   = (message) ->
     console.log """#{SECTION}: #{message}""" if DEBUG
 
@@ -280,6 +280,9 @@ getBestURL = ->
     canonical = JQ('link[rel="canonical"]')
     if canonical
         url = canonical.attr('href') if canonical.attr('href')
+        if not url.match(/^http/)
+            url = "#{location.protocol}//#{host}/#{url}"
+    debug "The best URL for this page is: #{url}"
     url
 
 BEST_URL = getBestURL()
