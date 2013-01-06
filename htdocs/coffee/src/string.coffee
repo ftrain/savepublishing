@@ -60,7 +60,9 @@ String::squeeze = ->
 String::compareLength = (comparison) ->
     @length < comparison
 
-
+# **String::fixQuotes()**
+#
+# Returns string
 String::fixQuotes = ->
     ret = @
     if @match(/“/)    
