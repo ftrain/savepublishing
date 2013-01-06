@@ -60,6 +60,17 @@ String::squeeze = ->
 String::compareLength = (comparison) ->
     @length < comparison
 
+
+String::fixQuotes = ->
+    ret = @
+    if @match(/“/)    
+        ret = @replace(/“/,'‘').replace(/”/,'’')
+    else if @match(/"/)
+        debug "Before: #{@}"
+        ret = @replace(/"([^"]+)"/gm,'‘$1’')
+        debug "After: #{ret}"
+        
+    ret
     
 # **String::enTweeten()**
 #
@@ -72,13 +83,10 @@ String::enTweeten = ->
     [orig, before, after] = @match(/^([\s\r\n]*)([\s\S]+)/)
 
     length = after.length
-    short = length < 120
+    short = length < 119 # Leaving room for extras
     afterNoBR = after.replace(/__BR__/g,' ')
     afterWithBR = after.replace(/__BR__/g,'<br/>')
-    if afterNoBR.match(/“/)    
-        afterNoBR = afterNoBR.replace(/“/,'‘').replace(/”/,'’')
-    if afterNoBR.match(/"/)    
-        afterNoBR = afterNoBR.replace(/"([^"])+"/gm,'‘$1’')
+    final = afterNoBR.fixQuotes()
     #
     # Character encoding when you're installing your JavaScript in
     # other clients is a problem, so even though we'll host UTF-8 we
@@ -87,7 +95,7 @@ String::enTweeten = ->
     # system and appear in source, but when calling the Tweet window
     # via intent they turn into mess.
     # 
-    params = """text=%E2%80%9C#{encodeURIComponent afterNoBR}%E2%80%9D&url=#{encodeURIComponent BEST_URL}"""
+    params = """text=%E2%80%9C#{encodeURIComponent final}%E2%80%9D&url=#{encodeURIComponent BEST_URL}"""
     span = JQ("""<span class="socialtext">#{before}<a href="https://twitter.com/intent/tweet?#{params}" class="socialtext #{short}">#{afterWithBR}</a></span>""")
 
     span.data('length', length) # Not necessary now; can go
