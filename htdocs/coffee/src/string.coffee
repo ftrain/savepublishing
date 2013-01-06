@@ -42,7 +42,7 @@ String::toAbbreviation = (left, word, right) ->
 String::toFirstSlash = (str) -> "#{str.charAt(0)}/"
 
 String::squeeze = ->
-    @.replace(word_regex, (a, b, c, d) -> @toAbbreviation b, c, d)
+    @replace(word_regex, (a, b, c, d) -> @toAbbreviation b, c, d)
     .replace(/(with|of)\W/g, (m) -> @toFirstSlash m)
     .replace(/\s+the\s+/g, " ")
     .replace(/(without)/g, "w/out")
@@ -76,7 +76,9 @@ String::enTweeten = ->
     afterNoBR = after.replace(/__BR__/g,' ')
     afterWithBR = after.replace(/__BR__/g,'<br/>')
     if afterNoBR.match(/“/)    
-        afterNoBR = afterNoBR.replace(/“/,'‘').replace(/”/,'’') 
+        afterNoBR = afterNoBR.replace(/“/,'‘').replace(/”/,'’')
+    if afterNoBR.match(/"/)    
+        afterNoBR = afterNoBR.replace(/"([^"])+"/gm,'‘$1’')
     #
     # Character encoding when you're installing your JavaScript in
     # other clients is a problem, so even though we'll host UTF-8 we
@@ -103,7 +105,7 @@ String::getStatements = ->
     statements = []
     closing = "."
     lastCap = null
-    chars = @.split("")
+    chars = @split("")
     while chars.length > 0
         char = chars.shift()
         current.push(char)                    
