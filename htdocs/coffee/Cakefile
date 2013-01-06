@@ -21,7 +21,7 @@ task 'build', 'Build single application file from source files', ->
   for file, index in appFiles then do (file, index) ->
     fs.readFile "src/#{file}.coffee", 'utf8', (err, fileContents) ->
       throw err if err
-      appContents[index] = """\n\nconsole.log "Evaluating: #{file}.coffee"\n\n""" + fileContents
+      appContents[index] = """\n\ndebug "Evaluating: #{file}.coffee"\n\n""" + fileContents
       process() if --remaining is 0
   process = ->
     fs.writeFile outFile, appContents.join("\n\n"), 'utf8', (err) ->
