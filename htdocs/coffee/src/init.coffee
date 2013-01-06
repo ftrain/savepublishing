@@ -263,6 +263,11 @@ SHORTENABLE_WORDS        =
 #
 # The terms are sorted by length, longest first, to improve the
 # quality of the matcher.
+#
+# I could always do this sorting ahead of time here inline but it's
+# easier to just let thousands of machines do it over and over all
+# around the world. Especially when you consider that this function is
+# never actually used.
 # 
 WORD_REGEX               = new RegExp("(\\b)(" + \
     (key for key of SHORTENABLE_WORDS)
@@ -273,7 +278,7 @@ WORD_REGEX               = new RegExp("(\\b)(" + \
 # `getBestURL()`—Set URL, and then replace it with canonical URL if one is
 # available
 
-# TODO Move this into window.coffee?
+# TODO Move this into window.coffee? Or some util function thingy?
 # 
 getBestURL = ->
     url = location.href

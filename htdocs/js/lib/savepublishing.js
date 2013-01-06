@@ -497,17 +497,28 @@
     return this.length < comparison;
   };
 
+  String.prototype.fixQuotes = function() {
+    var ret;
+    ret = this;
+    if (this.match(/“/)) {
+      ret = this.replace(/“/, '‘').replace(/”/, '’');
+    } else if (this.match(/"/)) {
+      debug("Before: " + this);
+      ret = this.replace(/"([^"]+)"/gm, '‘$1’');
+      debug("After: " + ret);
+    }
+    return ret;
+  };
+
   String.prototype.enTweeten = function() {
-    var after, afterNoBR, afterWithBR, before, length, orig, params, short, span, _ref;
+    var after, afterNoBR, afterWithBR, before, final, length, orig, params, short, span, _ref;
     _ref = this.match(/^([\s\r\n]*)([\s\S]+)/), orig = _ref[0], before = _ref[1], after = _ref[2];
     length = after.length;
-    short = length < 120;
+    short = length < 119;
     afterNoBR = after.replace(/__BR__/g, ' ');
     afterWithBR = after.replace(/__BR__/g, '<br/>');
-    if (afterNoBR.match(/“/)) {
-      afterNoBR = afterNoBR.replace(/“/, '‘').replace(/”/, '’');
-    }
-    params = "text=%E2%80%9C" + (encodeURIComponent(afterNoBR)) + "%E2%80%9D&url=" + (encodeURIComponent(BEST_URL));
+    final = afterNoBR.fixQuotes();
+    params = "text=%E2%80%9C" + (encodeURIComponent(final)) + "%E2%80%9D&url=" + (encodeURIComponent(BEST_URL));
     span = JQ("<span class=\"socialtext\">" + before + "<a href=\"https://twitter.com/intent/tweet?" + params + "\" class=\"socialtext " + short + "\">" + afterWithBR + "</a></span>");
     span.data('length', length);
     span.attr('title', length);
