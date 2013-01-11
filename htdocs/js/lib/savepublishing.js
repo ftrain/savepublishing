@@ -35,9 +35,9 @@
 
   BLOCKS = ['block', 'inline-block', 'table-cell', 'table-caption', 'list-item', 'none'];
 
-  BLOCK_ELEMENTS = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BODY'];
+  BLOCK_ELEMENTS = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BODY', 'SPAN'];
 
-  TEXTISH_ELEMENTS = ['SPAN', 'EM', 'B', 'STRONG', 'I', 'TT', 'ABBR', 'ACRONYM', 'BIG', 'CITE', 'CODE', 'DFN', 'LABEL', 'Q', 'SAMP', 'SMALL', 'SUB', 'SUP', 'VAR', 'DEL', 'INS', 'BR'];
+  TEXTISH_ELEMENTS = ['EM', 'B', 'STRONG', 'I', 'TT', 'ABBR', 'ACRONYM', 'BIG', 'CITE', 'CODE', 'DFN', 'LABEL', 'Q', 'SAMP', 'SMALL', 'SUB', 'SUP', 'VAR', 'DEL', 'INS', 'BR'];
 
   IRRELEVANT_ELEMENTS = ['IMG', 'OBJECT', 'EMBED', 'IFRAME', 'SCRIPT', 'INPUT', 'FORM', 'HEAD', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'STYLE', 'LINK'];
 
