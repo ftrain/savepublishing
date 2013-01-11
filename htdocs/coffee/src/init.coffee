@@ -42,7 +42,7 @@
 SECTION = "init.coffee"
 
 # **debug**—utility debug function
-DEBUG   = false
+DEBUG   = true
 debug   = (message) ->
     console.log """#{SECTION}: #{message}""" if DEBUG
 
