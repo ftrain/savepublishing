@@ -551,7 +551,7 @@
         lastCapDelta = lastCap > -1 ? currentLast - lastCap : null;
         isCloseToCap = lastCapDelta < 4;
         isVeryShort = currentLast < 15;
-        nextIsText = /\w/.test(chars != null ? chars[0] : void 0);
+        nextIsText = /[^\s_]/.test(chars != null ? chars[0] : void 0);
         prevIsComma = /,/.test(current[current.length - 2]);
         doBreak = !(isContinuation || isVeryShort || isCloseToCap || nextIsText || prevIsComma);
         if (chars.length === 0 || doBreak) {
