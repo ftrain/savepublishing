@@ -178,11 +178,14 @@ Node::emptyNode = ->
 # 
 
 Node::unwrap = ->
+    debug """Running unwrap..."""
     texts    = []
     for node in @childNodes
         if node.isTextish()
             texts.push(node)
+            debug """node #{node.nodeName} is textish. Pushing real good."""
         else
+            debug """node #{node.nodeName} is not textish: checking for usefulness."""
             JQ(texts[0]).replaceWith(texts.merge())
             texts = [] # Wait, is this necessary? 
             node.unwrap() if node.isUseful()
