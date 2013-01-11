@@ -7,7 +7,7 @@
 
   SECTION = "init.coffee";
 
-  DEBUG = true;
+  DEBUG = false;
 
   debug = function(message) {
     if (DEBUG) {
