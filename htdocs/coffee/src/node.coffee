@@ -178,6 +178,7 @@ Node::emptyNode = ->
 # 
 
 Node::unwrap = ->
+    debug """Running unwrap..."""
     texts    = []
     for node in @childNodes
         if node.isTextish()
