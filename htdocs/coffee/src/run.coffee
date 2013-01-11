@@ -4,8 +4,10 @@ SECTION = 'run.coffee'
 debug """"JQ" is assigned as:\n\t#{JQ}"""
 
 # We're finally back in jQuery-land.
-debug """The current document is: #{JQ(document).URL}"""
- 
+debug """The current document state:"""
+examinedoc = for key, value of JQ(document)
+	debug """\t#{key} is #{value}\n"""
+	
 JQ(document).ready ->
     debug 'Document ready'
     debug 'Inserting CSS'
