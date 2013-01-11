@@ -9,7 +9,7 @@ Array::merge = ->
     # Empty everything out
     node.emptyNode() for node in @
     text = strings.join("")
-    debug """Full merged string is #{string}"""
+    debug """Full merged string is #{text}"""
     spans = JQ("""<span class="socialtext-set"></span>""")
     for tweet in text.getStatements()
         debug """This tweet is apparently: #{tweet}"""
