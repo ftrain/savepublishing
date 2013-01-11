@@ -575,7 +575,7 @@
 
   debug("\"JQ\" is assigned as:\n\t" + JQ);
 
-  debug("The current document is: " + (JQ(document).url));
+  debug("The current document is: " + (JQ(document).URL));
 
   JQ(document).ready(function() {
     var boxStyles, savePublishingDiv, savePublishingWrapper, spSubTitle, spTitle, wrapperStyles;

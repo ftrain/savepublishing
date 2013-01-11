@@ -4,7 +4,7 @@ SECTION = 'run.coffee'
 debug """"JQ" is assigned as:\n\t#{JQ}"""
 
 # We're finally back in jQuery-land.
-debug """The current document is: #{JQ(document).url}"""
+debug """The current document is: #{JQ(document).URL}"""
  
 JQ(document).ready ->
     debug 'Document ready'
