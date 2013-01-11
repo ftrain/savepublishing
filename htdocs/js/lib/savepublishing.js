@@ -249,6 +249,7 @@
 
   Array.prototype.merge = function() {
     var node, spans, strings, t, text, tweet, _i, _j, _len, _len1, _ref;
+    debug("Merging text array...");
     strings = (function() {
       var _i, _len, _results;
       _results = [];
@@ -263,10 +264,12 @@
       node.emptyNode();
     }
     text = strings.join("");
+    debug("Full merged string is " + string);
     spans = JQ("<span class=\"socialtext-set\"></span>");
     _ref = text.getStatements();
     for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
       tweet = _ref[_j];
+      debug("This tweet is apparently: " + tweet);
       t = tweet.enTweeten();
       spans.append(t);
     }
