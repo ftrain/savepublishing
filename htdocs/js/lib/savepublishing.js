@@ -575,7 +575,9 @@
 
   debug("\"JQ\" is assigned as:\n\t" + JQ);
 
-  jQuery(document).ready(function() {
+  debug("The current document is: " + (JQ(document).url));
+
+  JQ(document).ready(function() {
     var boxStyles, savePublishingDiv, savePublishingWrapper, spSubTitle, spTitle, wrapperStyles;
     debug('Document ready');
     debug('Inserting CSS');

@@ -4,7 +4,9 @@ SECTION = 'run.coffee'
 debug """"JQ" is assigned as:\n\t#{JQ}"""
 
 # We're finally back in jQuery-land.
-jQuery(document).ready ->
+debug """The current document is: #{JQ(document).url}"""
+ 
+JQ(document).ready ->
     debug 'Document ready'
     debug 'Inserting CSS'
 
