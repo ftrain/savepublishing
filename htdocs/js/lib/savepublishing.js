@@ -412,7 +412,9 @@
       node = _ref[_i];
       if (node.isTextish()) {
         texts.push(node);
+        debug("node " + node.nodeName + " is textish. Pushing real good.");
       } else {
+        debug("node " + node.nodeName + " is not textish: checking for usefulness.");
         JQ(texts[0]).replaceWith(texts.merge());
         texts = [];
         if (node.isUseful()) {
