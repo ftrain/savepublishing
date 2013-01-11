@@ -138,7 +138,7 @@ String::getStatements = ->
             isVeryShort = (currentLast < 15)
 
             # "The time is 10 p.m., so there are two hours to go."
-            nextIsText = /\w/.test(chars?[0])
+            nextIsText = /[^\s_]/.test(chars?[0])
 
             # "“I have to be very honest,” he said."
             prevIsComma = /,/.test(current[current.length - 2])
