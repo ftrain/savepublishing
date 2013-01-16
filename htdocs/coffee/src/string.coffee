@@ -66,7 +66,7 @@ String::compareLength = (comparison) ->
 String::fixQuotes = ->
     ret = @
     if @match(/“/)    
-        ret = @replace(/“/,'‘').replace(/”/,'’')
+        ret = @replace(/“/g,'‘').replace(/”/g,'’')
     else if @match(/"/)
         debug "Before: #{@}"
         ret = @replace(/"([^"]+)"/gm,'‘$1’')
@@ -85,7 +85,7 @@ String::enTweeten = ->
     [orig, before, after] = @match(/^([\s\r\n]*)([\s\S]+)/)
 
     length = after.length
-    short = length < MAX_STRING_LENGTH # Leaving room for extras
+    short = length <= MAX_STRING_LENGTH # Leaving room for extras
     afterNoBR = after.replace(/__BR__/g,'')
     afterWithBR = after.replace(/__BR__/g,'<br/>')
     final = afterNoBR.fixQuotes()
