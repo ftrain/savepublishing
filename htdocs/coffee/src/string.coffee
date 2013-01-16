@@ -85,7 +85,7 @@ String::enTweeten = ->
     [orig, before, after] = @match(/^([\s\r\n]*)([\s\S]+)/)
 
     length = after.length
-    short = length < 119 # Leaving room for extras
+    short = length < MAX_STRING_LENGTH # Leaving room for extras
     afterNoBR = after.replace(/__BR__/g,'')
     afterWithBR = after.replace(/__BR__/g,'<br/>')
     final = afterNoBR.fixQuotes()
