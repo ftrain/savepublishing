@@ -46,6 +46,15 @@ DEBUG   = false
 debug   = (message) ->
     console.log """#{SECTION}: #{message}""" if DEBUG
 
+# The maximum length of a string.
+# 
+#    117 (chars)
+# +    2 (“...”)
+# +    1 (space after tweet)
+# +   20 (url)
+# =  140 (max tweet length)
+MAX_STRING_LENGTH = 117
+
 # **ELEMENT_NODE**, etc.—convenience globals to ease readability of
 # code as we dance around the DOM.
 # 
