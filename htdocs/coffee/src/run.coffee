@@ -12,10 +12,10 @@ debug """"JQ" is assigned as:\n\t#{JQ}"""
 # What if we just do all this stuff instead of document readying it?
 
 debug 'Document ready'
-debug 'Inserting CSS'
+# debug 'Inserting CSS'
 
 # - Load the CSS.
-document.loadCSS(JQUERY_UI_CSS)
+# document.loadCSS(JQUERY_UI_CSS)
 
 # - Call the main "unwrap" function.
 document.body.unwrap()
