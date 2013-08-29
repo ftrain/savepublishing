@@ -8,19 +8,19 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-weight: 200;
+    font-weight: 500;
     color: #008;
-    margin: 2em 0 0 -25pt;
+    margin: 1em 0 0 -25pt;
     line-height: 1.25em;
 
 }
 
 h1 {
-    font-size: 300%;
+    font-size: 120%;
 }
 
 h2 {
-    font-size: 200%;
+    font-size: 150%;
 }
 
 a.bookmarklet {
