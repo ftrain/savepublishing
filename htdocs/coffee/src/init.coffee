@@ -292,6 +292,7 @@ WORD_REGEX               = new RegExp("(\\b)(" + \
 getBestURL = ->
     url = location.href
     canonical = JQ('link[rel="canonical"]')
+    debug canonical
     if canonical
         url = canonical.attr('href') if canonical.attr('href')
         if not url.match(/^http/)

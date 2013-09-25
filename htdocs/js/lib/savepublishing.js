@@ -213,6 +213,7 @@
     var canonical, url;
     url = location.href;
     canonical = JQ('link[rel="canonical"]');
+    debug(canonical);
     if (canonical) {
       if (canonical.attr('href')) {
         url = canonical.attr('href');
