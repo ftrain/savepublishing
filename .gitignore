@@ -2,5 +2,6 @@
 .DS_Store
 .#*
 logs/*
+*~
 htdocs/coffee/node_modules
 local/etc/nginx/nginx.local.conf
