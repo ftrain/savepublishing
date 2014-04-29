@@ -40,7 +40,7 @@ task 'build', 'Build single application file from source files', ->
 
 task 'docs', 'Build docs with docco (required)', ->
     appContents = new Array remaining = appFiles.length
-      for file, index in appFiles then do (file, index) ->
+    for file, index in appFiles then do (file, index) ->
         fs.readFile "src/#{file}.coffee", 'utf8', (err, fileContents) ->
           throw err if err
           appContents[index] = fileContents
