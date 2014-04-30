@@ -100,7 +100,7 @@ Document::run = ->
     
     true
 
-if Document::body and Document::run
+if document.hasOwnProperty('body') and document.hasOwnProperty('run')
     document.run()
 else
     JQ(document).ready(Document::run)
