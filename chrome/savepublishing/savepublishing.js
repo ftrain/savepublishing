@@ -483,7 +483,7 @@
     var after, afterNoBR, afterWithBR, before, href, length, orig, short, span, _ref;
     _ref = this.match(/^([\s\n\r]*)(.+)/), orig = _ref[0], before = _ref[1], after = _ref[2];
     length = after.length;
-    short = length < 120;
+    short = length < 260;
     afterNoBR = after.replace(/__BR__/g, '');
     afterWithBR = after.replace(/__BR__/g, '<br/>');
     href = "text=%E2%80%9C" + (encodeURI(afterNoBR)) + "%E2%80%9D&url=" + (encodeURI(location.href));
